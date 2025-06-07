@@ -1,0 +1,78 @@
+{
+  "session_id": "20250607_165659",
+  "start_time": "2025-06-07T16:57:06.070647",
+  "end_time": "2025-06-07T16:59:02.162890",
+  "total_guesses": 5,
+  "guesses": [
+    {
+      "session_id": "20250607_165659",
+      "timestamp": "2025-06-07T16:57:06.070647",
+      "round": 1,
+      "target_word": "break",
+      "target_token_id": 15354,
+      "guess_word": "destroy",
+      "guess_token_id": 39393,
+      "distance": 24039,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS"
+    },
+    {
+      "session_id": "20250607_165659",
+      "timestamp": "2025-06-07T16:57:22.498104",
+      "round": 1,
+      "target_word": "break",
+      "target_token_id": 15354,
+      "guess_word": "destroy",
+      "guess_token_id": 39393,
+      "distance": 24039,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS"
+    },
+    {
+      "session_id": "20250607_165659",
+      "timestamp": "2025-06-07T16:57:34.000563",
+      "round": 1,
+      "target_word": "break",
+      "target_token_id": 15354,
+      "guess_word": "snap",
+      "guess_token_id": 103844,
+      "distance": 88490,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS"
+    },
+    {
+      "session_id": "20250607_165659",
+      "timestamp": "2025-06-07T16:58:00.211098",
+      "round": 2,
+      "target_word": "good",
+      "target_token_id": 30744,
+      "guess_word": "fine",
+      "guess_token_id": 107932,
+      "distance": 77188,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS"
+    },
+    {
+      "session_id": "20250607_165659",
+      "timestamp": "2025-06-07T16:58:13.501243",
+      "round": 3,
+      "target_word": "hot",
+      "target_token_id": 15303,
+      "guess_word": "burn",
+      "guess_token_id": 33750,
+      "distance": 18447,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS"
+    }
+  ]
+}

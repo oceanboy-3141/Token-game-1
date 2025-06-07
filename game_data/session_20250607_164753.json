@@ -1,0 +1,56 @@
+{
+  "session_id": "20250607_164753",
+  "start_time": "2025-06-07T16:48:34.514769",
+  "end_time": "2025-06-07T16:49:47.994464",
+  "total_guesses": 4,
+  "guesses": [
+    {
+      "session_id": "20250607_164753",
+      "timestamp": "2025-06-07T16:48:34.514769",
+      "round": 1,
+      "target_word": "dark",
+      "target_token_id": 42249,
+      "guess_word": "black",
+      "guess_token_id": 18474,
+      "distance": 23775,
+      "round_score": 0,
+      "total_score": 0
+    },
+    {
+      "session_id": "20250607_164753",
+      "timestamp": "2025-06-07T16:49:06.755967",
+      "round": 2,
+      "target_word": "cold",
+      "target_token_id": 178320,
+      "guess_word": "loopt",
+      "guess_token_id": 178278,
+      "distance": 42,
+      "round_score": 958,
+      "total_score": 958
+    },
+    {
+      "session_id": "20250607_164753",
+      "timestamp": "2025-06-07T16:49:18.542271",
+      "round": 3,
+      "target_word": "wake",
+      "target_token_id": 189404,
+      "guess_word": "awake",
+      "guess_token_id": 107493,
+      "distance": 81911,
+      "round_score": 0,
+      "total_score": 958
+    },
+    {
+      "session_id": "20250607_164753",
+      "timestamp": "2025-06-07T16:49:44.441280",
+      "round": 4,
+      "target_word": "jump",
+      "target_token_id": 79879,
+      "guess_word": "skip",
+      "guess_token_id": 38258,
+      "distance": 41621,
+      "round_score": 0,
+      "total_score": 958
+    }
+  ]
+}
