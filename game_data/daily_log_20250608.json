@@ -328,5 +328,20 @@
     "is_correct": false,
     "result_type": "MISS",
     "attempt_number": 1
+  },
+  {
+    "session_id": "20250608_084416",
+    "timestamp": "2025-06-08T08:44:26.943698",
+    "round": 1,
+    "target_word": "sad",
+    "target_token_id": 121007,
+    "guess_word": "hi",
+    "guess_token_id": 3686,
+    "distance": 117321,
+    "round_score": 0,
+    "total_score": 0,
+    "is_correct": false,
+    "result_type": "MISS",
+    "attempt_number": 1
   }
 ]
