@@ -1,0 +1,38 @@
+{
+  "session_id": "20250608_070409",
+  "start_time": "2025-06-08T07:04:39.177360",
+  "end_time": "2025-06-08T07:05:15.675051",
+  "total_guesses": 2,
+  "guesses": [
+    {
+      "session_id": "20250608_070409",
+      "timestamp": "2025-06-08T07:04:39.177360",
+      "round": 1,
+      "target_word": "buy",
+      "target_token_id": 30564,
+      "guess_word": "visit",
+      "guess_token_id": 40982,
+      "distance": 10418,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250608_070409",
+      "timestamp": "2025-06-08T07:05:08.191299",
+      "round": 1,
+      "target_word": "buy",
+      "target_token_id": 30564,
+      "guess_word": "labels",
+      "guess_token_id": 37054,
+      "distance": 6490,
+      "round_score": 5,
+      "total_score": 5,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 2
+    }
+  ]
+}

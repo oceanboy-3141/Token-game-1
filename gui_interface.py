@@ -217,7 +217,11 @@ class TokenGameGUI:
             messagebox.showinfo("Game Complete", "Game has already ended!")
             return
         
-        self.target_word_label.config(text=round_info['target_word'].upper())
+        self.target_word_label.config(
+            text=round_info['target_word'].upper(),
+            fg='black',  # Reset to default color
+            bg='#f0f0f0'  # Reset to default background
+        )
         self.target_info_label.config(text=f"Token ID: {round_info['target_token_id']}")
         self.round_label.config(text=f"Round: {round_info['round_number']} / {round_info['max_rounds']}")
         
@@ -258,8 +262,8 @@ class TokenGameGUI:
             # Update accuracy display
             self.accuracy_label.config(text=f"Correct: {self.game_logic.correct_guesses}")
             
-            # Add to results log
-            self.add_to_results_log(result)
+            # Add to results log (commented out - removing ugly log display)
+            # self.add_to_results_log(result)
             
             # Check if max attempts reached or word is correct - auto advance
             if result.get('max_attempts_reached') or result['feedback']['is_correct']:
@@ -281,7 +285,7 @@ class TokenGameGUI:
                 messagebox.showerror("Invalid Guess", result['error'])
             return
         
-        self.guess_entry.delete(0, tk.END)
+            self.guess_entry.delete(0, tk.END)
     
     def show_guess_result(self, result):
         """Display the result of a guess."""
@@ -290,6 +294,13 @@ class TokenGameGUI:
             widget.destroy()
         
         feedback = result['feedback']
+        
+        # Update the target word display to show feedback instead
+        self.target_word_label.config(
+            text=feedback['result'],
+            fg='white',
+            bg=feedback['color']
+        )
         
         # Create result display with colored background
         result_frame = tk.Frame(
@@ -300,25 +311,15 @@ class TokenGameGUI:
         )
         result_frame.pack(fill='x', pady=10)
         
-        # Result type (PERFECT, EXCELLENT, etc.)
-        result_type_label = tk.Label(
-            result_frame,
-            text=feedback['result'],
-            font=('Arial', 20, 'bold'),
-            bg=feedback['color'],
-            fg='white'
-        )
-        result_type_label.pack(pady=5)
-        
-        # Feedback message
+        # Feedback message (bigger and more prominent)
         feedback_label = tk.Label(
             result_frame,
             text=feedback['message'],
-            font=('Arial', 14, 'bold'),
+            font=('Arial', 16, 'bold'),
             bg=feedback['color'],
             fg='white'
         )
-        feedback_label.pack(pady=5)
+        feedback_label.pack(pady=10)
         
         # Detailed info with contrasting background
         info_frame = tk.Frame(result_frame, bg='white', relief='sunken', bd=1)

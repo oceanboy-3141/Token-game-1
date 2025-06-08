@@ -1,2 +1,2 @@
 tiktoken>=0.5.0
-tkinter-tooltip>=2.1.0 
+pyinstaller>=5.0.0 

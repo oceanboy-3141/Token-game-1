@@ -9,16 +9,28 @@ Purpose: Investigate if LLMs place synonyms similarly in token space
 
 import sys
 import os
+import subprocess
 
 # Add current directory to path to ensure module imports work
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Auto-install tiktoken if missing
 try:
     import tiktoken
 except ImportError:
-    print("ERROR: tiktoken not installed!")
-    print("Please install it with: pip install tiktoken")
-    sys.exit(1) 
+    print("📦 tiktoken not found, installing automatically...")
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "tiktoken"])
+        print("✅ tiktoken installed successfully!")
+        import tiktoken
+    except subprocess.CalledProcessError:
+        print("❌ Failed to install tiktoken automatically!")
+        print("Please install it manually with: pip install tiktoken")
+        sys.exit(1)
+    except ImportError:
+        print("❌ Still can't import tiktoken after installation!")
+        print("Please try restarting your Python environment")
+        sys.exit(1)
 
 from gui_interface import TokenGameGUI
 
