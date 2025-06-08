@@ -1,0 +1,83 @@
+{
+  "session_id": "20250607_202218",
+  "start_time": "2025-06-07T20:22:48.339958",
+  "end_time": "2025-06-07T20:23:34.393593",
+  "total_guesses": 5,
+  "guesses": [
+    {
+      "session_id": "20250607_202218",
+      "timestamp": "2025-06-07T20:22:48.339958",
+      "round": 1,
+      "target_word": "sad",
+      "target_token_id": 121007,
+      "guess_word": "mad",
+      "guess_token_id": 30273,
+      "distance": 90734,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250607_202218",
+      "timestamp": "2025-06-07T20:22:53.625227",
+      "round": 1,
+      "target_word": "sad",
+      "target_token_id": 121007,
+      "guess_word": "f",
+      "guess_token_id": 69,
+      "distance": 120938,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 2
+    },
+    {
+      "session_id": "20250607_202218",
+      "timestamp": "2025-06-07T20:22:54.638249",
+      "round": 1,
+      "target_word": "sad",
+      "target_token_id": 121007,
+      "guess_word": "f",
+      "guess_token_id": 69,
+      "distance": 120938,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 3
+    },
+    {
+      "session_id": "20250607_202218",
+      "timestamp": "2025-06-07T20:23:04.719051",
+      "round": 2,
+      "target_word": "happy",
+      "target_token_id": 51917,
+      "guess_word": "happy",
+      "guess_token_id": 51917,
+      "distance": 0,
+      "round_score": 10,
+      "total_score": 10,
+      "is_correct": true,
+      "result_type": "PERFECT",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250607_202218",
+      "timestamp": "2025-06-07T20:23:21.333973",
+      "round": 10,
+      "target_word": "work",
+      "target_token_id": 1596,
+      "guess_word": "hard",
+      "guess_token_id": 31916,
+      "distance": 30320,
+      "round_score": 0,
+      "total_score": 10,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    }
+  ]
+}

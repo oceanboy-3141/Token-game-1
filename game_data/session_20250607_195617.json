@@ -1,0 +1,50 @@
+{
+  "session_id": "20250607_195617",
+  "start_time": "2025-06-07T19:57:51.718814",
+  "end_time": "2025-06-07T19:58:25.779275",
+  "total_guesses": 3,
+  "guesses": [
+    {
+      "session_id": "20250607_195617",
+      "timestamp": "2025-06-07T19:57:51.718814",
+      "round": 1,
+      "target_word": "hard",
+      "target_token_id": 31916,
+      "guess_word": "owners",
+      "guess_token_id": 31867,
+      "distance": 49,
+      "round_score": 951,
+      "total_score": 951,
+      "is_correct": true,
+      "result_type": "GREAT"
+    },
+    {
+      "session_id": "20250607_195617",
+      "timestamp": "2025-06-07T19:58:06.881746",
+      "round": 2,
+      "target_word": "buy",
+      "target_token_id": 30564,
+      "guess_word": "purchase",
+      "guess_token_id": 66994,
+      "distance": 36430,
+      "round_score": 0,
+      "total_score": 951,
+      "is_correct": false,
+      "result_type": "MISS"
+    },
+    {
+      "session_id": "20250607_195617",
+      "timestamp": "2025-06-07T19:58:19.228140",
+      "round": 2,
+      "target_word": "buy",
+      "target_token_id": 30564,
+      "guess_word": "take",
+      "guess_token_id": 45924,
+      "distance": 15360,
+      "round_score": 0,
+      "total_score": 951,
+      "is_correct": false,
+      "result_type": "MISS"
+    }
+  ]
+}

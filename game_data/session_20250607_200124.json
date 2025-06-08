@@ -1,0 +1,22 @@
+{
+  "session_id": "20250607_200124",
+  "start_time": "2025-06-07T20:01:41.466141",
+  "end_time": "2025-06-07T20:01:46.586767",
+  "total_guesses": 1,
+  "guesses": [
+    {
+      "session_id": "20250607_200124",
+      "timestamp": "2025-06-07T20:01:41.466141",
+      "round": 1,
+      "target_word": "love",
+      "target_token_id": 55689,
+      "guess_word": "like",
+      "guess_token_id": 9995,
+      "distance": 45694,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS"
+    }
+  ]
+}

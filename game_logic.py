@@ -18,6 +18,10 @@ class GameLogic:
         self.game_history = []
         self.correct_guesses = 0
         self.game_completed = False
+        self.current_attempts = 0
+        self.max_attempts = 3
+        self.current_attempts = 0
+        self.max_attempts = 3
         
         # Predefined word list (single tokens, good for synonyms)
         self.target_words = [
@@ -58,11 +62,16 @@ class GameLogic:
             self.current_target_word
         )
         
+        # Reset attempts for new round
+        self.current_attempts = 0
+        self.max_attempts = 3
+        
         return {
             'target_word': self.current_target_word,
             'target_token_id': self.current_target_token_id,
             'round_number': self.round_number,
             'max_rounds': self.max_rounds,
+            'attempts_left': self.max_attempts,
             'game_ended': False
         }
     
@@ -70,20 +79,29 @@ class GameLogic:
         """Submit a guess and calculate score."""
         guess_word = guess_word.strip().lower()
         
+        # Check if max attempts reached
+        if self.current_attempts >= self.max_attempts:
+            return {
+                'valid_guess': False,
+                'error': 'Maximum attempts (3) reached for this round',
+                'max_attempts_reached': True
+            }
+        
         # Get guess token info
         guess_info = self.token_handler.get_word_info(guess_word)
         guess_token_id = self.token_handler.get_single_token_id(guess_word)
         
         # Calculate distance
         if guess_token_id is not None and self.current_target_token_id is not None:
+            self.current_attempts += 1
             distance = abs(guess_token_id - self.current_target_token_id)
             
-            # Calculate score (closer = higher score)
-            round_score = max(0, 1000 - distance)
+            # Calculate points using new system
+            feedback = self._get_feedback(distance, guess_token_id, self.current_target_token_id)
+            round_score = feedback['points']
             self.score += round_score
             
-            # Get feedback and check if correct
-            feedback = self._get_feedback(distance)
+            # Check if correct
             if feedback['is_correct']:
                 self.correct_guesses += 1
             
@@ -98,7 +116,8 @@ class GameLogic:
                 'round_score': round_score,
                 'total_score': self.score,
                 'is_correct': feedback['is_correct'],
-                'result_type': feedback['result']
+                'result_type': feedback['result'],
+                'attempt_number': self.current_attempts
             }
             
             self.game_history.append(guess_record)
@@ -112,59 +131,94 @@ class GameLogic:
                 'feedback': feedback,
                 'guess_info': guess_info,
                 'round_number': self.round_number,
-                'max_rounds': self.max_rounds
+                'max_rounds': self.max_rounds,
+                'attempts_used': self.current_attempts,
+                'attempts_left': self.max_attempts - self.current_attempts,
+                'max_attempts_reached': self.current_attempts >= self.max_attempts
             }
         else:
-            # Invalid guess (multi-token or not found)
+            # Invalid guess (multi-token or not found) - still counts as attempt
+            self.current_attempts += 1
             return {
                 'valid_guess': False,
                 'error': 'Word must be a single token',
-                'guess_info': guess_info
+                'guess_info': guess_info,
+                'attempts_used': self.current_attempts,
+                'attempts_left': self.max_attempts - self.current_attempts
             }
     
-    def _get_feedback(self, distance: int) -> dict:
-        """Generate feedback with clear right/wrong indication."""
-        if distance == 0:
+    def _calculate_points(self, distance: int) -> int:
+        """Calculate points based on distance ranges."""
+        if distance <= 1:
+            return 10
+        elif distance <= 100:
+            return 9
+        elif distance <= 500:
+            return 8
+        elif distance <= 1000:
+            return 7
+        elif distance <= 5000:
+            return 6
+        elif distance <= 10000:
+            return 5
+        else:
+            return 0
+    
+    def _get_feedback(self, distance: int, guess_token_id: int, target_token_id: int) -> dict:
+        """Generate feedback with clear right/wrong indication and detailed token info."""
+        
+        # Calculate points
+        points = self._calculate_points(distance)
+        
+        if distance <= 1:
             return {
-                'message': "🎯 PERFECT! Exact same token ID!",
+                'message': f"🎯 YOU GOT IT! 👍",
+                'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
                 'result': 'PERFECT',
                 'color': '#4CAF50',
-                'is_correct': True
-            }
-        elif distance <= 10:
-            return {
-                'message': "🔥 EXCELLENT! Extremely close!",
-                'result': 'EXCELLENT',
-                'color': '#4CAF50',
-                'is_correct': True
-            }
-        elif distance <= 50:
-            return {
-                'message': "⭐ GREAT! Very close synonym!",
-                'result': 'GREAT',
-                'color': '#8BC34A',
-                'is_correct': True
+                'is_correct': True,
+                'points': points,
+                'encouragement': "Amazing! Perfect match! 🎉"
             }
         elif distance <= 100:
             return {
-                'message': "👍 GOOD! Pretty close!",
-                'result': 'GOOD',
-                'color': '#FFC107',
-                'is_correct': True
+                'message': f"👍 YOU GOT IT! Aww so close!",
+                'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
+                'result': 'EXCELLENT',
+                'color': '#4CAF50',
+                'is_correct': True,
+                'points': points,
+                'encouragement': "Great synonym sense! 🔥"
             }
         elif distance <= 500:
             return {
-                'message': "🤔 OKAY! Getting warmer...",
-                'result': 'OKAY',
+                'message': f"🤔 Almost there! Getting warmer...",
+                'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
+                'result': 'CLOSE',
                 'color': '#FF9800',
-                'is_correct': False
+                'is_correct': False,
+                'points': points,
+                'encouragement': "You're on the right track! 💪"
+            }
+        elif distance <= 1000:
+            return {
+                'message': f"❄️ Getting colder... try something closer!",
+                'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
+                'result': 'COLD',
+                'color': '#FF5722',
+                'is_correct': False,
+                'points': points,
+                'encouragement': "Think of more similar words! 🤔"
             }
         else:
             return {
-                'message': "❌ MISS! Try closer synonyms!",
+                'message': f"❌ Too far apart! Try a different approach!",
+                'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
                 'result': 'MISS',
                 'color': '#F44336',
-                'is_correct': False
+                'is_correct': False,
+                'points': points,
+                'encouragement': "Try completely different synonyms! 💡"
             }
     
     def get_hint(self) -> Dict:

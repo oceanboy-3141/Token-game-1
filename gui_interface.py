@@ -228,6 +228,9 @@ class TokenGameGUI:
         # Clear previous feedback
         for widget in self.feedback_frame.winfo_children():
             widget.destroy()
+        
+        # Re-enable next button
+        self.next_btn.config(state='normal')
     
     def submit_guess(self):
         """Submit the player's guess."""
@@ -258,14 +261,24 @@ class TokenGameGUI:
             # Add to results log
             self.add_to_results_log(result)
             
+            # Check if max attempts reached or word is correct - auto advance
+            if result.get('max_attempts_reached') or result['feedback']['is_correct']:
+                # Auto-advance to next word after a short delay
+                self.root.after(2000, self.start_new_round)  # 2 second delay
+                self.next_btn.config(state='disabled')  # Disable button during auto-advance
+            
             # Check if this was the last round
             if result['round_number'] >= result['max_rounds']:
                 # Enable "Next Round" button to show final results
                 self.next_btn.config(text="View Results", bg='#4CAF50')
             
         else:
-            # Invalid guess
-            messagebox.showerror("Invalid Guess", result['error'])
+            # Invalid guess - check if max attempts reached
+            if result.get('max_attempts_reached'):
+                messagebox.showinfo("Max Attempts", "3 attempts used! Moving to next word...")
+                self.start_new_round()  # Auto advance
+            else:
+                messagebox.showerror("Invalid Guess", result['error'])
             return
         
         self.guess_entry.delete(0, tk.END)
@@ -458,19 +471,19 @@ Worst Distance: {stats['worst_distance']}"""
         )
         stats_label.pack(pady=20)
         
-        # Performance rating
+        # Performance rating based on accuracy
         accuracy = final_results['accuracy']
         if accuracy >= 80:
-            rating = "🌟 AMAZING! You're a synonym master!"
+            rating = "🌟 AMAZING! You got most words right!"
             rating_color = '#4CAF50'
         elif accuracy >= 60:
-            rating = "⭐ GREAT! Excellent synonym sense!"
+            rating = "⭐ GREAT! You're good at finding synonyms!"
             rating_color = '#8BC34A'
         elif accuracy >= 40:
-            rating = "👍 GOOD! Keep practicing!"
+            rating = "👍 GOOD! You got some words right!"
             rating_color = '#FFC107'
         else:
-            rating = "🤔 OKAY! Room for improvement!"
+            rating = "🤔 OKAY! Keep practicing to get better!"
             rating_color = '#FF9800'
         
         rating_label = tk.Label(

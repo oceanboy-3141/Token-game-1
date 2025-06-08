@@ -1,0 +1,23 @@
+{
+  "session_id": "20250607_203137",
+  "start_time": "2025-06-07T20:31:43.602698",
+  "end_time": "2025-06-07T20:31:47.076743",
+  "total_guesses": 1,
+  "guesses": [
+    {
+      "session_id": "20250607_203137",
+      "timestamp": "2025-06-07T20:31:43.602698",
+      "round": 1,
+      "target_word": "bad",
+      "target_token_id": 22023,
+      "guess_word": "trash",
+      "guess_token_id": 154724,
+      "distance": 132701,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    }
+  ]
+}
