@@ -1,0 +1,23 @@
+{
+  "session_id": "20250608_200242",
+  "start_time": "2025-06-08T20:02:47.008466",
+  "end_time": "2025-06-08T20:04:05.933205",
+  "total_guesses": 1,
+  "guesses": [
+    {
+      "session_id": "20250608_200242",
+      "timestamp": "2025-06-08T20:02:47.008466",
+      "round": 1,
+      "target_word": "large",
+      "target_token_id": 32551,
+      "guess_word": "small",
+      "guess_token_id": 18158,
+      "distance": 14393,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    }
+  ]
+}

@@ -1,15 +1,15 @@
-# 🎯 Token Synonym Game
+# 🎯 Token Quest
 
-A research game that explores whether Large Language Models place synonyms similarly in token space.
+A research game that explores whether Large Language Models place semantically similar words similarly in token space.
 
 ## 🔬 Research Purpose
 
-This game is designed to investigate **token ID clustering** - do words with similar meanings have similar token IDs in LLM tokenization schemes? Players guess synonyms while the game measures token ID distances, generating valuable research data.
+This game is designed to investigate **token ID clustering** - do words with similar meanings have similar token IDs in LLM tokenization schemes? Players guess semantically related words while the game measures token ID distances, generating valuable research data.
 
 ## 🎮 How to Play
 
 1. **Target Word**: You'll see a word displayed on screen with its token ID
-2. **Your Goal**: Find a word that you think is similar/synonymous 
+2. **Your Goal**: Find a word that you think is semantically related 
 3. **Scoring**: Get points based on how close your word's token ID is to the target's token ID
 4. **Research**: Your guesses help us understand semantic clustering in tokenization!
 
@@ -26,10 +26,30 @@ This game is designed to investigate **token ID clustering** - do words with sim
    pip install tiktoken
    ```
 
-2. **Run the game**:
+2. **Run the game with mode selection**:
+   ```bash
+   python play.py
+   ```
+   OR
    ```bash
    python main.py
    ```
+
+### 🎮 Game Modes Available
+
+When you start the game, you'll see a setup screen with options for:
+
+- **🎯 Classic Mode**: Find semantically similar words (close token IDs = higher scores)
+- **🔄 Antonym Mode**: Find opposite words (distant token IDs = higher scores)  
+- **📂 Category Mode**: Focus on specific word types (emotions, size, speed, etc.)
+- **⚡ Random Mode**: Mix of all modes for variety
+
+### 🎨 Themes Available
+
+- **☀️ Light Theme**: Clean white interface
+- **🌙 Dark Theme**: Dark mode for low-light gaming
+- **💙 Ocean Theme**: Blue color scheme
+- **🌿 Nature Theme**: Green color scheme
 
 ## 📁 Project Structure
 
@@ -78,12 +98,12 @@ Data is saved to:
 - **Encoding**: Uses `o200k_base` (OpenAI's latest tokenizer)
 - **Token Distance**: Calculated as absolute difference between token IDs
 - **Single Tokens**: Game focuses on words that tokenize to single tokens
-- **Word List**: Curated list of common words good for synonyms
+- **Word List**: Curated list of common words good for semantic relationships
 
 ## 📈 Research Applications
 
 This data helps answer:
-- Do synonyms cluster in token ID space?
+- Do semantically similar words cluster in token ID space?
 - How does human intuition align with tokenization similarity?
 - What patterns exist in semantic token relationships?
 - Can token distance predict semantic similarity?

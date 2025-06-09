@@ -1,6 +1,6 @@
 """
 Game Logic Module
-Handles scoring, word selection, and game state for Token Synonym Game
+Handles scoring, word selection, and game state for Token Quest
 """
 import random
 from typing import List, Dict, Optional, Tuple
@@ -143,8 +143,8 @@ class GameLogic:
                 'total_rounds': self.max_rounds
             }
         
-        # Select random target word
-        self.current_target_word = random.choice(self.single_token_words)
+        # Select random target word from active list
+        self.current_target_word = random.choice(self.active_word_list)
         self.current_target_token_id = self.token_handler.get_single_token_id(
             self.current_target_word
         )
@@ -153,13 +153,24 @@ class GameLogic:
         self.current_attempts = 0
         self.max_attempts = 3
         
+        # Set round start time for speed mode
+        if self.game_mode == 'speed':
+            import time
+            self.round_start_time = time.time()
+            if not self.time_limit:
+                self.time_limit = 30  # 30 seconds default
+        
         return {
             'target_word': self.current_target_word,
             'target_token_id': self.current_target_token_id,
             'round_number': self.round_number,
             'max_rounds': self.max_rounds,
             'attempts_left': self.max_attempts,
-            'game_ended': False
+            'game_ended': False,
+            'game_mode': self.game_mode,
+            'difficulty': self.difficulty,
+            'category': self.category,
+            'time_limit': self.time_limit if self.game_mode == 'speed' else None
         }
     
     def submit_guess(self, guess_word: str) -> Dict:
@@ -236,28 +247,88 @@ class GameLogic:
     
     def _calculate_points(self, distance: int) -> int:
         """Calculate points based on distance ranges."""
-        if distance <= 1:
-            return 10
-        elif distance <= 100:
-            return 9
-        elif distance <= 500:
-            return 8
-        elif distance <= 1000:
-            return 7
-        elif distance <= 5000:
-            return 6
-        elif distance <= 10000:
-            return 5
+        if self.game_mode == 'antonym':
+            # In antonym mode, higher distances get more points
+            if distance >= 50000:
+                return 10
+            elif distance >= 30000:
+                return 9
+            elif distance >= 20000:
+                return 8
+            elif distance >= 10000:
+                return 7
+            elif distance >= 5000:
+                return 6
+            elif distance >= 1000:
+                return 5
+            else:
+                return 0
         else:
-            return 0
+            # Normal mode - closer distances get more points
+            if distance <= 1:
+                return 10
+            elif distance <= 100:
+                return 9
+            elif distance <= 500:
+                return 8
+            elif distance <= 1000:
+                return 7
+            elif distance <= 5000:
+                return 6
+            elif distance <= 10000:
+                return 5
+            else:
+                return 0
     
     def _get_feedback(self, distance: int, guess_token_id: int, target_token_id: int) -> dict:
         """Generate feedback with clear right/wrong indication and detailed token info."""
         
-        # Calculate points
+        # Calculate points (different for antonym mode)
         points = self._calculate_points(distance)
         
-        if distance <= 1:
+        # Antonym mode has different success criteria
+        if self.game_mode == 'antonym':
+            if distance >= 50000:
+                return {
+                    'message': f"🎯 PERFECT ANTONYM! 👍",
+                    'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
+                    'result': 'PERFECT OPPOSITE',
+                    'color': '#4CAF50',
+                    'is_correct': True,
+                    'points': points,
+                    'encouragement': "Amazing! Maximum distance achieved! 🎉"
+                }
+            elif distance >= 30000:
+                return {
+                    'message': f"👍 GREAT ANTONYM! Very opposite!",
+                    'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
+                    'result': 'EXCELLENT OPPOSITE',
+                    'color': '#4CAF50',
+                    'is_correct': True,
+                    'points': points,
+                    'encouragement': "Great opposite thinking! 🔥"
+                }
+            elif distance >= 10000:
+                return {
+                    'message': f"🤔 Getting more opposite... try for even more distant!",
+                    'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
+                    'result': 'SOMEWHAT OPPOSITE',
+                    'color': '#FF9800',
+                    'is_correct': False,
+                    'points': points,
+                    'encouragement': "Think of more contrasting words! 💪"
+                }
+            else:
+                return {
+                    'message': f"❌ Too similar! Find the opposite meaning!",
+                    'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
+                    'result': 'TOO SIMILAR',
+                    'color': '#F44336',
+                    'is_correct': False,
+                    'points': points,
+                    'encouragement': "Try words with opposite meanings! 💡"
+                }
+        elif distance <= 1:
             return {
                 'message': f"🎯 YOU GOT IT! 👍",
                 'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
@@ -421,5 +492,55 @@ class GameLogic:
             'accuracy': accuracy,
             'average_distance': sum(r['distance'] for r in self.game_history) / max(1, len(self.game_history)),
             'best_distance': min(r['distance'] for r in self.game_history) if self.game_history else 0,
-            'game_completed': self.game_completed
+            'game_completed': self.game_completed,
+            'game_mode': self.game_mode,
+            'difficulty': self.difficulty,
+            'category': self.category
+        }
+    
+    def change_game_settings(self, game_mode: str = None, difficulty: str = None, category: str = None):
+        """Change game settings and refresh word list."""
+        if game_mode:
+            self.game_mode = game_mode
+        if difficulty:
+            self.difficulty = difficulty
+        if category:
+            self.category = category
+        
+        # Refresh the active word list
+        self.active_word_list = self._prepare_word_list()
+    
+    @staticmethod
+    def get_available_modes():
+        """Get available game modes."""
+        return {
+            'normal': 'Classic synonym finding',
+            'antonym': 'Find words with opposite meanings (maximum distance)',
+            'category': 'Words from specific semantic category',
+            'speed': 'Time-limited rounds for extra challenge'
+        }
+    
+    @staticmethod
+    def get_available_difficulties():
+        """Get available difficulty levels."""
+        return {
+            'easy': 'Simple, common words',
+            'medium': 'Moderate complexity words', 
+            'hard': 'Advanced vocabulary words',
+            'mixed': 'Random mix of all difficulties'
+        }
+    
+    @staticmethod
+    def get_available_categories():
+        """Get available word categories."""
+        return {
+            'all': 'All word categories',
+            'emotions': 'Feeling and emotion words',
+            'size': 'Size and dimension words',
+            'speed': 'Speed and pace words', 
+            'quality': 'Quality and value words',
+            'temperature': 'Temperature and heat words',
+            'brightness': 'Light and darkness words',
+            'actions': 'Action and movement words',
+            'difficulty': 'Difficulty and complexity words'
         } 

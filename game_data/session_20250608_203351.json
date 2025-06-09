@@ -1,0 +1,53 @@
+{
+  "session_id": "20250608_203351",
+  "start_time": "2025-06-08T20:33:55.990034",
+  "end_time": "2025-06-08T20:35:17.818932",
+  "total_guesses": 3,
+  "guesses": [
+    {
+      "session_id": "20250608_203351",
+      "timestamp": "2025-06-08T20:33:55.990034",
+      "round": 1,
+      "target_word": "tiny",
+      "target_token_id": 90634,
+      "guess_word": "small",
+      "guess_token_id": 18158,
+      "distance": 72476,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250608_203351",
+      "timestamp": "2025-06-08T20:34:37.794446",
+      "round": 2,
+      "target_word": "light",
+      "target_token_id": 6038,
+      "guess_word": "ize",
+      "guess_token_id": 750,
+      "distance": 5288,
+      "round_score": 5,
+      "total_score": 5,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250608_203351",
+      "timestamp": "2025-06-08T20:34:46.729358",
+      "round": 3,
+      "target_word": "swift",
+      "target_token_id": 169318,
+      "guess_word": "fast",
+      "guess_token_id": 10472,
+      "distance": 158846,
+      "round_score": 0,
+      "total_score": 5,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    }
+  ]
+}

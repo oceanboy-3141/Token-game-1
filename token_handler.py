@@ -1,6 +1,6 @@
 """
 Token Handler Module
-Manages all tiktoken operations for the Token Synonym Game
+Manages all tiktoken operations for Token Quest
 """
 
 import tiktoken

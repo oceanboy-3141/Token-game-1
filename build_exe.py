@@ -1,5 +1,5 @@
 """
-Build Script for Token Synonym Game
+Build Script for Token Quest
 Creates a standalone executable that can run without Python installed
 """
 
@@ -46,7 +46,7 @@ def build_executable():
 
 def main():
     """Main build process."""
-    print("🎯 Token Synonym Game - Executable Builder")
+    print("🎯 Token Quest - Executable Builder")
     print("=" * 50)
     
     # Check if we're in the right directory
