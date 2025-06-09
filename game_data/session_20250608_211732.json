@@ -1,0 +1,53 @@
+{
+  "session_id": "20250608_211732",
+  "start_time": "2025-06-08T21:17:42.573327",
+  "end_time": "2025-06-08T21:19:08.751584",
+  "total_guesses": 3,
+  "guesses": [
+    {
+      "session_id": "20250608_211732",
+      "timestamp": "2025-06-08T21:17:42.573327",
+      "round": 1,
+      "target_word": "mean",
+      "target_token_id": 17033,
+      "guess_word": "nice",
+      "guess_token_id": 36202,
+      "distance": 19169,
+      "round_score": 7,
+      "total_score": 7,
+      "is_correct": false,
+      "result_type": "SOMEWHAT OPPOSITE",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250608_211732",
+      "timestamp": "2025-06-08T21:18:18.132877",
+      "round": 1,
+      "target_word": "mean",
+      "target_token_id": 17033,
+      "guess_word": "well",
+      "guess_token_id": 13072,
+      "distance": 3961,
+      "round_score": 5,
+      "total_score": 12,
+      "is_correct": false,
+      "result_type": "TOO SIMILAR",
+      "attempt_number": 2
+    },
+    {
+      "session_id": "20250608_211732",
+      "timestamp": "2025-06-08T21:18:27.225888",
+      "round": 5,
+      "target_word": "slow",
+      "target_token_id": 69974,
+      "guess_word": "fast",
+      "guess_token_id": 10472,
+      "distance": 59502,
+      "round_score": 10,
+      "total_score": 22,
+      "is_correct": true,
+      "result_type": "PERFECT OPPOSITE",
+      "attempt_number": 1
+    }
+  ]
+}
