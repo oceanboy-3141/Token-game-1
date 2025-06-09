@@ -1,0 +1,53 @@
+{
+  "session_id": "20250608_194018",
+  "start_time": "2025-06-08T19:40:29.068317",
+  "end_time": "2025-06-08T19:40:53.565725",
+  "total_guesses": 3,
+  "guesses": [
+    {
+      "session_id": "20250608_194018",
+      "timestamp": "2025-06-08T19:40:29.068317",
+      "round": 1,
+      "target_word": "nice",
+      "target_token_id": 36202,
+      "guess_word": "cool",
+      "guess_token_id": 71477,
+      "distance": 35275,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250608_194018",
+      "timestamp": "2025-06-08T19:40:39.389451",
+      "round": 1,
+      "target_word": "nice",
+      "target_token_id": 36202,
+      "guess_word": "pretty",
+      "guess_token_id": 65602,
+      "distance": 29400,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 2
+    },
+    {
+      "session_id": "20250608_194018",
+      "timestamp": "2025-06-08T19:40:46.787878",
+      "round": 1,
+      "target_word": "nice",
+      "target_token_id": 36202,
+      "guess_word": "miss",
+      "guess_token_id": 15399,
+      "distance": 20803,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 3
+    }
+  ]
+}

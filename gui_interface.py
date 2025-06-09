@@ -51,12 +51,16 @@ class TokenGameGUI:
         )
         subtitle_label.pack()
         
-        # Game info frame
+        # Game info frame with progress bars
         info_frame = tk.Frame(self.root, bg='#f0f0f0')
-        info_frame.pack(pady=10)
+        info_frame.pack(pady=10, fill='x', padx=20)
+        
+        # Top stats row
+        stats_row1 = tk.Frame(info_frame, bg='#f0f0f0')
+        stats_row1.pack(fill='x', pady=5)
         
         self.score_label = tk.Label(
-            info_frame,
+            stats_row1,
             text="Score: 0",
             font=('Arial', 14, 'bold'),
             bg='#f0f0f0'
@@ -64,7 +68,7 @@ class TokenGameGUI:
         self.score_label.pack(side=tk.LEFT, padx=20)
         
         self.round_label = tk.Label(
-            info_frame,
+            stats_row1,
             text="Round: 1 / 10",
             font=('Arial', 14),
             bg='#f0f0f0'
@@ -72,13 +76,37 @@ class TokenGameGUI:
         self.round_label.pack(side=tk.LEFT, padx=20)
         
         self.accuracy_label = tk.Label(
-            info_frame,
+            stats_row1,
             text="Correct: 0",
             font=('Arial', 14),
             bg='#f0f0f0',
             fg='#4CAF50'
         )
         self.accuracy_label.pack(side=tk.LEFT, padx=20)
+        
+        # Progress bars row
+        progress_row = tk.Frame(info_frame, bg='#f0f0f0')
+        progress_row.pack(fill='x', pady=5)
+        
+        # Round progress bar
+        tk.Label(progress_row, text="Game Progress:", font=('Arial', 10), bg='#f0f0f0').pack(anchor='w')
+        self.round_progress = ttk.Progressbar(
+            progress_row, 
+            length=200, 
+            mode='determinate',
+            style='Green.Horizontal.TProgressbar'
+        )
+        self.round_progress.pack(anchor='w', pady=2)
+        
+        # Attempts progress (for current round)
+        tk.Label(progress_row, text="Round Attempts:", font=('Arial', 10), bg='#f0f0f0').pack(anchor='w', pady=(10,0))
+        self.attempts_progress = ttk.Progressbar(
+            progress_row, 
+            length=200, 
+            mode='determinate',
+            style='Blue.Horizontal.TProgressbar'
+        )
+        self.attempts_progress.pack(anchor='w', pady=2)
         
         # Target word frame
         target_frame = tk.Frame(self.root, bg='white', relief='raised', bd=2)
@@ -225,6 +253,9 @@ class TokenGameGUI:
         self.target_info_label.config(text=f"Token ID: {round_info['target_token_id']}")
         self.round_label.config(text=f"Round: {round_info['round_number']} / {round_info['max_rounds']}")
         
+        # Update progress bars
+        self.update_progress_bars(round_info)
+        
         self.guess_entry.delete(0, tk.END)
         self.guess_entry.focus()
         self.current_round_active = True
@@ -235,6 +266,22 @@ class TokenGameGUI:
         
         # Re-enable next button
         self.next_btn.config(state='normal')
+    
+    def update_progress_bars(self, round_info=None):
+        """Update progress bars to show game and round progress."""
+        if round_info:
+            # Update game progress
+            game_progress = (round_info['round_number'] / round_info['max_rounds']) * 100
+            self.round_progress['value'] = game_progress
+            
+            # Reset attempts progress for new round
+            self.attempts_progress['value'] = 0
+        
+        # Update attempts progress
+        attempts_used = self.game_logic.current_attempts
+        max_attempts = self.game_logic.max_attempts
+        attempts_progress = (attempts_used / max_attempts) * 100
+        self.attempts_progress['value'] = attempts_progress
     
     def submit_guess(self):
         """Submit the player's guess."""
@@ -261,6 +308,9 @@ class TokenGameGUI:
             
             # Update accuracy display
             self.accuracy_label.config(text=f"Correct: {self.game_logic.correct_guesses}")
+            
+            # Update progress bars
+            self.update_progress_bars()
             
             # Add to results log (commented out - removing ugly log display)
             # self.add_to_results_log(result)
@@ -338,13 +388,95 @@ class TokenGameGUI:
         info_label.pack(pady=8)
     
     def show_hint(self):
-        """Show a hint for the current round."""
-        hint = self.game_logic.get_hint()
+        """Show enhanced hint with contextual suggestions."""
+        hint_data = self.game_logic.get_hint()
         
-        if 'error' in hint:
-            messagebox.showwarning("No Hint Available", hint['error'])
-        else:
-            messagebox.showinfo("Hint", hint['message'])
+        if 'error' in hint_data:
+            messagebox.showwarning("No Hint Available", hint_data['error'])
+            return
+        
+        # Create enhanced hint popup
+        hint_window = tk.Toplevel(self.root)
+        hint_window.title("💡 Enhanced Hint")
+        hint_window.geometry("500x400")
+        hint_window.configure(bg='#f9f9f9')
+        hint_window.transient(self.root)
+        
+        # Title
+        tk.Label(
+            hint_window,
+            text=f"Hint for: {hint_data['target_word'].upper()}",
+            font=('Arial', 16, 'bold'),
+            bg='#f9f9f9',
+            fg='#2196F3'
+        ).pack(pady=10)
+        
+        # Contextual hint message
+        tk.Label(
+            hint_window,
+            text=hint_data['hint_message'],
+            font=('Arial', 12),
+            bg='#f9f9f9',
+            wraplength=450,
+            fg='#333'
+        ).pack(pady=10)
+        
+        # Token range info
+        tk.Label(
+            hint_window,
+            text=hint_data['token_range'],
+            font=('Arial', 10),
+            bg='#f9f9f9',
+            fg='#666'
+        ).pack(pady=5)
+        
+        # Suggested words section
+        if hint_data['suggested_words']:
+            tk.Label(
+                hint_window,
+                text="💭 Words with nearby token IDs:",
+                font=('Arial', 11, 'bold'),
+                bg='#f9f9f9',
+                fg='#333'
+            ).pack(pady=(10, 5))
+            
+            # Create frame for word suggestions
+            words_frame = tk.Frame(hint_window, bg='#f9f9f9')
+            words_frame.pack(pady=5)
+            
+            # Display suggested words as clickable buttons
+            for i, word in enumerate(hint_data['suggested_words'][:6]):
+                word_btn = tk.Button(
+                    words_frame,
+                    text=word,
+                    font=('Arial', 10),
+                    bg='#E3F2FD',
+                    fg='#1976D2',
+                    relief='raised',
+                    padx=8,
+                    pady=2,
+                    command=lambda w=word: self.insert_hint_word(w, hint_window)
+                )
+                word_btn.grid(row=i//3, column=i%3, padx=5, pady=2)
+        
+        # Close button
+        tk.Button(
+            hint_window,
+            text="Got it! 👍",
+            command=hint_window.destroy,
+            bg='#4CAF50',
+            fg='white',
+            font=('Arial', 11, 'bold'),
+            padx=20,
+            pady=5
+        ).pack(pady=20)
+    
+    def insert_hint_word(self, word, hint_window):
+        """Insert a suggested word into the guess entry."""
+        self.guess_entry.delete(0, tk.END)
+        self.guess_entry.insert(0, word)
+        hint_window.destroy()
+        self.guess_entry.focus()
     
     def add_to_results_log(self, result):
         """Add result to the scrollable results log."""

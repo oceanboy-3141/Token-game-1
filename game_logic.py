@@ -8,7 +8,7 @@ from token_handler import TokenHandler
 
 
 class GameLogic:
-    def __init__(self, max_rounds: int = 10):
+    def __init__(self, max_rounds: int = 10, game_mode: str = 'normal', difficulty: str = 'mixed', category: str = 'all'):
         self.token_handler = TokenHandler()
         self.current_target_word = ""
         self.current_target_token_id = None
@@ -20,17 +20,74 @@ class GameLogic:
         self.game_completed = False
         self.current_attempts = 0
         self.max_attempts = 3
-        self.current_attempts = 0
-        self.max_attempts = 3
         
-        # Predefined word list (single tokens, good for synonyms)
-        self.target_words = [
-            "happy", "sad", "big", "small", "fast", "slow", "hot", "cold",
-            "good", "bad", "new", "old", "high", "low", "strong", "weak",
-            "light", "dark", "easy", "hard", "love", "hate", "win", "lose",
-            "start", "end", "open", "close", "buy", "sell", "give", "take",
-            "run", "walk", "jump", "fall", "eat", "drink", "sleep", "wake",
-            "work", "play", "learn", "teach", "help", "hurt", "build", "break"
+        # Game mode settings
+        self.game_mode = game_mode  # 'normal', 'antonym', 'category', 'speed', 'explorer'
+        self.difficulty = difficulty  # 'easy', 'medium', 'hard', 'mixed'
+        self.category = category  # 'all', 'emotions', 'size', 'speed', etc.
+        self.time_limit = None  # For speed mode
+        self.round_start_time = None
+        
+        # Comprehensive word list organized by categories and difficulty
+        self.word_categories = {
+            'emotions': {
+                'easy': ['happy', 'sad', 'mad', 'glad', 'calm'],
+                'medium': ['angry', 'upset', 'joyful', 'worried', 'excited', 'nervous'],
+                'hard': ['elated', 'dejected', 'serene', 'melancholy', 'euphoric']
+            },
+            'size': {
+                'easy': ['big', 'small', 'tiny', 'huge', 'tall'],
+                'medium': ['large', 'petite', 'massive', 'mini', 'giant'],
+                'hard': ['colossal', 'minuscule', 'immense', 'diminutive']
+            },
+            'speed': {
+                'easy': ['fast', 'slow', 'quick', 'rapid'],
+                'medium': ['swift', 'sluggish', 'speedy', 'gradual'],
+                'hard': ['brisk', 'leisurely', 'hasty', 'lethargic']
+            },
+            'quality': {
+                'easy': ['good', 'bad', 'nice', 'mean', 'kind'],
+                'medium': ['great', 'awful', 'wonderful', 'terrible', 'excellent'],
+                'hard': ['superb', 'atrocious', 'magnificent', 'dreadful']
+            },
+            'temperature': {
+                'easy': ['hot', 'cold', 'warm', 'cool'],
+                'medium': ['freezing', 'boiling', 'chilly', 'scorching'],
+                'hard': ['frigid', 'sweltering', 'tepid', 'torrid']
+            },
+            'brightness': {
+                'easy': ['light', 'dark', 'bright', 'dim'],
+                'medium': ['brilliant', 'shadowy', 'gleaming', 'murky'],
+                'hard': ['luminous', 'obscure', 'radiant', 'somber']
+            },
+            'actions': {
+                'easy': ['run', 'walk', 'jump', 'sit', 'eat', 'drink'],
+                'medium': ['sprint', 'stroll', 'leap', 'devour', 'sip'],
+                'hard': ['dash', 'amble', 'bound', 'consume', 'quaff']
+            },
+            'difficulty': {
+                'easy': ['easy', 'hard', 'simple', 'tough'],
+                'medium': ['complex', 'effortless', 'challenging', 'basic'],
+                'hard': ['intricate', 'elementary', 'arduous', 'facile']
+            }
+        }
+        
+        # Flatten all words for backward compatibility
+        self.target_words = []
+        for category in self.word_categories.values():
+            for difficulty in category.values():
+                self.target_words.extend(difficulty)
+        
+        # Add synonym/antonym pairs for research
+        self.synonym_pairs = [
+            ('happy', 'glad'), ('sad', 'upset'), ('big', 'large'), ('small', 'tiny'),
+            ('fast', 'quick'), ('slow', 'gradual'), ('good', 'great'), ('bad', 'awful'),
+            ('hot', 'warm'), ('cold', 'cool'), ('bright', 'light'), ('dark', 'dim')
+        ]
+        
+        self.antonym_pairs = [
+            ('happy', 'sad'), ('big', 'small'), ('fast', 'slow'), ('good', 'bad'),
+            ('hot', 'cold'), ('light', 'dark'), ('easy', 'hard'), ('start', 'end')
         ]
         
         # Filter to only single-token words
@@ -38,6 +95,36 @@ class GameLogic:
             word for word in self.target_words 
             if self.token_handler.is_single_token(word)
         ]
+        
+        # Prepare word list based on game settings
+        self.active_word_list = self._prepare_word_list()
+    
+    def _prepare_word_list(self) -> list:
+        """Prepare the active word list based on game mode, difficulty, and category settings."""
+        words = []
+        
+        # Filter by category
+        if self.category == 'all':
+            categories_to_use = self.word_categories.keys()
+        else:
+            categories_to_use = [self.category] if self.category in self.word_categories else self.word_categories.keys()
+        
+        # Filter by difficulty
+        if self.difficulty == 'mixed':
+            difficulties_to_use = ['easy', 'medium', 'hard']
+        else:
+            difficulties_to_use = [self.difficulty] if self.difficulty in ['easy', 'medium', 'hard'] else ['easy', 'medium', 'hard']
+        
+        # Collect words based on filters
+        for category in categories_to_use:
+            for difficulty in difficulties_to_use:
+                if difficulty in self.word_categories[category]:
+                    words.extend(self.word_categories[category][difficulty])
+        
+        # Filter to only single-token words
+        filtered_words = [word for word in words if self.token_handler.is_single_token(word)]
+        
+        return filtered_words if filtered_words else self.single_token_words  # Fallback to all words
     
     def start_new_round(self) -> Dict:
         """Start a new round with a random target word."""
@@ -222,19 +309,72 @@ class GameLogic:
             }
     
     def get_hint(self) -> Dict:
-        """Get a helpful hint for the current round."""
+        """Get an enhanced hint for the current target word."""
         if not self.current_target_token_id:
             return {'error': 'No active round'}
         
-        # Find words in the nearby token range
+        # Find words near the target token ID
         nearby_words = self.token_handler.find_words_in_range(
-            self.current_target_token_id, 50
+            self.current_target_token_id, 
+            range_size=100
         )
         
+        # Generate contextual hint based on target word
+        hint_message, hint_type = self._generate_contextual_hint(self.current_target_word)
+        
+        # Filter nearby words to only show valid single tokens
+        valid_nearby = []
+        for word in nearby_words:
+            if self.token_handler.is_single_token(word.lower()) and word.lower() != self.current_target_word.lower():
+                valid_nearby.append(word.lower())
+        
         return {
-            'hint_words': nearby_words[:5],  # Show up to 5 nearby words
-            'message': f"Try words similar to: {', '.join(nearby_words[:3])}"
+            'target_word': self.current_target_word,
+            'target_token_id': self.current_target_token_id,
+            'hint_message': hint_message,
+            'hint_type': hint_type,
+            'suggested_words': valid_nearby[:8],  # Show up to 8 suggestions
+            'token_range': f"Look for words with token IDs near {self.current_target_token_id}"
         }
+    
+    def _generate_contextual_hint(self, word: str) -> tuple:
+        """Generate contextual hints based on the target word."""
+        word = word.lower()
+        
+        # Emotion words
+        emotions_positive = ['happy', 'joy', 'glad', 'cheerful', 'pleased']
+        emotions_negative = ['sad', 'angry', 'mad', 'upset', 'unhappy']
+        
+        # Size words  
+        size_big = ['big', 'large', 'huge', 'giant', 'massive']
+        size_small = ['small', 'tiny', 'little', 'mini', 'petite']
+        
+        # Speed words
+        speed_fast = ['fast', 'quick', 'rapid', 'swift', 'speedy']
+        speed_slow = ['slow', 'sluggish', 'gradual', 'leisurely']
+        
+        # Quality words
+        quality_good = ['good', 'great', 'excellent', 'wonderful', 'amazing']
+        quality_bad = ['bad', 'awful', 'terrible', 'horrible', 'poor']
+        
+        if word in emotions_positive:
+            return "💖 Think of other positive emotions or feelings!", "emotion_positive"
+        elif word in emotions_negative:
+            return "💔 Consider other negative emotions or sad feelings", "emotion_negative"
+        elif word in size_big:
+            return "📏 Think of other words meaning large or expansive", "size_big"
+        elif word in size_small:
+            return "🤏 Consider other words meaning tiny or compact", "size_small"
+        elif word in speed_fast:
+            return "⚡ Think of other words meaning quick or rapid", "speed_fast"
+        elif word in speed_slow:
+            return "🐌 Consider other words meaning gradual or unhurried", "speed_slow"
+        elif word in quality_good:
+            return "⭐ Think of other positive quality words", "quality_good"
+        elif word in quality_bad:
+            return "👎 Consider other negative quality words", "quality_bad"
+        else:
+            return f"🤔 Think of words similar to '{word}' or with related meanings", "general"
     
     def get_game_stats(self) -> Dict:
         """Get current game statistics."""
