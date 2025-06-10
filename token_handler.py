@@ -4,7 +4,8 @@ Manages all tiktoken operations for Token Quest
 """
 
 import tiktoken
-from typing import List, Tuple, Optional
+import random
+from typing import List, Tuple, Optional, Dict
 
 
 class TokenHandler:
@@ -12,6 +13,20 @@ class TokenHandler:
         """Initialize the token handler with specified encoding."""
         self.encoding_name = encoding_name
         self.encoder = tiktoken.get_encoding(encoding_name)
+        
+        # Educational facts about tokenization
+        self.token_facts = [
+            "🧠 Token IDs are assigned based on how frequently words appear in training data!",
+            "📊 Lower token IDs usually represent more common words and characters.",
+            "🔤 Words that start with spaces have different token IDs than the same word without spaces.",
+            "🌍 The same word can have different token IDs in different tokenization schemes.",
+            "📝 Compound words might tokenize differently than you expect!",
+            "🎯 Token distance doesn't always correlate with semantic similarity.",
+            "🔄 Some tokens represent parts of words, not complete words.",
+            "💡 Tokenization is the first step in how AI models understand language!",
+            "🎨 Creative spellings and internet slang can create surprising token patterns.",
+            "📈 Token IDs can reveal biases in training data frequency."
+        ]
         
     def get_token_ids(self, text: str) -> List[int]:
         """Get token IDs for a given text."""
@@ -68,4 +83,124 @@ class TokenHandler:
             except:
                 continue
                 
-        return words[:20]  # Limit results 
+        return words[:20]  # Limit results
+    
+    def get_token_visualization_data(self, target_id: int, guess_id: int, range_size: int = 50) -> Dict:
+        """Get data for visualizing token space around target and guess."""
+        distance = abs(target_id - guess_id)
+        
+        # Create visualization range centered on target
+        vis_start = max(0, target_id - range_size)
+        vis_end = target_id + range_size
+        
+        # Find words in the visualization range
+        nearby_words = []
+        for token_id in range(vis_start, vis_end + 1, 5):  # Sample every 5th token
+            try:
+                decoded = self.encoder.decode([token_id])
+                if decoded.strip() and decoded.isalpha() and len(decoded.strip()) > 1:
+                    nearby_words.append({
+                        'word': decoded.strip(),
+                        'token_id': token_id,
+                        'distance_from_target': abs(token_id - target_id)
+                    })
+            except:
+                continue
+        
+        return {
+            'target_id': target_id,
+            'guess_id': guess_id,
+            'distance': distance,
+            'visualization_range': (vis_start, vis_end),
+            'nearby_words': nearby_words[:15],  # Limit for visualization
+            'relative_position': self._get_relative_position(target_id, guess_id),
+            'distance_category': self._categorize_distance(distance)
+        }
+    
+    def _get_relative_position(self, target_id: int, guess_id: int) -> str:
+        """Determine relative position of guess compared to target."""
+        if guess_id < target_id:
+            return "before"
+        elif guess_id > target_id:
+            return "after"
+        else:
+            return "exact"
+    
+    def _categorize_distance(self, distance: int) -> str:
+        """Categorize the distance for educational feedback."""
+        if distance == 0:
+            return "perfect"
+        elif distance <= 50:
+            return "excellent"
+        elif distance <= 200:
+            return "good"
+        elif distance <= 500:
+            return "moderate"
+        elif distance <= 1000:
+            return "far"
+        else:
+            return "very_far"
+    
+    def get_educational_explanation(self, target_word: str, guess_word: str) -> str:
+        """Generate educational explanation for why tokens are close/far."""
+        target_id = self.get_single_token_id(target_word)
+        guess_id = self.get_single_token_id(guess_word)
+        
+        if target_id is None or guess_id is None:
+            return "One of the words isn't a single token, which affects comparison!"
+        
+        distance = abs(target_id - guess_id)
+        
+        # Generate explanation based on distance and word characteristics
+        explanations = []
+        
+        if distance <= 50:
+            explanations.append(f"🎯 Very close! '{target_word}' and '{guess_word}' have similar token IDs.")
+            explanations.append("This suggests they might be processed similarly by the tokenizer.")
+        elif distance <= 200:
+            explanations.append(f"👍 Pretty close! These words are in the same token neighborhood.")
+            explanations.append("They likely have similar frequency patterns in training data.")
+        elif distance <= 1000:
+            explanations.append(f"🤔 Moderately distant. These words are in different token regions.")
+            explanations.append("They might have different usage patterns or frequencies.")
+        else:
+            explanations.append(f"📏 Quite far apart! These words are in very different token regions.")
+            explanations.append("This suggests different frequency patterns or word characteristics.")
+        
+        # Add specific insights based on word patterns
+        if target_word.lower().startswith(guess_word.lower()[:2]):
+            explanations.append("💡 Interesting! These words share similar starting letters.")
+        
+        if len(target_word) == len(guess_word):
+            explanations.append("📐 Both words have the same length - that's a curious coincidence!")
+        
+        return " ".join(explanations)
+    
+    def get_random_token_fact(self) -> str:
+        """Get a random educational fact about tokenization."""
+        return random.choice(self.token_facts)
+    
+    def get_advanced_nearby_words(self, target_id: int, num_words: int = 10) -> List[Dict]:
+        """Get nearby words with detailed information for advanced hints."""
+        nearby_words = []
+        
+        # Search in expanding ranges
+        for range_size in [25, 50, 100, 200]:
+            words_found = self.find_words_in_range(target_id, range_size)
+            
+            for word in words_found:
+                word_id = self.get_single_token_id(word)
+                if word_id and word_id != target_id:
+                    nearby_words.append({
+                        'word': word,
+                        'token_id': word_id,
+                        'distance': abs(word_id - target_id),
+                        'direction': 'before' if word_id < target_id else 'after'
+                    })
+            
+            if len(nearby_words) >= num_words:
+                break
+        
+        # Sort by distance and return top results
+        nearby_words.sort(key=lambda x: x['distance'])
+        return nearby_words[:num_words] 

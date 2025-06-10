@@ -1,9 +1,10 @@
 """
 GUI Interface Module
-Simple tkinter-based interface for Token Quest
+Modern Material Design interface for Token Quest
 """
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext, simpledialog
+import time
 from game_logic import GameLogic
 from data_collector import DataCollector
 from leaderboard import Leaderboard
@@ -16,21 +17,73 @@ except ImportError:
         messagebox.showinfo("Tutorial", "Tutorial system not available.")
 
 
+class MaterialColors:
+    """Material Design 3.0 Color Palette"""
+    # Primary colors
+    PRIMARY = '#1976D2'
+    PRIMARY_LIGHT = '#42A5F5'
+    PRIMARY_DARK = '#1565C0'
+    
+    # Secondary colors
+    SECONDARY = '#03DAC6'
+    SECONDARY_LIGHT = '#66FFF9'
+    SECONDARY_DARK = '#00A896'
+    
+    # Surface and background
+    SURFACE = '#FFFFFF'
+    SURFACE_VARIANT = '#F5F5F5'
+    BACKGROUND = '#FAFAFA'
+    
+    # Text colors
+    ON_SURFACE = '#1D1B20'
+    ON_SURFACE_VARIANT = '#49454F'
+    OUTLINE = '#79747E'
+    
+    # Status colors
+    SUCCESS = '#4CAF50'
+    WARNING = '#FF9800'
+    ERROR = '#F44336'
+    INFO = '#2196F3'
+    
+    # Special colors for game
+    TARGET_HIGHLIGHT = '#E3F2FD'
+    HINT_BACKGROUND = '#F3E5F5'
+    RESULT_EXCELLENT = '#E8F5E8'
+    RESULT_GOOD = '#FFF3E0'
+    RESULT_NEEDS_WORK = '#FFEBEE'
+
+
+class MaterialTypography:
+    """Material Design Typography Scale"""
+    HEADLINE_LARGE = ('Segoe UI', 32, 'bold')
+    HEADLINE_MEDIUM = ('Segoe UI', 28, 'bold')
+    HEADLINE_SMALL = ('Segoe UI', 24, 'bold')
+    
+    TITLE_LARGE = ('Segoe UI', 22, 'normal')
+    TITLE_MEDIUM = ('Segoe UI', 16, 'bold')
+    TITLE_SMALL = ('Segoe UI', 14, 'bold')
+    
+    BODY_LARGE = ('Segoe UI', 16, 'normal')
+    BODY_MEDIUM = ('Segoe UI', 14, 'normal')
+    BODY_SMALL = ('Segoe UI', 12, 'normal')
+    
+    LABEL_LARGE = ('Segoe UI', 14, 'bold')
+    LABEL_MEDIUM = ('Segoe UI', 12, 'bold')
+    LABEL_SMALL = ('Segoe UI', 11, 'bold')
+
+
 class TokenGameGUI:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("Token Quest - Research Edition")
-        self.root.geometry("1000x700")
+        self.root.title("Token Quest - Educational Research Edition")
+        self.root.geometry("1200x800")
         
-        # Make it start maximized on Windows
-        try:
-            self.root.state('zoomed')
-        except:
-            try:
-                self.root.attributes('-zoomed', True)
-            except:
-                pass  # If maximizing fails, just use the set size
-        self.root.configure(bg='#f0f0f0')
+        # Material Design window setup
+        self._setup_window()
+        
+        # Animation states
+        self.animation_queue = []
+        self.animation_running = False
         
         # Initialize game components
         self.game_logic = GameLogic()
@@ -40,242 +93,512 @@ class TokenGameGUI:
         # Game state
         self.current_round_active = False
         
-        # Setup UI
-        self.setup_ui()
-    
-    def setup_ui(self):
-        """Setup the main user interface."""
-        # Main title
-        title_frame = tk.Frame(self.root, bg='#f0f0f0')
-        title_frame.pack(pady=20)
+        # Setup modern UI
+        self.setup_material_ui()
         
+        # Configure ttk styles
+        self._configure_ttk_styles()
+    
+    def _setup_window(self):
+        """Configure the main window with material design principles."""
+        # Modern window appearance
+        self.root.configure(bg=MaterialColors.BACKGROUND)
+        
+        # Make responsive - start maximized on larger screens
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        
+        if screen_width >= 1400 and screen_height >= 900:
+            try:
+                self.root.state('zoomed')
+            except:
+                try:
+                    self.root.attributes('-zoomed', True)
+                except:
+                    # Fallback to large window
+                    self.root.geometry("1400x900")
+        
+        # Modern window icon and properties
+        self.root.resizable(True, True)
+        self.root.minsize(800, 600)  # Minimum responsive size
+    
+    def _configure_ttk_styles(self):
+        """Configure modern ttk widget styles."""
+        style = ttk.Style()
+        
+        # Configure progress bar styles with material colors
+        style.configure(
+            'Material.Horizontal.TProgressbar',
+            background=MaterialColors.PRIMARY,
+            troughcolor=MaterialColors.SURFACE_VARIANT,
+            borderwidth=0,
+            lightcolor=MaterialColors.PRIMARY_LIGHT,
+            darkcolor=MaterialColors.PRIMARY_DARK
+        )
+        
+        # Configure modern button style
+        style.configure(
+            'Material.TButton',
+            font=MaterialTypography.LABEL_MEDIUM,
+            padding=(16, 8)
+        )
+        
+        # Configure notebook style
+        style.configure(
+            'Material.TNotebook',
+            background=MaterialColors.SURFACE,
+            borderwidth=0
+        )
+        
+        style.configure(
+            'Material.TNotebook.Tab',
+            font=MaterialTypography.LABEL_MEDIUM,
+            padding=(12, 8)
+        )
+    
+    def create_material_card(self, parent, **kwargs):
+        """Create a material design card with elevation effect."""
+        card = tk.Frame(
+            parent,
+            bg=kwargs.get('bg', MaterialColors.SURFACE),
+            relief='flat',
+            bd=0,
+            padx=kwargs.get('padx', 24),
+            pady=kwargs.get('pady', 16)
+        )
+        
+        # Add subtle shadow effect using additional frames
+        shadow_frame = tk.Frame(
+            parent,
+            bg='#E0E0E0',  # Light shadow color
+            height=2
+        )
+        
+        return card
+    
+    def create_material_button(self, parent, text, command, style='primary', **kwargs):
+        """Create a material design button with proper styling."""
+        if style == 'primary':
+            bg_color = MaterialColors.PRIMARY
+            fg_color = MaterialColors.SURFACE
+            hover_color = MaterialColors.PRIMARY_LIGHT
+        elif style == 'secondary':
+            bg_color = MaterialColors.SECONDARY
+            fg_color = MaterialColors.ON_SURFACE
+            hover_color = MaterialColors.SECONDARY_LIGHT
+        elif style == 'success':
+            bg_color = MaterialColors.SUCCESS
+            fg_color = MaterialColors.SURFACE
+            hover_color = '#66BB6A'
+        elif style == 'warning':
+            bg_color = MaterialColors.WARNING
+            fg_color = MaterialColors.SURFACE
+            hover_color = '#FFB74D'
+        else:
+            bg_color = MaterialColors.SURFACE_VARIANT
+            fg_color = MaterialColors.ON_SURFACE
+            hover_color = '#EEEEEE'
+        
+        btn = tk.Button(
+            parent,
+            text=text,
+            command=command,
+            font=kwargs.get('font', MaterialTypography.LABEL_MEDIUM),
+            bg=bg_color,
+            fg=fg_color,
+            activebackground=hover_color,
+            activeforeground=fg_color,
+            relief='flat',
+            borderwidth=0,
+            padx=kwargs.get('padx', 24),
+            pady=kwargs.get('pady', 12),
+            cursor='hand2'
+        )
+        
+        # Add hover effects
+        def on_enter(e):
+            btn.configure(bg=hover_color)
+        
+        def on_leave(e):
+            btn.configure(bg=bg_color)
+        
+        btn.bind('<Enter>', on_enter)
+        btn.bind('<Leave>', on_leave)
+        
+        return btn
+    
+    def setup_material_ui(self):
+        """Setup the main user interface with Material Design principles."""
+        
+        # Create main container with proper spacing
+        main_container = tk.Frame(self.root, bg=MaterialColors.BACKGROUND)
+        main_container.pack(fill='both', expand=True, padx=32, pady=24)
+        
+        # Header section with app title
+        header_card = self.create_material_card(main_container, pady=20)
+        header_card.pack(fill='x', pady=(0, 24))
+        
+        # App title with modern typography
         title_label = tk.Label(
-            title_frame, 
-            text="🎯 Token Quest", 
-            font=('Arial', 24, 'bold'),
-            bg='#f0f0f0'
+            header_card,
+            text="🎯 Token Quest",
+            font=MaterialTypography.HEADLINE_MEDIUM,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE
         )
         title_label.pack()
         
         subtitle_label = tk.Label(
-            title_frame,
-            text="Find words with similar token IDs!",
-            font=('Arial', 12),
-            bg='#f0f0f0',
-            fg='#666'
+            header_card,
+            text="Explore semantic relationships through tokenization • Educational Research Edition",
+            font=MaterialTypography.BODY_MEDIUM,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE_VARIANT
         )
-        subtitle_label.pack()
+        subtitle_label.pack(pady=(8, 0))
         
-        # Game info frame with progress bars
-        info_frame = tk.Frame(self.root, bg='#f0f0f0')
-        info_frame.pack(pady=10, fill='x', padx=20)
+        # Stats section with material cards
+        stats_container = tk.Frame(main_container, bg=MaterialColors.BACKGROUND)
+        stats_container.pack(fill='x', pady=(0, 24))
         
-        # Top stats row
-        stats_row1 = tk.Frame(info_frame, bg='#f0f0f0')
-        stats_row1.pack(fill='x', pady=5)
+        # Create three stat cards in a row
+        stats_row = tk.Frame(stats_container, bg=MaterialColors.BACKGROUND)
+        stats_row.pack(fill='x')
+        
+        # Score card
+        score_card = self.create_material_card(stats_row, padx=16, pady=12)
+        score_card.pack(side='left', fill='x', expand=True, padx=(0, 8))
+        
+        tk.Label(
+            score_card,
+            text="SCORE",
+            font=MaterialTypography.LABEL_SMALL,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE_VARIANT
+        ).pack()
         
         self.score_label = tk.Label(
-            stats_row1,
-            text="Score: 0",
-            font=('Arial', 14, 'bold'),
-            bg='#f0f0f0'
+            score_card,
+            text="0",
+            font=MaterialTypography.HEADLINE_SMALL,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.SUCCESS
         )
-        self.score_label.pack(side=tk.LEFT, padx=20)
+        self.score_label.pack()
+        
+        # Round card
+        round_card = self.create_material_card(stats_row, padx=16, pady=12)
+        round_card.pack(side='left', fill='x', expand=True, padx=(8, 8))
+        
+        tk.Label(
+            round_card,
+            text="ROUND",
+            font=MaterialTypography.LABEL_SMALL,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE_VARIANT
+        ).pack()
         
         self.round_label = tk.Label(
-            stats_row1,
-            text="Round: 1 / 10",
-            font=('Arial', 14),
-            bg='#f0f0f0'
+            round_card,
+            text="1 / 10",
+            font=MaterialTypography.HEADLINE_SMALL,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.PRIMARY
         )
-        self.round_label.pack(side=tk.LEFT, padx=20)
+        self.round_label.pack()
+        
+        # Accuracy card
+        accuracy_card = self.create_material_card(stats_row, padx=16, pady=12)
+        accuracy_card.pack(side='left', fill='x', expand=True, padx=(8, 0))
+        
+        tk.Label(
+            accuracy_card,
+            text="CORRECT",
+            font=MaterialTypography.LABEL_SMALL,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE_VARIANT
+        ).pack()
         
         self.accuracy_label = tk.Label(
-            stats_row1,
-            text="Correct: 0",
-            font=('Arial', 14),
-            bg='#f0f0f0',
-            fg='#4CAF50'
+            accuracy_card,
+            text="0",
+            font=MaterialTypography.HEADLINE_SMALL,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.SUCCESS
         )
-        self.accuracy_label.pack(side=tk.LEFT, padx=20)
+        self.accuracy_label.pack()
         
-        # Progress bars row
-        progress_row = tk.Frame(info_frame, bg='#f0f0f0')
-        progress_row.pack(fill='x', pady=5)
-        
-        # Round progress bar
-        tk.Label(progress_row, text="Game Progress:", font=('Arial', 10), bg='#f0f0f0').pack(anchor='w')
-        self.round_progress = ttk.Progressbar(
-            progress_row, 
-            length=200, 
-            mode='determinate',
-            style='Green.Horizontal.TProgressbar'
-        )
-        self.round_progress.pack(anchor='w', pady=2)
-        
-        # Attempts progress (for current round)
-        tk.Label(progress_row, text="Round Attempts:", font=('Arial', 10), bg='#f0f0f0').pack(anchor='w', pady=(10,0))
-        self.attempts_progress = ttk.Progressbar(
-            progress_row, 
-            length=200, 
-            mode='determinate',
-            style='Blue.Horizontal.TProgressbar'
-        )
-        self.attempts_progress.pack(anchor='w', pady=2)
-        
-        # Target word frame
-        target_frame = tk.Frame(self.root, bg='white', relief='raised', bd=2)
-        target_frame.pack(pady=20, padx=50, fill='x')
+        # Progress bars in a dedicated card
+        progress_card = self.create_material_card(main_container, pady=20)
+        progress_card.pack(fill='x', pady=(0, 24))
         
         tk.Label(
-            target_frame,
-            text="Target Word:",
-            font=('Arial', 14),
-            bg='white'
-        ).pack(pady=5)
+            progress_card,
+            text="Progress Tracking",
+            font=MaterialTypography.TITLE_SMALL,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE
+        ).pack(anchor='w')
         
-        self.target_word_label = tk.Label(
-            target_frame,
-            text="...",
-            font=('Arial', 28, 'bold'),
-            bg='white',
-            fg='#2196F3'
+        # Game progress
+        progress_frame1 = tk.Frame(progress_card, bg=MaterialColors.SURFACE)
+        progress_frame1.pack(fill='x', pady=(12, 8))
+        
+        tk.Label(
+            progress_frame1,
+            text="Game Progress",
+            font=MaterialTypography.BODY_SMALL,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE_VARIANT
+        ).pack(anchor='w')
+        
+        self.round_progress = ttk.Progressbar(
+            progress_frame1,
+            length=300,
+            mode='determinate',
+            style='Material.Horizontal.TProgressbar'
         )
-        self.target_word_label.pack(pady=10)
+        self.round_progress.pack(anchor='w', pady=(4, 0), fill='x')
+        
+        # Round attempts progress  
+        progress_frame2 = tk.Frame(progress_card, bg=MaterialColors.SURFACE)
+        progress_frame2.pack(fill='x', pady=(8, 0))
+        
+        tk.Label(
+            progress_frame2,
+            text="Round Attempts",
+            font=MaterialTypography.BODY_SMALL,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE_VARIANT
+        ).pack(anchor='w')
+        
+        self.attempts_progress = ttk.Progressbar(
+            progress_frame2,
+            length=300,
+            mode='determinate',
+            style='Material.Horizontal.TProgressbar'
+        )
+        self.attempts_progress.pack(anchor='w', pady=(4, 0), fill='x')
+        
+        # Target word section - hero card
+        target_card = self.create_material_card(main_container, pady=32)
+        target_card.pack(fill='x', pady=(0, 24))
+        
+        tk.Label(
+            target_card,
+            text="Target Word",
+            font=MaterialTypography.TITLE_MEDIUM,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE_VARIANT
+        ).pack()
+        
+        # Target word with enhanced styling
+        self.target_word_label = tk.Label(
+            target_card,
+            text="...",
+            font=MaterialTypography.HEADLINE_LARGE,
+            bg=MaterialColors.TARGET_HIGHLIGHT,
+            fg=MaterialColors.PRIMARY,
+            padx=32,
+            pady=16
+        )
+        self.target_word_label.pack(pady=(16, 8))
         
         self.target_info_label = tk.Label(
-            target_frame,
+            target_card,
             text="Token ID: ...",
-            font=('Arial', 12),
-            bg='white',
-            fg='#666'
+            font=MaterialTypography.BODY_MEDIUM,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE_VARIANT
         )
-        self.target_info_label.pack(pady=5)
+        self.target_info_label.pack()
         
-        # Input frame
-        input_frame = tk.Frame(self.root, bg='#f0f0f0')
-        input_frame.pack(pady=20)
+        # Input section card
+        input_card = self.create_material_card(main_container, pady=24)
+        input_card.pack(fill='x', pady=(0, 24))
         
         tk.Label(
-            input_frame,
-            text="Your guess:",
-            font=('Arial', 14),
-            bg='#f0f0f0'
+            input_card,
+            text="Your Guess",
+            font=MaterialTypography.TITLE_MEDIUM,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE
         ).pack()
+        
+        # Modern input field with enhanced styling
+        input_frame = tk.Frame(input_card, bg=MaterialColors.SURFACE)
+        input_frame.pack(pady=(16, 0))
         
         self.guess_entry = tk.Entry(
             input_frame,
-            font=('Arial', 16),
-            width=20,
-            justify='center'
+            font=MaterialTypography.BODY_LARGE,
+            width=25,
+            justify='center',
+            relief='flat',
+            bd=2,
+            highlightthickness=2,
+            highlightcolor=MaterialColors.PRIMARY
         )
-        self.guess_entry.pack(pady=10)
+        self.guess_entry.pack(pady=8)
         self.guess_entry.bind('<Return>', lambda e: self.submit_guess())
         
-        # Buttons frame
-        button_frame = tk.Frame(self.root, bg='#f0f0f0')
-        button_frame.pack(pady=10)
+        # Action buttons with material design
+        button_card = self.create_material_card(main_container, pady=20)
+        button_card.pack(fill='x', pady=(0, 24))
         
-        self.submit_btn = tk.Button(
-            button_frame,
-            text="Submit Guess",
-            font=('Arial', 12, 'bold'),
-            bg='#4CAF50',
-            fg='white',
-            padx=20,
-            pady=10,
-            command=self.submit_guess
+        button_container = tk.Frame(button_card, bg=MaterialColors.SURFACE)
+        button_container.pack()
+        
+        # Primary action button
+        self.submit_btn = self.create_material_button(
+            button_container,
+            "Submit Guess",
+            self.submit_guess,
+            style='primary',
+            font=MaterialTypography.LABEL_LARGE
         )
-        self.submit_btn.pack(side=tk.LEFT, padx=10)
+        self.submit_btn.pack(side='left', padx=(0, 12))
         
-        self.hint_btn = tk.Button(
-            button_frame,
-            text="Get Hint",
-            font=('Arial', 12),
-            bg='#FF9800',
-            fg='white',
-            padx=20,
-            pady=10,
-            command=self.show_hint
+        # Secondary action buttons
+        self.hint_btn = self.create_material_button(
+            button_container,
+            "💡 Get Hint",
+            self.show_hint,
+            style='secondary',
+            font=MaterialTypography.LABEL_MEDIUM
         )
-        self.hint_btn.pack(side=tk.LEFT, padx=10)
+        self.hint_btn.pack(side='left', padx=(12, 12))
         
-        self.next_btn = tk.Button(
-            button_frame,
-            text="Next Round",
-            font=('Arial', 12),
-            bg='#2196F3',
-            fg='white',
-            padx=20,
-            pady=10,
-            command=self.start_new_round
+        self.next_btn = self.create_material_button(
+            button_container,
+            "Next Round",
+            self.start_new_round,
+            style='outline',
+            font=MaterialTypography.LABEL_MEDIUM
         )
-        self.next_btn.pack(side=tk.LEFT, padx=10)
+        self.next_btn.pack(side='left', padx=(12, 12))
         
-        self.settings_btn = tk.Button(
-            button_frame,
-            text="⚙️ Settings",
-            font=('Arial', 12),
-            bg='#9C27B0',
-            fg='white',
-            padx=20,
-            pady=10,
-            command=self.show_game_settings
+        self.settings_btn = self.create_material_button(
+            button_container,
+            "⚙️ Settings",
+            self.show_game_settings,
+            style='outline',
+            font=MaterialTypography.LABEL_MEDIUM
         )
-        self.settings_btn.pack(side=tk.LEFT, padx=10)
+        self.settings_btn.pack(side='left', padx=(12, 0))
         
-        # Tutorial button
-        self.tutorial_btn = tk.Button(
-            button_frame,
-            text="🎓 Tutorial",
-            font=('Arial', 12),
-            bg='#FF9800',
-            fg='white',
-            padx=20,
-            pady=10,
-            command=self.show_tutorial
-        )
-        self.tutorial_btn.pack(side=tk.LEFT, padx=10)
+        # Feedback area (initially hidden)
+        self.feedback_frame = tk.Frame(main_container, bg=MaterialColors.BACKGROUND)
+        self.feedback_frame.pack(fill='x', pady=(0, 24))
         
-        # Feedback frame
-        self.feedback_frame = tk.Frame(self.root, bg='#f0f0f0')
-        self.feedback_frame.pack(pady=20, fill='x', padx=50)
-        
-        # Results area
-        results_frame = tk.Frame(self.root, bg='#f0f0f0')
-        results_frame.pack(pady=10, fill='both', expand=True, padx=50)
-        
-        tk.Label(
-            results_frame,
-            text="Recent Results:",
-            font=('Arial', 12, 'bold'),
-            bg='#f0f0f0'
-        ).pack(anchor='w')
-        
-        self.results_text = scrolledtext.ScrolledText(
-            results_frame,
-            height=8,
-            font=('Courier', 10),
-            bg='white'
-        )
-        self.results_text.pack(fill='both', expand=True, pady=5)
-        
-        # Menu bar
-        menubar = tk.Menu(self.root)
+        # Setup modern menu
+        self._setup_material_menu()
+    
+    def _setup_material_menu(self):
+        """Setup a modern menu bar with material design styling."""
+        menubar = tk.Menu(self.root, bg=MaterialColors.SURFACE, fg=MaterialColors.ON_SURFACE)
         self.root.config(menu=menubar)
         
-        game_menu = tk.Menu(menubar, tearoff=0)
+        # Game menu
+        game_menu = tk.Menu(menubar, tearoff=0, bg=MaterialColors.SURFACE, fg=MaterialColors.ON_SURFACE)
         menubar.add_cascade(label="Game", menu=game_menu)
-        game_menu.add_command(label="New Game", command=self.new_game)
-        game_menu.add_command(label="Game Settings", command=self.show_game_settings)
+        game_menu.add_command(label="🎮 New Game", command=self.new_game)
+        game_menu.add_command(label="⚙️ Game Settings", command=self.show_game_settings)
         game_menu.add_separator()
         game_menu.add_command(label="🎓 Tutorial", command=self.show_tutorial)
         game_menu.add_separator()
-        game_menu.add_command(label="Leaderboard", command=self.show_leaderboard)
-        game_menu.add_command(label="Statistics", command=self.show_statistics)
-        game_menu.add_command(label="Export Data", command=self.export_data)
+        game_menu.add_command(label="🏆 Leaderboard", command=self.show_leaderboard)
+        game_menu.add_command(label="📊 Statistics", command=self.show_statistics)
+        game_menu.add_command(label="📤 Export Data", command=self.export_data)
         game_menu.add_separator()
-        game_menu.add_command(label="Exit", command=self.root.quit)
+        game_menu.add_command(label="❌ Exit", command=self.root.quit)
+    
+    def smooth_color_transition(self, widget, start_color, end_color, duration=200, steps=10):
+        """Create a smooth color transition animation."""
+        if self.animation_running:
+            return
+        
+        self.animation_running = True
+        
+        # Parse RGB values
+        start_rgb = self._hex_to_rgb(start_color)
+        end_rgb = self._hex_to_rgb(end_color)
+        
+        step_delay = duration // steps
+        
+        def animate_step(step):
+            if step <= steps:
+                # Calculate interpolated color
+                progress = step / steps
+                r = int(start_rgb[0] + (end_rgb[0] - start_rgb[0]) * progress)
+                g = int(start_rgb[1] + (end_rgb[1] - start_rgb[1]) * progress)
+                b = int(start_rgb[2] + (end_rgb[2] - start_rgb[2]) * progress)
+                
+                color = f'#{r:02x}{g:02x}{b:02x}'
+                widget.configure(bg=color)
+                
+                self.root.after(step_delay, lambda: animate_step(step + 1))
+            else:
+                self.animation_running = False
+        
+        animate_step(0)
+    
+    def _hex_to_rgb(self, hex_color):
+        """Convert hex color to RGB tuple."""
+        hex_color = hex_color.lstrip('#')
+        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+    
+    def animate_feedback_entry(self, widget):
+        """Animate feedback appearance with smooth entry."""
+        original_height = widget.winfo_reqheight()
+        widget.configure(height=0)
+        
+        def expand_step(current_height):
+            if current_height < original_height:
+                new_height = min(current_height + 5, original_height)
+                widget.configure(height=new_height)
+                self.root.after(10, lambda: expand_step(new_height))
+        
+        expand_step(0)
+    
+    def pulse_animation(self, widget, scale_factor=1.1, duration=300):
+        """Create a subtle pulse animation for important elements."""
+        try:
+            original_font = widget.cget('font')
+            
+            if isinstance(original_font, str):
+                # Handle string font - more robust parsing
+                if original_font.startswith('{') and original_font.endswith('}'):
+                    # Handle tuple-like string format
+                    original_font = original_font.strip('{}').replace("'", "").split()
+                    font_family = original_font[0] if original_font else 'Segoe UI'
+                    font_size = int(original_font[1]) if len(original_font) > 1 and original_font[1].isdigit() else 12
+                else:
+                    # Handle space-separated format
+                    font_parts = original_font.split()
+                    font_family = font_parts[0] if font_parts else 'Segoe UI'
+                    # Look for numeric part
+                    font_size = 12
+                    for part in font_parts:
+                        if part.isdigit():
+                            font_size = int(part)
+                            break
+            else:
+                # Handle tuple font
+                font_family = original_font[0] if original_font and len(original_font) > 0 else 'Segoe UI'
+                font_size = original_font[1] if original_font and len(original_font) > 1 else 12
+            
+            larger_size = int(font_size * scale_factor)
+            larger_font = (font_family, larger_size, 'bold')
+            
+            # Grow
+            widget.configure(font=larger_font)
+            
+            # Shrink back after duration
+            self.root.after(duration, lambda: widget.configure(font=original_font))
+        except Exception as e:
+            # Fallback: just skip animation if there's any font parsing issue
+            pass
     
     def start_new_round(self):
         """Start a new round."""
@@ -292,8 +615,8 @@ class TokenGameGUI:
         
         self.target_word_label.config(
             text=round_info['target_word'].upper(),
-            fg='black',  # Reset to default color
-            bg='#f0f0f0'  # Reset to default background
+            fg=MaterialColors.PRIMARY,
+            bg=MaterialColors.TARGET_HIGHLIGHT
         )
         # Update info labels with game mode context
         mode_text = ""
@@ -310,7 +633,7 @@ class TokenGameGUI:
         info_text += mode_text
         
         self.target_info_label.config(text=info_text)
-        self.round_label.config(text=f"Round: {round_info['round_number']} / {round_info['max_rounds']}")
+        self.round_label.config(text=f"{round_info['round_number']} / {round_info['max_rounds']}")
         
         # Update progress bars
         self.update_progress_bars(round_info)
@@ -362,11 +685,12 @@ class TokenGameGUI:
             # Log data for research
             self.data_collector.log_guess(self.game_logic.game_history[-1])
             
-            # Update score display
-            self.score_label.config(text=f"Score: {result['total_score']}")
+            # Update score display with animation
+            self.score_label.config(text=str(result['total_score']))
+            self.pulse_animation(self.score_label, scale_factor=1.2, duration=400)
             
             # Update accuracy display
-            self.accuracy_label.config(text=f"Correct: {self.game_logic.correct_guesses}")
+            self.accuracy_label.config(text=str(self.game_logic.correct_guesses))
             
             # Update progress bars
             self.update_progress_bars()
@@ -397,75 +721,310 @@ class TokenGameGUI:
             self.guess_entry.delete(0, tk.END)
     
     def show_guess_result(self, result):
-        """Display the result of a guess."""
+        """Display the result of a guess with enhanced material design feedback and animations."""
         # Clear previous feedback
         for widget in self.feedback_frame.winfo_children():
             widget.destroy()
         
         feedback = result['feedback']
         
-        # Update the target word display to show feedback instead
+        # Animate target word feedback with smooth color transition
+        feedback_color = feedback['color']
+        self.smooth_color_transition(
+            self.target_word_label, 
+            MaterialColors.TARGET_HIGHLIGHT, 
+            feedback_color,
+            duration=300
+        )
+        
+        # Update target word with animated feedback
         self.target_word_label.config(
             text=feedback['result'],
-            fg='white',
-            bg=feedback['color']
+            fg=MaterialColors.SURFACE
         )
         
-        # Create result display with colored background
-        result_frame = tk.Frame(
-            self.feedback_frame, 
-            bg=feedback['color'], 
-            relief='raised', 
-            bd=3
-        )
-        result_frame.pack(fill='x', pady=10)
+        # Pulse animation for the target word
+        self.pulse_animation(self.target_word_label, scale_factor=1.15, duration=500)
         
-        # Feedback message (bigger and more prominent)
+        # Create material design result card
+        result_card = self.create_material_card(self.feedback_frame, pady=24)
+        result_card.pack(fill='x', pady=16)
+        
+        # Determine result styling based on feedback
+        if feedback['is_correct']:
+            card_bg = MaterialColors.RESULT_EXCELLENT
+            accent_color = MaterialColors.SUCCESS
+        elif 'CLOSE' in feedback['result']:
+            card_bg = MaterialColors.RESULT_GOOD  
+            accent_color = MaterialColors.WARNING
+        else:
+            card_bg = MaterialColors.RESULT_NEEDS_WORK
+            accent_color = MaterialColors.ERROR
+        
+        result_card.configure(bg=card_bg)
+        
+        # Result header with material typography
+        header_frame = tk.Frame(result_card, bg=card_bg)
+        header_frame.pack(fill='x', pady=(0, 16))
+        
         feedback_label = tk.Label(
-            result_frame,
+            header_frame,
             text=feedback['message'],
-            font=('Arial', 16, 'bold'),
-            bg=feedback['color'],
-            fg='white'
+            font=MaterialTypography.TITLE_LARGE,
+            bg=card_bg,
+            fg=accent_color
         )
-        feedback_label.pack(pady=10)
+        feedback_label.pack()
         
-        # Detailed info with contrasting background
-        info_frame = tk.Frame(result_frame, bg='white', relief='sunken', bd=1)
-        info_frame.pack(fill='x', padx=10, pady=10)
+        # Token Space Visualization with enhanced styling
+        if 'guess_token_id' in result and 'target_token_id' in result:
+            self.create_material_token_visualization(result_card, result, bg_color=card_bg)
         
-        # Calculate display values (always show larger - smaller = difference)
+        # Detailed info with modern card design
+        info_card = tk.Frame(result_card, bg=MaterialColors.SURFACE, relief='flat', bd=0)
+        info_card.pack(fill='x', padx=16, pady=8)
+        
+        # Score and calculation info
         guess_id = result['guess_token_id']
-        target_id = self.game_logic.current_target_token_id
+        target_id = result['target_token_id']
         larger_id = max(guess_id, target_id)
         smaller_id = min(guess_id, target_id)
         
-        info_text = f"Your word: {result['guess_info']['word']} (Token ID: {result['guess_token_id']})\n"
-        info_text += f"Calculation: {larger_id} - {smaller_id} = {result['distance']} | Round Score: +{result['round_score']}"
+        tk.Label(
+            info_card,
+            text=f"Your word: {result['guess_word']}",
+            font=MaterialTypography.BODY_LARGE,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE
+        ).pack(pady=(12, 4))
         
-        info_label = tk.Label(
-            info_frame,
-            text=info_text,
-            font=('Arial', 12),
-            bg='white',
-            fg='#333'
-        )
-        info_label.pack(pady=8)
+        tk.Label(
+            info_card,
+            text=f"Token ID: {guess_id} • Distance: {result['distance']} • Score: +{result['round_score']}",
+            font=MaterialTypography.BODY_MEDIUM,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE_VARIANT
+        ).pack(pady=(0, 12))
         
-        # Schedule to change back to target word after 3 seconds
-        self.root.after(3000, lambda: self.reset_target_display())
+        # Educational explanation with material design
+        if 'educational_explanation' in result:
+            edu_card = tk.Frame(result_card, bg=MaterialColors.HINT_BACKGROUND, relief='flat', bd=0)
+            edu_card.pack(fill='x', padx=16, pady=8)
+            
+            tk.Label(
+                edu_card,
+                text="🧠 Educational Insight",
+                font=MaterialTypography.TITLE_SMALL,
+                bg=MaterialColors.HINT_BACKGROUND,
+                fg=MaterialColors.ON_SURFACE
+            ).pack(anchor='w', padx=16, pady=(12, 8))
+            
+            tk.Label(
+                edu_card,
+                text=result['educational_explanation'],
+                font=MaterialTypography.BODY_MEDIUM,
+                bg=MaterialColors.HINT_BACKGROUND,
+                fg=MaterialColors.ON_SURFACE_VARIANT,
+                wraplength=600,
+                justify='left'
+            ).pack(anchor='w', padx=16, pady=(0, 12))
+        
+        # Token fact with modern styling
+        if 'token_fact' in result:
+            fact_card = tk.Frame(result_card, bg=MaterialColors.SURFACE_VARIANT, relief='flat', bd=0)
+            fact_card.pack(fill='x', padx=16, pady=8)
+            
+            tk.Label(
+                fact_card,
+                text="💡 Did You Know?",
+                font=MaterialTypography.TITLE_SMALL,
+                bg=MaterialColors.SURFACE_VARIANT,
+                fg=MaterialColors.PRIMARY
+            ).pack(anchor='w', padx=16, pady=(12, 8))
+            
+            tk.Label(
+                fact_card,
+                text=result['token_fact'],
+                font=MaterialTypography.BODY_MEDIUM,
+                bg=MaterialColors.SURFACE_VARIANT,
+                fg=MaterialColors.ON_SURFACE_VARIANT,
+                wraplength=600,
+                justify='left'
+            ).pack(anchor='w', padx=16, pady=(0, 12))
+        
+        # Animate the result card entry
+        self.animate_feedback_entry(result_card)
+        
+        # Schedule to reset target word display with smooth transition
+        self.root.after(5000, lambda: self.reset_target_display_smooth())
     
-    def reset_target_display(self):
-        """Reset the target word display back to showing the target word."""
-        if hasattr(self, 'game_logic') and self.game_logic.current_target_word:
-            self.target_word_label.config(
-                text=self.game_logic.current_target_word.upper(),
-                fg='#2196F3',
-                bg='white'
+    def create_material_token_visualization(self, parent, result, bg_color):
+        """Create a modern material design token space visualization."""
+        vis_card = tk.Frame(parent, bg=MaterialColors.SURFACE, relief='flat', bd=0)
+        vis_card.pack(fill='x', padx=16, pady=8)
+        
+        tk.Label(
+            vis_card,
+            text="📊 Token Space Visualization",
+            font=MaterialTypography.TITLE_SMALL,
+            bg=MaterialColors.SURFACE,
+            fg=MaterialColors.ON_SURFACE
+        ).pack(pady=(12, 8))
+        
+        # Get visualization data
+        if hasattr(self.game_logic, 'token_handler'):
+            viz_data = self.game_logic.token_handler.get_token_visualization_data(
+                result.get('target_token_id', 0),
+                result.get('guess_token_id', 0)
             )
+            
+            # Create canvas for visualization with modern styling
+            canvas = tk.Canvas(
+                vis_card, 
+                height=100, 
+                bg=MaterialColors.SURFACE,
+                highlightthickness=0,
+                relief='flat'
+            )
+            canvas.pack(fill='x', padx=16, pady=(0, 12))
+            
+            # Draw token visualization after a short delay with animation
+            canvas.after(200, lambda: self.draw_material_token_space(canvas, viz_data))
+    
+    def draw_material_token_space(self, canvas, viz_data):
+        """Draw a modern material design token space visualization."""
+        canvas.update_idletasks()
+        width = canvas.winfo_width()
+        height = canvas.winfo_height()
+        
+        if width <= 1:  # Canvas not ready, try again
+            canvas.after(100, lambda: self.draw_material_token_space(canvas, viz_data))
+            return
+        
+        # Clear canvas
+        canvas.delete("all")
+        
+        # Calculate positions
+        target_id = viz_data['target_id']
+        guess_id = viz_data['guess_id']
+        vis_range = viz_data['visualization_range']
+        range_size = vis_range[1] - vis_range[0]
+        
+        if range_size == 0:
+            return
+        
+        # Material design spacing and positioning
+        margin = width * 0.08
+        usable_width = width - (2 * margin)
+        
+        target_x = margin + ((target_id - vis_range[0]) / range_size) * usable_width
+        guess_x = margin + ((guess_id - vis_range[0]) / range_size) * usable_width
+        
+        # Draw modern timeline base
+        canvas.create_line(
+            margin, height//2, 
+            width-margin, height//2, 
+            width=3, 
+            fill=MaterialColors.OUTLINE,
+            capstyle='round'
+        )
+        
+        # Draw target with material design styling
+        canvas.create_oval(
+            target_x-10, height//2-10, 
+            target_x+10, height//2+10, 
+            fill=MaterialColors.PRIMARY,
+            outline=MaterialColors.PRIMARY_DARK, 
+            width=2
+        )
+        
+        canvas.create_text(
+            target_x, height//2-25, 
+            text='🎯 Target', 
+            font=MaterialTypography.BODY_SMALL,
+            fill=MaterialColors.PRIMARY
+        )
+        
+        # Draw guess with color based on distance category
+        distance_category = viz_data['distance_category']
+        color_map = {
+            'perfect': MaterialColors.SUCCESS,
+            'excellent': MaterialColors.SUCCESS,
+            'good': MaterialColors.WARNING,
+            'moderate': MaterialColors.WARNING,
+            'far': MaterialColors.ERROR,
+            'very_far': MaterialColors.ERROR
+        }
+        guess_color = color_map.get(distance_category, MaterialColors.ERROR)
+        
+        canvas.create_oval(
+            guess_x-8, height//2-8, 
+            guess_x+8, height//2+8, 
+            fill=guess_color,
+            outline=MaterialColors.ON_SURFACE, 
+            width=2
+        )
+        
+        canvas.create_text(
+            guess_x, height//2+25, 
+            text='Your Guess', 
+            font=MaterialTypography.BODY_SMALL,
+            fill=MaterialColors.ON_SURFACE
+        )
+        
+        # Draw animated distance line if positions are different
+        if abs(target_x - guess_x) > 15:  
+            canvas.create_line(
+                target_x, height//2, 
+                guess_x, height//2, 
+                width=2, 
+                fill=MaterialColors.SECONDARY,
+                dash=(8, 4)
+            )
+            
+            # Distance label with modern styling
+            mid_x = (target_x + guess_x) / 2
+            canvas.create_text(
+                mid_x, height//2-12, 
+                text=f'Distance: {viz_data["distance"]}', 
+                font=MaterialTypography.LABEL_MEDIUM,
+                fill=MaterialColors.SECONDARY
+            )
+        
+        # Add range indicators with subtle styling
+        canvas.create_text(
+            margin, height-12, 
+            text=str(vis_range[0]), 
+            font=MaterialTypography.BODY_SMALL,
+            fill=MaterialColors.ON_SURFACE_VARIANT
+        )
+        
+        canvas.create_text(
+            width-margin, height-12, 
+            text=str(vis_range[1]), 
+            font=MaterialTypography.BODY_SMALL,
+            fill=MaterialColors.ON_SURFACE_VARIANT
+        )
+    
+    def reset_target_display_smooth(self):
+        """Reset the target word display with smooth color transition."""
+        if hasattr(self, 'game_logic') and self.game_logic.current_target_word:
+            # Smooth transition back to original colors
+            self.smooth_color_transition(
+                self.target_word_label,
+                self.target_word_label.cget('bg'),
+                MaterialColors.TARGET_HIGHLIGHT,
+                duration=400
+            )
+            
+            # Reset text and styling
+            self.root.after(400, lambda: self.target_word_label.config(
+                text=self.game_logic.current_target_word.upper(),
+                fg=MaterialColors.PRIMARY
+            ))
     
     def show_hint(self):
-        """Show enhanced hint with contextual suggestions."""
+        """Show enhanced hint with contextual suggestions and progressive revelation."""
         hint_data = self.game_logic.get_hint()
         
         if 'error' in hint_data:
@@ -474,15 +1033,15 @@ class TokenGameGUI:
         
         # Create enhanced hint popup
         hint_window = tk.Toplevel(self.root)
-        hint_window.title("💡 Enhanced Hint")
-        hint_window.geometry("500x400")
+        hint_window.title("💡 Enhanced Hint System")
+        hint_window.geometry("600x550")
         hint_window.configure(bg='#f9f9f9')
         hint_window.transient(self.root)
         
         # Title
         tk.Label(
             hint_window,
-            text=f"Hint for: {hint_data['target_word'].upper()}",
+            text=f"Hints for: {hint_data['target_word'].upper()}",
             font=('Arial', 16, 'bold'),
             bg='#f9f9f9',
             fg='#2196F3'
@@ -494,47 +1053,135 @@ class TokenGameGUI:
             text=hint_data['hint_message'],
             font=('Arial', 12),
             bg='#f9f9f9',
-            wraplength=450,
+            wraplength=550,
             fg='#333'
         ).pack(pady=10)
         
-        # Token range info
-        tk.Label(
-            hint_window,
-            text=hint_data['token_range'],
-            font=('Arial', 10),
-            bg='#f9f9f9',
-            fg='#666'
-        ).pack(pady=5)
+        # Create notebook for different hint types
+        notebook = ttk.Notebook(hint_window)
+        notebook.pack(fill='both', expand=True, padx=20, pady=10)
         
-        # Suggested words section
-        if hint_data['suggested_words']:
-            tk.Label(
-                hint_window,
-                text="💭 Words with nearby token IDs:",
-                font=('Arial', 11, 'bold'),
-                bg='#f9f9f9',
-                fg='#333'
-            ).pack(pady=(10, 5))
+        # Semantic Hints Tab
+        semantic_frame = tk.Frame(notebook, bg='#f0f8ff')
+        notebook.add(semantic_frame, text="🧠 Semantic Hints")
+        
+        tk.Label(
+            semantic_frame,
+            text="Words with similar meanings:",
+            font=('Arial', 11, 'bold'),
+            bg='#f0f8ff',
+            fg='#333'
+        ).pack(pady=10)
+        
+        if hint_data['semantic_hints']:
+            semantic_words_frame = tk.Frame(semantic_frame, bg='#f0f8ff')
+            semantic_words_frame.pack(pady=5)
             
-            # Create frame for word suggestions
-            words_frame = tk.Frame(hint_window, bg='#f9f9f9')
-            words_frame.pack(pady=5)
-            
-            # Display suggested words as clickable buttons
-            for i, word in enumerate(hint_data['suggested_words'][:6]):
+            for i, word in enumerate(hint_data['semantic_hints'][:6]):
                 word_btn = tk.Button(
-                    words_frame,
+                    semantic_words_frame,
                     text=word,
                     font=('Arial', 10),
-                    bg='#E3F2FD',
-                    fg='#1976D2',
+                    bg='#e8f5e8',
+                    fg='#2c5e2c',
                     relief='raised',
                     padx=8,
                     pady=2,
                     command=lambda w=word: self.insert_hint_word(w, hint_window)
                 )
                 word_btn.grid(row=i//3, column=i%3, padx=5, pady=2)
+        else:
+            tk.Label(
+                semantic_frame,
+                text="No semantic hints available for this word.",
+                font=('Arial', 10, 'italic'),
+                bg='#f0f8ff',
+                fg='#666'
+            ).pack(pady=10)
+        
+        # Token-Based Hints Tab
+        token_frame = tk.Frame(notebook, bg='#fff8f0')
+        notebook.add(token_frame, text="🔢 Token Space Hints")
+        
+        tk.Label(
+            token_frame,
+            text="Words with nearby token IDs:",
+            font=('Arial', 11, 'bold'),
+            bg='#fff8f0',
+            fg='#333'
+        ).pack(pady=10)
+        
+        tk.Label(
+            token_frame,
+            text=hint_data['token_range'],
+            font=('Arial', 10),
+            bg='#fff8f0',
+            fg='#666'
+        ).pack(pady=5)
+        
+        if hint_data['token_hints']:
+            token_words_frame = tk.Frame(token_frame, bg='#fff8f0')
+            token_words_frame.pack(pady=5)
+            
+            for i, word in enumerate(hint_data['token_hints'][:6]):
+                word_btn = tk.Button(
+                    token_words_frame,
+                    text=word,
+                    font=('Arial', 10),
+                    bg='#f0f8ff',
+                    fg='#2c5e8c',
+                    relief='raised',
+                    padx=8,
+                    pady=2,
+                    command=lambda w=word: self.insert_hint_word(w, hint_window)
+                )
+                word_btn.grid(row=i//3, column=i%3, padx=5, pady=2)
+        
+        # Educational Tab
+        edu_frame = tk.Frame(notebook, bg='#f8f0ff')
+        notebook.add(edu_frame, text="📚 Learn About Tokens")
+        
+        tk.Label(
+            edu_frame,
+            text="💡 Token Education",
+            font=('Arial', 12, 'bold'),
+            bg='#f8f0ff',
+            fg='#2c2c5e'
+        ).pack(pady=10)
+        
+        tk.Label(
+            edu_frame,
+            text=hint_data['token_fact'],
+            font=('Arial', 10),
+            bg='#f8f0ff',
+            fg='#333',
+            wraplength=500,
+            justify='left'
+        ).pack(pady=10, padx=20)
+        
+        # Add detailed token information
+        nearby_data = hint_data.get('nearby_words_data', [])
+        if nearby_data:
+            tk.Label(
+                edu_frame,
+                text="🔍 Nearby Token Analysis:",
+                font=('Arial', 10, 'bold'),
+                bg='#f8f0ff',
+                fg='#2c2c5e'
+            ).pack(pady=(10,5))
+            
+            analysis_text = ""
+            for word_data in nearby_data[:3]:
+                analysis_text += f"• '{word_data['word']}' (ID: {word_data['token_id']}, Distance: {word_data['distance']})\n"
+            
+            tk.Label(
+                edu_frame,
+                text=analysis_text,
+                font=('Arial', 9),
+                bg='#f8f0ff',
+                fg='#333',
+                justify='left'
+            ).pack(pady=5, padx=20)
         
         # Close button
         tk.Button(
@@ -546,7 +1193,7 @@ class TokenGameGUI:
             font=('Arial', 11, 'bold'),
             padx=20,
             pady=5
-        ).pack(pady=20)
+        ).pack(pady=10)
     
     def insert_hint_word(self, word, hint_window):
         """Insert a suggested word into the guess entry."""
@@ -684,7 +1331,7 @@ class TokenGameGUI:
         
         # Update window title to show current mode
         mode_text = f" - {new_mode.title()} Mode" if new_mode != 'normal' else ""
-        self.root.title(f"Token Quest - Research Edition{mode_text}")
+        self.root.title(f"Token Quest - Educational Research Edition{mode_text}")
         
         # Close settings window
         settings_window.destroy()
@@ -1014,6 +1661,10 @@ Worst Distance: {stats['worst_distance']}"""
         button_frame = tk.Frame(results_frame, bg='white')
         button_frame.pack(pady=20)
         
+        def play_again():
+            results_window.destroy()
+            self.new_game()
+        
         play_again_btn = tk.Button(
             button_frame,
             text="🎮 Play Again",
@@ -1022,7 +1673,7 @@ Worst Distance: {stats['worst_distance']}"""
             fg='white',
             padx=20,
             pady=10,
-            command=lambda: [results_window.destroy(), self.new_game()]
+            command=play_again
         )
         play_again_btn.pack(side=tk.LEFT, padx=10)
         
@@ -1031,6 +1682,9 @@ Worst Distance: {stats['worst_distance']}"""
         is_high_score = self.leaderboard.is_high_score(final_results['total_score'], game_mode)
         
         if is_high_score:
+            def submit_score():
+                self.submit_to_leaderboard(final_results, results_window)
+            
             leaderboard_btn = tk.Button(
                 button_frame,
                 text="🏆 Submit to Leaderboard",
@@ -1039,9 +1693,13 @@ Worst Distance: {stats['worst_distance']}"""
                 fg='black',
                 padx=20,
                 pady=10,
-                command=lambda: self.submit_to_leaderboard(final_results, results_window)
+                command=submit_score
             )
             leaderboard_btn.pack(side=tk.LEFT, padx=10)
+        
+        def export_and_close():
+            self.export_data()
+            results_window.destroy()
         
         export_btn = tk.Button(
             button_frame,
@@ -1051,7 +1709,7 @@ Worst Distance: {stats['worst_distance']}"""
             fg='white',
             padx=20,
             pady=10,
-            command=lambda: [self.export_data(), results_window.destroy()]
+            command=export_and_close
         )
         export_btn.pack(side=tk.LEFT, padx=10)
         

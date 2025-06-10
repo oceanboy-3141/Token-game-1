@@ -220,9 +220,17 @@ class GameLogic:
             
             self.game_history.append(guess_record)
             
+            # Get educational explanation and token fact
+            educational_explanation = self.token_handler.get_educational_explanation(
+                self.current_target_word, guess_word
+            )
+            token_fact = self.token_handler.get_random_token_fact()
+            
             return {
                 'valid_guess': True,
+                'guess_word': guess_word,
                 'guess_token_id': guess_token_id,
+                'target_token_id': self.current_target_token_id,
                 'distance': distance,
                 'round_score': round_score,
                 'total_score': self.score,
@@ -232,7 +240,9 @@ class GameLogic:
                 'max_rounds': self.max_rounds,
                 'attempts_used': self.current_attempts,
                 'attempts_left': self.max_attempts - self.current_attempts,
-                'max_attempts_reached': self.current_attempts >= self.max_attempts
+                'max_attempts_reached': self.current_attempts >= self.max_attempts,
+                'educational_explanation': educational_explanation,
+                'token_fact': token_fact
             }
         else:
             # Invalid guess (multi-token or not found) - still counts as attempt
@@ -384,29 +394,63 @@ class GameLogic:
         if not self.current_target_token_id:
             return {'error': 'No active round'}
         
-        # Find words near the target token ID
-        nearby_words = self.token_handler.find_words_in_range(
+        # Get advanced nearby words with detailed info
+        nearby_words_data = self.token_handler.get_advanced_nearby_words(
             self.current_target_token_id, 
-            range_size=100
+            num_words=12
         )
         
         # Generate contextual hint based on target word
         hint_message, hint_type = self._generate_contextual_hint(self.current_target_word)
         
-        # Filter nearby words to only show valid single tokens
-        valid_nearby = []
-        for word in nearby_words:
-            if self.token_handler.is_single_token(word.lower()) and word.lower() != self.current_target_word.lower():
-                valid_nearby.append(word.lower())
+        # Separate semantic hints from token-based hints
+        semantic_hints = self._get_semantic_hints(self.current_target_word)
+        token_hints = [word['word'] for word in nearby_words_data[:6]]
+        
+        # Get a random educational fact
+        token_fact = self.token_handler.get_random_token_fact()
         
         return {
             'target_word': self.current_target_word,
             'target_token_id': self.current_target_token_id,
             'hint_message': hint_message,
             'hint_type': hint_type,
-            'suggested_words': valid_nearby[:8],  # Show up to 8 suggestions
+            'semantic_hints': semantic_hints,
+            'token_hints': token_hints,
+            'nearby_words_data': nearby_words_data,
+            'token_fact': token_fact,
             'token_range': f"Look for words with token IDs near {self.current_target_token_id}"
         }
+    
+    def _get_semantic_hints(self, word: str) -> List[str]:
+        """Get semantic hints based on the word's meaning."""
+        word = word.lower()
+        
+        # Create semantic hint mappings
+        semantic_map = {
+            # Emotions
+            'happy': ['joyful', 'cheerful', 'pleased', 'content', 'glad'],
+            'sad': ['unhappy', 'miserable', 'dejected', 'gloomy', 'upset'],
+            'angry': ['mad', 'furious', 'irritated', 'annoyed', 'rage'],
+            
+            # Size
+            'big': ['large', 'huge', 'massive', 'enormous', 'giant'],
+            'small': ['tiny', 'little', 'mini', 'petite', 'compact'],
+            
+            # Speed
+            'fast': ['quick', 'rapid', 'swift', 'speedy', 'hasty'],
+            'slow': ['sluggish', 'gradual', 'leisurely', 'unhurried'],
+            
+            # Quality
+            'good': ['excellent', 'great', 'wonderful', 'superb', 'fine'],
+            'bad': ['awful', 'terrible', 'horrible', 'poor', 'dreadful'],
+            
+            # Temperature
+            'hot': ['warm', 'boiling', 'scorching', 'heated', 'burning'],
+            'cold': ['freezing', 'chilly', 'frigid', 'icy', 'cool'],
+        }
+        
+        return semantic_map.get(word, [])
     
     def _generate_contextual_hint(self, word: str) -> tuple:
         """Generate contextual hints based on the target word."""

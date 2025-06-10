@@ -1,0 +1,38 @@
+{
+  "session_id": "20250609_171013",
+  "start_time": "2025-06-09T17:10:20.710495",
+  "end_time": "2025-06-09T17:10:31.967064",
+  "total_guesses": 2,
+  "guesses": [
+    {
+      "session_id": "20250609_171013",
+      "timestamp": "2025-06-09T17:10:20.710495",
+      "round": 5,
+      "target_word": "complex",
+      "target_token_id": 42544,
+      "guess_word": "k",
+      "guess_token_id": 74,
+      "distance": 42470,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250609_171013",
+      "timestamp": "2025-06-09T17:10:22.937504",
+      "round": 5,
+      "target_word": "complex",
+      "target_token_id": 42544,
+      "guess_word": "kk",
+      "guess_token_id": 8701,
+      "distance": 33843,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 2
+    }
+  ]
+}

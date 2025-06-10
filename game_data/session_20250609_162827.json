@@ -1,0 +1,68 @@
+{
+  "session_id": "20250609_162827",
+  "start_time": "2025-06-09T16:28:46.198465",
+  "end_time": "2025-06-09T16:29:46.274517",
+  "total_guesses": 4,
+  "guesses": [
+    {
+      "session_id": "20250609_162827",
+      "timestamp": "2025-06-09T16:28:46.198465",
+      "round": 1,
+      "target_word": "basic",
+      "target_token_id": 45235,
+      "guess_word": "hard",
+      "guess_token_id": 31916,
+      "distance": 13319,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250609_162827",
+      "timestamp": "2025-06-09T16:29:17.303461",
+      "round": 1,
+      "target_word": "basic",
+      "target_token_id": 45235,
+      "guess_word": "har",
+      "guess_token_id": 8665,
+      "distance": 36570,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 2
+    },
+    {
+      "session_id": "20250609_162827",
+      "timestamp": "2025-06-09T16:29:23.575834",
+      "round": 1,
+      "target_word": "basic",
+      "target_token_id": 45235,
+      "guess_word": "basic",
+      "guess_token_id": 45235,
+      "distance": 0,
+      "round_score": 10,
+      "total_score": 10,
+      "is_correct": true,
+      "result_type": "PERFECT",
+      "attempt_number": 3
+    },
+    {
+      "session_id": "20250609_162827",
+      "timestamp": "2025-06-09T16:29:31.784381",
+      "round": 2,
+      "target_word": "complex",
+      "target_token_id": 42544,
+      "guess_word": "basic",
+      "guess_token_id": 45235,
+      "distance": 2691,
+      "round_score": 6,
+      "total_score": 16,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    }
+  ]
+}

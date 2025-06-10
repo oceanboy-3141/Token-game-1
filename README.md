@@ -2,9 +2,29 @@
 
 A research game that explores whether Large Language Models place semantically similar words similarly in token space.
 
+## 🆕 NEW in v2.0 - Educational Enhancement Update
+
+### 📊 Visual Token Space Visualization
+- **Interactive timeline** showing where your guesses land in token space
+- **Color-coded distance indicators** (green=close, red=far)
+- **Real-time visual feedback** with target and guess positioning
+
+### 🧠 Educational Feedback System  
+- **"Why this happened" explanations** for every guess result
+- **Rotating tokenization facts** - learn something new each round!
+- **Pattern recognition insights** about word relationships
+
+### 💡 Enhanced Hint System
+- **🧠 Semantic Hints Tab**: Words with similar meanings
+- **🔢 Token Space Hints Tab**: Words with nearby token IDs  
+- **📚 Educational Tab**: Learn about tokenization concepts
+- **Progressive revelation** from meaning to mechanics
+
 ## 🔬 Research Purpose
 
 This game is designed to investigate **token ID clustering** - do words with similar meanings have similar token IDs in LLM tokenization schemes? Players guess semantically related words while the game measures token ID distances, generating valuable research data.
+
+**NOW WITH EDUCATIONAL VALUE**: Learn how AI language models process text through tokenization!
 
 ## 🎮 How to Play
 
@@ -87,11 +107,16 @@ Data is saved to:
 
 ## 🎯 Game Features
 
-- **Clean Interface**: Simple, NYT-style game design
-- **Real-time Feedback**: Instant scoring and encouragement
+- **📊 Visual Token Space**: See exactly where your guesses land on the token timeline
+- **🧠 Educational Feedback**: Learn WHY words have similar/different token IDs
+- **💡 Smart Hint System**: Three-tab interface with semantic, token-based, and educational hints
+- **🎓 Tokenization Learning**: Rotating facts and insights about how AI processes language
+- **📈 Interactive Visualization**: Color-coded distance indicators and real-time positioning
+- **🔍 Pattern Recognition**: Discover surprising relationships between words and tokens
+- **Clean Interface**: Simple, NYT-style game design with enhanced educational value
+- **Real-time Feedback**: Instant scoring with contextual explanations
 - **Statistics**: Track your performance over time
 - **Data Export**: Export your gameplay data for analysis
-- **Hint System**: Get suggestions for nearby tokens
 
 ## 🔧 Technical Details
 

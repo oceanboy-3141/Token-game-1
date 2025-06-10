@@ -409,8 +409,29 @@ Ready to explore the hidden structure of language? Let's play!''',
             self.close_tutorial()
     
     def close_tutorial(self):
-        """Close the tutorial."""
-        self.root.quit()
+        """Close the tutorial and launch the main game."""
+        self.root.destroy()  # Destroy tutorial window
+        
+        # Import and launch the main game
+        try:
+            import main
+            main.main()  # Start the main game
+        except Exception as e:
+            print(f"Error launching main game: {e}")
+            # Fallback: try to run the game directly
+            try:
+                import subprocess
+                import sys
+                import os
+                
+                # Get the current directory and run main.py
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                main_py = os.path.join(current_dir, 'main.py')
+                subprocess.Popen([sys.executable, main_py])
+            except Exception as e2:
+                print(f"Fallback launch also failed: {e2}")
+                # Just close tutorial if all else fails
+                pass
     
     def run(self):
         """Run the tutorial."""
