@@ -90,14 +90,105 @@ class TokenGameGUI:
         self.data_collector = DataCollector()
         self.leaderboard = Leaderboard()
         
+        # Initialize achievements
+        try:
+            from achievements import AchievementManager
+            self.achievement_manager = AchievementManager()
+        except ImportError:
+            self.achievement_manager = None
+        
         # Game state
         self.current_round_active = False
+        
+        # Window management - keep track of open popups
+        self.active_popup = None
         
         # Setup modern UI
         self.setup_material_ui()
         
         # Configure ttk styles
         self._configure_ttk_styles()
+    
+    def _close_active_popup(self):
+        """Close any currently active popup window."""
+        if self.active_popup and self.active_popup.winfo_exists():
+            self.active_popup.destroy()
+        self.active_popup = None
+    
+    def _create_popup(self, title, geometry, bg='white'):
+        """Create a new popup window, closing any existing one."""
+        self._close_active_popup()
+        
+        popup = tk.Toplevel(self.root)
+        popup.title(title)
+        popup.geometry(geometry)
+        popup.configure(bg=bg)
+        popup.transient(self.root)
+        popup.grab_set()
+        
+        self.active_popup = popup
+        
+        # Bind close event to clear reference
+        def on_close():
+            self.active_popup = None
+            popup.destroy()
+        
+        popup.protocol("WM_DELETE_WINDOW", on_close)
+        
+        return popup
+    
+    def show_achievement_notification(self, achievement):
+        """Show a notification when an achievement is unlocked."""
+        notification = tk.Toplevel(self.root)
+        notification.title("🎖️ Achievement Unlocked!")
+        notification.geometry("400x200")
+        notification.configure(bg='#4CAF50')
+        notification.transient(self.root)
+        notification.attributes("-topmost", True)
+        
+        # Position in top-right corner
+        notification.geometry("+{}+{}".format(
+            self.root.winfo_rootx() + self.root.winfo_width() - 420,
+            self.root.winfo_rooty() + 20
+        ))
+        
+        # Content
+        tk.Label(
+            notification,
+            text="🎖️ ACHIEVEMENT UNLOCKED! 🎖️",
+            font=('Arial', 14, 'bold'),
+            bg='#4CAF50',
+            fg='white'
+        ).pack(pady=10)
+        
+        tk.Label(
+            notification,
+            text=f"{achievement.icon} {achievement.name}",
+            font=('Arial', 16, 'bold'),
+            bg='#4CAF50',
+            fg='white'
+        ).pack(pady=5)
+        
+        tk.Label(
+            notification,
+            text=achievement.description,
+            font=('Arial', 11),
+            bg='#4CAF50',
+            fg='white',
+            wraplength=350,
+            justify='center'
+        ).pack(pady=5)
+        
+        # Auto-close after 4 seconds
+        notification.after(4000, notification.destroy)
+        
+        # Add click to close
+        def close_notification(event=None):
+            notification.destroy()
+        
+        notification.bind("<Button-1>", close_notification)
+        for widget in notification.winfo_children():
+            widget.bind("<Button-1>", close_notification)
     
     def _setup_window(self):
         """Configure the main window with material design principles."""
@@ -508,6 +599,7 @@ class TokenGameGUI:
         game_menu.add_command(label="🎓 Tutorial", command=self.show_tutorial)
         game_menu.add_separator()
         game_menu.add_command(label="🏆 Leaderboard", command=self.show_leaderboard)
+        game_menu.add_command(label="🎖️ Achievements", command=self.show_achievements)
         game_menu.add_command(label="📊 Statistics", command=self.show_statistics)
         game_menu.add_command(label="📤 Export Data", command=self.export_data)
         game_menu.add_separator()
@@ -613,6 +705,12 @@ class TokenGameGUI:
             messagebox.showinfo("Game Complete", "Game has already ended!")
             return
         
+        # Track game start for achievements (only on first round)
+        if self.achievement_manager and round_info.get('round_number') == 1:
+            new_achievements = self.achievement_manager.track_game_event("game_started")
+            for achievement in new_achievements:
+                self.show_achievement_notification(achievement)
+        
         self.target_word_label.config(
             text=round_info['target_word'].upper(),
             fg=MaterialColors.PRIMARY,
@@ -679,6 +777,27 @@ class TokenGameGUI:
         result = self.game_logic.submit_guess(guess)
         
         if result['valid_guess']:
+            # Track achievement events
+            if self.achievement_manager:
+                # Track word tried
+                self.achievement_manager.track_game_event("word_tried", word=guess)
+                
+                # Track guess accuracy
+                feedback = result['feedback']
+                is_first_attempt = result.get('attempts_used', 1) == 1
+                
+                if feedback['is_correct']:
+                    if result['distance'] <= 1:
+                        new_achievements = self.achievement_manager.track_game_event("perfect_guess", first_guess_of_round=is_first_attempt)
+                    else:
+                        new_achievements = self.achievement_manager.track_game_event("excellent_guess")
+                else:
+                    new_achievements = self.achievement_manager.track_game_event("incorrect_guess")
+                
+                # Show achievement notifications
+                for achievement in new_achievements:
+                    self.show_achievement_notification(achievement)
+            
             # Valid guess - show results
             self.show_guess_result(result)
             
@@ -1031,12 +1150,14 @@ class TokenGameGUI:
             messagebox.showwarning("No Hint Available", hint_data['error'])
             return
         
+        # Track hint viewed for achievements
+        if self.achievement_manager:
+            new_achievements = self.achievement_manager.track_game_event("hint_viewed")
+            for achievement in new_achievements:
+                self.show_achievement_notification(achievement)
+        
         # Create enhanced hint popup
-        hint_window = tk.Toplevel(self.root)
-        hint_window.title("💡 Enhanced Hint System")
-        hint_window.geometry("600x550")
-        hint_window.configure(bg='#f9f9f9')
-        hint_window.transient(self.root)
+        hint_window = self._create_popup("💡 Enhanced Hint System", "600x550", '#f9f9f9')
         
         # Title
         tk.Label(
@@ -1206,17 +1327,17 @@ class TokenGameGUI:
         """Show the interactive tutorial."""
         try:
             show_tutorial()
+            # Track tutorial completion for achievements
+            if self.achievement_manager:
+                new_achievements = self.achievement_manager.track_game_event("tutorial_completed")
+                for achievement in new_achievements:
+                    self.show_achievement_notification(achievement)
         except Exception as e:
             messagebox.showerror("Tutorial Error", f"Could not start tutorial: {e}")
     
     def show_game_settings(self):
         """Show game settings dialog for mode, difficulty, and category selection."""
-        settings_window = tk.Toplevel(self.root)
-        settings_window.title("🎮 Game Settings")
-        settings_window.geometry("500x600")
-        settings_window.configure(bg='#f0f0f0')
-        settings_window.transient(self.root)
-        settings_window.grab_set()
+        settings_window = self._create_popup("🎮 Game Settings", "500x600", '#f0f0f0')
         
         # Title
         tk.Label(
@@ -1342,11 +1463,7 @@ class TokenGameGUI:
     
     def show_leaderboard(self):
         """Show the leaderboard window."""
-        leaderboard_window = tk.Toplevel(self.root)
-        leaderboard_window.title("🏆 Leaderboard")
-        leaderboard_window.geometry("700x500")
-        leaderboard_window.configure(bg='#f0f0f0')
-        leaderboard_window.transient(self.root)
+        leaderboard_window = self._create_popup("🏆 Leaderboard", "700x500", '#f0f0f0')
         
         # Title
         tk.Label(
@@ -1431,6 +1548,174 @@ class TokenGameGUI:
         # Initial display
         self.update_leaderboard_display()
     
+    def show_achievements(self):
+        """Show the achievements window."""
+        try:
+            if not self.achievement_manager:
+                messagebox.showinfo("Achievements", "Achievement system not available.")
+                return
+                
+            # Create achievements window
+            achievements_window = self._create_popup("🎖️ Token Quest Achievements", "900x700", '#f0f0f0')
+            
+            # Title
+            title_label = tk.Label(
+                achievements_window,
+                text="🎖️ ACHIEVEMENTS 🎖️",
+                font=('Arial', 24, 'bold'),
+                bg='#f0f0f0',
+                fg='#9C27B0'
+            )
+            title_label.pack(pady=20)
+            
+            # Stats summary
+            stats = self.achievement_manager.get_stats_summary()
+            stats_frame = tk.Frame(achievements_window, bg='#ffffff', relief='raised', bd=2)
+            stats_frame.pack(fill='x', padx=20, pady=10)
+            
+            tk.Label(
+                stats_frame,
+                text=f"📊 Progress: {stats['achievements_unlocked']}/{stats['total_achievements']} achievements ({stats['completion_percentage']:.1f}%)",
+                font=('Arial', 14, 'bold'),
+                bg='#ffffff',
+                fg='#333'
+            ).pack(pady=10)
+            
+            # Create notebook for different categories
+            notebook = ttk.Notebook(achievements_window)
+            notebook.pack(expand=True, fill='both', padx=20, pady=10)
+            
+            # Categories
+            categories = [
+                ('accuracy', '🎯 Accuracy'),
+                ('streaks', '🔥 Streaks'), 
+                ('exploration', '🌍 Exploration'),
+                ('mastery', '🎮 Mastery'),
+                ('education', '🎓 Education'),
+                ('special', '⭐ Special'),
+                ('score', '💯 Score'),
+                ('social', '👥 Social')
+            ]
+            
+            for category_id, category_name in categories:
+                # Create frame for this category
+                category_frame = tk.Frame(notebook, bg='white')
+                notebook.add(category_frame, text=category_name)
+                
+                # Create scrollable frame
+                canvas = tk.Canvas(category_frame, bg='white')
+                scrollbar = ttk.Scrollbar(category_frame, orient='vertical', command=canvas.yview)
+                scrollable_frame = tk.Frame(canvas, bg='white')
+                
+                scrollable_frame.bind(
+                    '<Configure>',
+                    lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+                )
+                
+                canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+                canvas.configure(yscrollcommand=scrollbar.set)
+                
+                # Get achievements for this category
+                achievements = self.achievement_manager.get_achievements_by_category(category_id)
+                
+                if achievements:
+                    for achievement in achievements:
+                        # Achievement card
+                        ach_frame = tk.Frame(scrollable_frame, bg='#f8f8f8', relief='ridge', bd=2)
+                        ach_frame.pack(fill='x', padx=10, pady=5)
+                        
+                        # Achievement header
+                        header_frame = tk.Frame(ach_frame, bg='#f8f8f8')
+                        header_frame.pack(fill='x', padx=10, pady=5)
+                        
+                        # Icon and name
+                        icon_name_frame = tk.Frame(header_frame, bg='#f8f8f8')
+                        icon_name_frame.pack(side=tk.LEFT, fill='x', expand=True)
+                        
+                        icon_label = tk.Label(
+                            icon_name_frame,
+                            text=achievement.icon,
+                            font=('Arial', 20),
+                            bg='#f8f8f8'
+                        )
+                        icon_label.pack(side=tk.LEFT)
+                        
+                        name_label = tk.Label(
+                            icon_name_frame,
+                            text=achievement.name,
+                            font=('Arial', 14, 'bold'),
+                            bg='#f8f8f8',
+                            fg='#4CAF50' if achievement.unlocked else '#666'
+                        )
+                        name_label.pack(side=tk.LEFT, padx=(10, 0))
+                        
+                        # Status
+                        status_text = "✅ UNLOCKED" if achievement.unlocked else f"🔒 {achievement.progress}/{achievement.target_value}"
+                        status_label = tk.Label(
+                            header_frame,
+                            text=status_text,
+                            font=('Arial', 10, 'bold'),
+                            bg='#f8f8f8',
+                            fg='#4CAF50' if achievement.unlocked else '#FF9800'
+                        )
+                        status_label.pack(side=tk.RIGHT)
+                        
+                        # Description
+                        desc_label = tk.Label(
+                            ach_frame,
+                            text=achievement.description,
+                            font=('Arial', 11),
+                            bg='#f8f8f8',
+                            fg='#666',
+                            wraplength=700,
+                            justify='left'
+                        )
+                        desc_label.pack(anchor='w', padx=10, pady=(0, 5))
+                        
+                        # Progress bar for incomplete achievements
+                        if not achievement.unlocked and achievement.target_value > 1:
+                            progress_frame = tk.Frame(ach_frame, bg='#f8f8f8')
+                            progress_frame.pack(fill='x', padx=10, pady=(0, 5))
+                            
+                            progress_bg = tk.Frame(progress_frame, bg='#e0e0e0', height=8)
+                            progress_bg.pack(fill='x')
+                            
+                            progress_percent = min(100, (achievement.progress / achievement.target_value) * 100)
+                            if progress_percent > 0:
+                                progress_fill = tk.Frame(progress_bg, bg='#FF9800', height=8)
+                                progress_fill.place(x=0, y=0, relwidth=progress_percent/100, height=8)
+                        
+                        # Unlock date for completed achievements
+                        if achievement.unlocked and achievement.unlock_date:
+                            unlock_date = achievement.unlock_date[:10]  # Just the date part
+                            date_label = tk.Label(
+                                ach_frame,
+                                text=f"🗓️ Unlocked: {unlock_date}",
+                                font=('Arial', 9, 'italic'),
+                                bg='#f8f8f8',
+                                fg='#999'
+                            )
+                            date_label.pack(anchor='w', padx=10, pady=(0, 5))
+                
+                canvas.pack(side="left", fill="both", expand=True)
+                scrollbar.pack(side="right", fill="y")
+            
+            # Close button
+            close_btn = tk.Button(
+                achievements_window,
+                text="❌ Close",
+                font=('Arial', 12),
+                bg='#666',
+                fg='white',
+                padx=20,
+                pady=10,
+                command=achievements_window.destroy
+            )
+            close_btn.pack(pady=10)
+            
+        except Exception as e:
+            messagebox.showerror("Achievements Error", f"Could not show achievements: {e}")
+    
     def update_leaderboard_display(self):
         """Update the leaderboard display with current mode."""
         mode = self.leaderboard_mode_var.get()
@@ -1479,6 +1764,9 @@ class TokenGameGUI:
     
     def submit_to_leaderboard(self, final_results, results_window):
         """Submit score to leaderboard."""
+        # Temporarily release grab to avoid conflict with simpledialog
+        results_window.grab_release()
+        
         player_name = simpledialog.askstring(
             "Leaderboard Submission",
             "Enter your name for the leaderboard:",
@@ -1572,6 +1860,12 @@ Worst Distance: {stats['worst_distance']}"""
             csv_file = self.data_collector.export_to_csv()
             session_file = self.data_collector.save_session()
             
+            # Track data export for achievements
+            if self.achievement_manager:
+                new_achievements = self.achievement_manager.track_game_event("data_exported")
+                for achievement in new_achievements:
+                    self.show_achievement_notification(achievement)
+            
             message = f"Data exported successfully!\n\nFiles created:\n- {csv_file}\n- {session_file}"
             messagebox.showinfo("Export Successful", message)
         except Exception as e:
@@ -1582,12 +1876,7 @@ Worst Distance: {stats['worst_distance']}"""
         final_results = self.game_logic.get_final_results()
         
         # Create results window
-        results_window = tk.Toplevel(self.root)
-        results_window.title("🎉 Game Complete!")
-        results_window.geometry("600x500")
-        results_window.configure(bg='#f0f0f0')
-        results_window.transient(self.root)
-        results_window.grab_set()
+        results_window = self._create_popup("🎉 Game Complete!", "600x500", '#f0f0f0')
         
         # Title
         title_label = tk.Label(

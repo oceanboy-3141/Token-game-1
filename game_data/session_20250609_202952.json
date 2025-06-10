@@ -1,0 +1,83 @@
+{
+  "session_id": "20250609_202952",
+  "start_time": "2025-06-09T20:30:01.364995",
+  "end_time": "2025-06-09T20:34:28.910642",
+  "total_guesses": 5,
+  "guesses": [
+    {
+      "session_id": "20250609_202952",
+      "timestamp": "2025-06-09T20:30:01.364995",
+      "round": 1,
+      "target_word": "small",
+      "target_token_id": 18158,
+      "guess_word": "little",
+      "guess_token_id": 107268,
+      "distance": 89110,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250609_202952",
+      "timestamp": "2025-06-09T20:30:08.142405",
+      "round": 2,
+      "target_word": "big",
+      "target_token_id": 25934,
+      "guess_word": "large",
+      "guess_token_id": 32551,
+      "distance": 6617,
+      "round_score": 5,
+      "total_score": 5,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250609_202952",
+      "timestamp": "2025-06-09T20:30:16.500268",
+      "round": 3,
+      "target_word": "small",
+      "target_token_id": 18158,
+      "guess_word": "tiny",
+      "guess_token_id": 90634,
+      "distance": 72476,
+      "round_score": 0,
+      "total_score": 5,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250609_202952",
+      "timestamp": "2025-06-09T20:30:24.608818",
+      "round": 4,
+      "target_word": "tiny",
+      "target_token_id": 90634,
+      "guess_word": "minute",
+      "guess_token_id": 84372,
+      "distance": 6262,
+      "round_score": 5,
+      "total_score": 10,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250609_202952",
+      "timestamp": "2025-06-09T20:30:31.110421",
+      "round": 5,
+      "target_word": "small",
+      "target_token_id": 18158,
+      "guess_word": "baby",
+      "guess_token_id": 126705,
+      "distance": 108547,
+      "round_score": 0,
+      "total_score": 10,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    }
+  ]
+}

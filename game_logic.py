@@ -378,15 +378,45 @@ class GameLogic:
                 'points': points,
                 'encouragement': "Think of more similar words! 🤔"
             }
-        else:
+        elif distance <= 5000:
             return {
-                'message': f"❌ Too far apart! Try a different approach!",
+                'message': f"🧊 Pretty cold! You're getting distant...",
                 'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
-                'result': 'MISS',
-                'color': '#F44336',
+                'result': 'FAR',
+                'color': '#D32F2F',
                 'is_correct': False,
                 'points': points,
-                'encouragement': "Try completely different synonyms! 💡"
+                'encouragement': "Try a completely different type of word! 🔄"
+            }
+        elif distance <= 15000:
+            return {
+                'message': f"❄️ Very cold! Way off track...",
+                'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
+                'result': 'VERY FAR',
+                'color': '#B71C1C',
+                'is_correct': False,
+                'points': points,
+                'encouragement': "Think of totally different word categories! 💭"
+            }
+        elif distance <= 30000:
+            return {
+                'message': f"🌨️ Freezing! Completely different territory!",
+                'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
+                'result': 'OPPOSITE ZONE',
+                'color': '#880E4F',
+                'is_correct': False,
+                'points': points,
+                'encouragement': "You're in opposite territory! Try antonym mode? 🔀"
+            }
+        else:
+            return {
+                'message': f"❌ MISS! In another universe entirely!",
+                'detail': f"Your token ID: {guess_token_id} | Target: {target_token_id} | Distance: {distance}",
+                'result': 'TOTAL MISS',
+                'color': '#4A148C',
+                'is_correct': False,
+                'points': points,
+                'encouragement': "Complete opposite! Perfect for antonym mode! 🌌"
             }
     
     def get_hint(self) -> Dict:

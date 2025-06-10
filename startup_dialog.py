@@ -322,6 +322,30 @@ class StartupDialog:
         )
         start_btn.pack(side=tk.LEFT, padx=10)
         
+        leaderboard_btn = tk.Button(
+            action_frame,
+            text="🏆 View Leaderboards",
+            font=('Arial', 14, 'bold'),
+            bg='#FFD700',
+            fg='black',
+            padx=30,
+            pady=12,
+            command=self.show_leaderboard
+        )
+        leaderboard_btn.pack(side=tk.LEFT, padx=10)
+        
+        achievements_btn = tk.Button(
+            action_frame,
+            text="🎖️ Achievements",
+            font=('Arial', 14, 'bold'),
+            bg='#9C27B0',
+            fg='white',
+            padx=30,
+            pady=12,
+            command=self.show_achievements
+        )
+        achievements_btn.pack(side=tk.LEFT, padx=10)
+        
         exit_btn = tk.Button(
             action_frame,
             text="❌ Exit",
@@ -340,6 +364,289 @@ class StartupDialog:
             show_tutorial()
         except Exception as e:
             messagebox.showerror("Tutorial Error", f"Could not start tutorial: {e}")
+    
+    def show_leaderboard(self):
+        """Show the leaderboard window."""
+        try:
+            from leaderboard import Leaderboard
+            
+            # Create leaderboard window
+            leaderboard_window = tk.Toplevel(self.root)
+            leaderboard_window.title("🏆 Token Quest Leaderboards")
+            leaderboard_window.geometry("800x600")
+            leaderboard_window.configure(bg='#f0f0f0')
+            leaderboard_window.transient(self.root)
+            leaderboard_window.grab_set()
+            
+            # Initialize leaderboard
+            leaderboard = Leaderboard()
+            
+            # Title
+            title_label = tk.Label(
+                leaderboard_window,
+                text="🏆 TOKEN QUEST LEADERBOARDS 🏆",
+                font=('Arial', 24, 'bold'),
+                bg='#f0f0f0',
+                fg='#2196F3'
+            )
+            title_label.pack(pady=20)
+            
+            # Create notebook for different game modes
+            notebook = ttk.Notebook(leaderboard_window)
+            notebook.pack(expand=True, fill='both', padx=20, pady=10)
+            
+            # Game modes to show
+            game_modes = ['normal', 'antonym', 'category']
+            mode_names = {'normal': '🎯 Classic Mode', 'antonym': '🔄 Antonym Mode', 'category': '📂 Category Mode'}
+            
+            for mode in game_modes:
+                # Create frame for this mode
+                mode_frame = tk.Frame(notebook, bg='white')
+                notebook.add(mode_frame, text=mode_names[mode])
+                
+                # Get scores for this mode
+                scores = leaderboard.get_top_scores(mode, limit=10)
+                
+                if scores:
+                    # Create headers
+                    headers_frame = tk.Frame(mode_frame, bg='white')
+                    headers_frame.pack(fill='x', padx=20, pady=10)
+                    
+                    tk.Label(headers_frame, text="Rank", font=('Arial', 12, 'bold'), bg='white', width=6).pack(side=tk.LEFT)
+                    tk.Label(headers_frame, text="Player", font=('Arial', 12, 'bold'), bg='white', width=20).pack(side=tk.LEFT)
+                    tk.Label(headers_frame, text="Score", font=('Arial', 12, 'bold'), bg='white', width=10).pack(side=tk.LEFT)
+                    tk.Label(headers_frame, text="Accuracy", font=('Arial', 12, 'bold'), bg='white', width=10).pack(side=tk.LEFT)
+                    tk.Label(headers_frame, text="Date", font=('Arial', 12, 'bold'), bg='white', width=15).pack(side=tk.LEFT)
+                    
+                    # Create scrollable frame for scores
+                    canvas = tk.Canvas(mode_frame, bg='white')
+                    scrollbar = ttk.Scrollbar(mode_frame, orient='vertical', command=canvas.yview)
+                    scrollable_frame = tk.Frame(canvas, bg='white')
+                    
+                    scrollable_frame.bind(
+                        '<Configure>',
+                        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+                    )
+                    
+                    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+                    canvas.configure(yscrollcommand=scrollbar.set)
+                    
+                    # Add scores
+                    for i, score in enumerate(scores[:10], 1):
+                        score_frame = tk.Frame(scrollable_frame, bg='white', relief='ridge', bd=1)
+                        score_frame.pack(fill='x', padx=5, pady=2)
+                        
+                        # Rank with medal
+                        rank_text = f"🥇 {i}" if i == 1 else f"🥈 {i}" if i == 2 else f"🥉 {i}" if i == 3 else f"   {i}"
+                        tk.Label(score_frame, text=rank_text, font=('Arial', 11), bg='white', width=6).pack(side=tk.LEFT)
+                        tk.Label(score_frame, text=score.get('player_name', 'Anonymous'), font=('Arial', 11), bg='white', width=20).pack(side=tk.LEFT)
+                        tk.Label(score_frame, text=str(score['score']), font=('Arial', 11, 'bold'), bg='white', width=10).pack(side=tk.LEFT)
+                        tk.Label(score_frame, text=f"{score.get('accuracy', 0):.1f}%", font=('Arial', 11), bg='white', width=10).pack(side=tk.LEFT)
+                        tk.Label(score_frame, text=score.get('date', 'Unknown'), font=('Arial', 11), bg='white', width=15).pack(side=tk.LEFT)
+                    
+                    canvas.pack(side="left", fill="both", expand=True, padx=(20, 0), pady=10)
+                    scrollbar.pack(side="right", fill="y", pady=10)
+                else:
+                    # No scores message
+                    no_scores_label = tk.Label(
+                        mode_frame,
+                        text=f"No scores recorded for {mode_names[mode]} yet!\nPlay some games to see leaderboards here.",
+                        font=('Arial', 14),
+                        bg='white',
+                        fg='#666',
+                        justify='center'
+                    )
+                    no_scores_label.pack(expand=True)
+            
+            # Close button
+            close_btn = tk.Button(
+                leaderboard_window,
+                text="❌ Close",
+                font=('Arial', 12),
+                bg='#666',
+                fg='white',
+                padx=20,
+                pady=10,
+                command=leaderboard_window.destroy
+            )
+            close_btn.pack(pady=10)
+            
+        except Exception as e:
+            messagebox.showerror("Leaderboard Error", f"Could not show leaderboards: {e}")
+    
+    def show_achievements(self):
+        """Show the achievements window."""
+        try:
+            from achievements import AchievementManager
+            
+            # Create achievements window
+            achievements_window = tk.Toplevel(self.root)
+            achievements_window.title("🎖️ Token Quest Achievements")
+            achievements_window.geometry("900x700")
+            achievements_window.configure(bg='#f0f0f0')
+            achievements_window.transient(self.root)
+            achievements_window.grab_set()
+            
+            # Initialize achievement manager
+            achievement_manager = AchievementManager()
+            
+            # Title
+            title_label = tk.Label(
+                achievements_window,
+                text="🎖️ ACHIEVEMENTS 🎖️",
+                font=('Arial', 24, 'bold'),
+                bg='#f0f0f0',
+                fg='#9C27B0'
+            )
+            title_label.pack(pady=20)
+            
+            # Stats summary
+            stats = achievement_manager.get_stats_summary()
+            stats_frame = tk.Frame(achievements_window, bg='#ffffff', relief='raised', bd=2)
+            stats_frame.pack(fill='x', padx=20, pady=10)
+            
+            tk.Label(
+                stats_frame,
+                text=f"📊 Progress: {stats['achievements_unlocked']}/{stats['total_achievements']} achievements ({stats['completion_percentage']:.1f}%)",
+                font=('Arial', 14, 'bold'),
+                bg='#ffffff',
+                fg='#333'
+            ).pack(pady=10)
+            
+            # Create notebook for different categories
+            notebook = ttk.Notebook(achievements_window)
+            notebook.pack(expand=True, fill='both', padx=20, pady=10)
+            
+            # Categories
+            categories = [
+                ('accuracy', '🎯 Accuracy'),
+                ('streaks', '🔥 Streaks'), 
+                ('exploration', '🌍 Exploration'),
+                ('mastery', '🎮 Mastery'),
+                ('education', '🎓 Education'),
+                ('special', '⭐ Special'),
+                ('score', '💯 Score'),
+                ('social', '👥 Social')
+            ]
+            
+            for category_id, category_name in categories:
+                # Create frame for this category
+                category_frame = tk.Frame(notebook, bg='white')
+                notebook.add(category_frame, text=category_name)
+                
+                # Create scrollable frame
+                canvas = tk.Canvas(category_frame, bg='white')
+                scrollbar = ttk.Scrollbar(category_frame, orient='vertical', command=canvas.yview)
+                scrollable_frame = tk.Frame(canvas, bg='white')
+                
+                scrollable_frame.bind(
+                    '<Configure>',
+                    lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+                )
+                
+                canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+                canvas.configure(yscrollcommand=scrollbar.set)
+                
+                # Get achievements for this category
+                achievements = achievement_manager.get_achievements_by_category(category_id)
+                
+                if achievements:
+                    for achievement in achievements:
+                        # Achievement card
+                        ach_frame = tk.Frame(scrollable_frame, bg='#f8f8f8', relief='ridge', bd=2)
+                        ach_frame.pack(fill='x', padx=10, pady=5)
+                        
+                        # Achievement header
+                        header_frame = tk.Frame(ach_frame, bg='#f8f8f8')
+                        header_frame.pack(fill='x', padx=10, pady=5)
+                        
+                        # Icon and name
+                        icon_name_frame = tk.Frame(header_frame, bg='#f8f8f8')
+                        icon_name_frame.pack(side=tk.LEFT, fill='x', expand=True)
+                        
+                        icon_label = tk.Label(
+                            icon_name_frame,
+                            text=achievement.icon,
+                            font=('Arial', 20),
+                            bg='#f8f8f8'
+                        )
+                        icon_label.pack(side=tk.LEFT)
+                        
+                        name_label = tk.Label(
+                            icon_name_frame,
+                            text=achievement.name,
+                            font=('Arial', 14, 'bold'),
+                            bg='#f8f8f8',
+                            fg='#4CAF50' if achievement.unlocked else '#666'
+                        )
+                        name_label.pack(side=tk.LEFT, padx=(10, 0))
+                        
+                        # Status
+                        status_text = "✅ UNLOCKED" if achievement.unlocked else f"🔒 {achievement.progress}/{achievement.target_value}"
+                        status_label = tk.Label(
+                            header_frame,
+                            text=status_text,
+                            font=('Arial', 10, 'bold'),
+                            bg='#f8f8f8',
+                            fg='#4CAF50' if achievement.unlocked else '#FF9800'
+                        )
+                        status_label.pack(side=tk.RIGHT)
+                        
+                        # Description
+                        desc_label = tk.Label(
+                            ach_frame,
+                            text=achievement.description,
+                            font=('Arial', 11),
+                            bg='#f8f8f8',
+                            fg='#666',
+                            wraplength=700,
+                            justify='left'
+                        )
+                        desc_label.pack(anchor='w', padx=10, pady=(0, 5))
+                        
+                        # Progress bar for incomplete achievements
+                        if not achievement.unlocked and achievement.target_value > 1:
+                            progress_frame = tk.Frame(ach_frame, bg='#f8f8f8')
+                            progress_frame.pack(fill='x', padx=10, pady=(0, 5))
+                            
+                            progress_bg = tk.Frame(progress_frame, bg='#e0e0e0', height=8)
+                            progress_bg.pack(fill='x')
+                            
+                            progress_percent = min(100, (achievement.progress / achievement.target_value) * 100)
+                            if progress_percent > 0:
+                                progress_fill = tk.Frame(progress_bg, bg='#FF9800', height=8)
+                                progress_fill.place(x=0, y=0, relwidth=progress_percent/100, height=8)
+                        
+                        # Unlock date for completed achievements
+                        if achievement.unlocked and achievement.unlock_date:
+                            unlock_date = achievement.unlock_date[:10]  # Just the date part
+                            date_label = tk.Label(
+                                ach_frame,
+                                text=f"🗓️ Unlocked: {unlock_date}",
+                                font=('Arial', 9, 'italic'),
+                                bg='#f8f8f8',
+                                fg='#999'
+                            )
+                            date_label.pack(anchor='w', padx=10, pady=(0, 5))
+                
+                canvas.pack(side="left", fill="both", expand=True)
+                scrollbar.pack(side="right", fill="y")
+            
+            # Close button
+            close_btn = tk.Button(
+                achievements_window,
+                text="❌ Close",
+                font=('Arial', 12),
+                bg='#666',
+                fg='white',
+                padx=20,
+                pady=10,
+                command=achievements_window.destroy
+            )
+            close_btn.pack(pady=10)
+            
+        except Exception as e:
+            messagebox.showerror("Achievements Error", f"Could not show achievements: {e}")
     
     def quick_start(self, mode):
         """Quick start with a specific mode."""
