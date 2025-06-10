@@ -1,0 +1,23 @@
+{
+  "session_id": "20250609_171912",
+  "start_time": "2025-06-09T17:19:20.310802",
+  "end_time": "2025-06-09T17:19:25.654430",
+  "total_guesses": 1,
+  "guesses": [
+    {
+      "session_id": "20250609_171912",
+      "timestamp": "2025-06-09T17:19:20.310802",
+      "round": 1,
+      "target_word": "hard",
+      "target_token_id": 31916,
+      "guess_word": "tra",
+      "guess_token_id": 1787,
+      "distance": 30129,
+      "round_score": 0,
+      "total_score": 0,
+      "is_correct": false,
+      "result_type": "MISS",
+      "attempt_number": 1
+    }
+  ]
+}
