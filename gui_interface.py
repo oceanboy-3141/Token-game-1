@@ -707,8 +707,11 @@ class TokenGameGUI:
         
         # Track game start for achievements (only on first round)
         if self.achievement_manager and round_info.get('round_number') == 1:
+            print("🎮 Tracking game_started event...")  # Debug
             new_achievements = self.achievement_manager.track_game_event("game_started")
+            print(f"🏆 Got {len(new_achievements)} new achievements from game start")  # Debug
             for achievement in new_achievements:
+                print(f"🎖️ Showing notification for: {achievement.name}")  # Debug
                 self.show_achievement_notification(achievement)
         
         self.target_word_label.config(
@@ -1587,6 +1590,7 @@ class TokenGameGUI:
             
             # Categories
             categories = [
+                ('test', '🧪 Test'),
                 ('accuracy', '🎯 Accuracy'),
                 ('streaks', '🔥 Streaks'), 
                 ('exploration', '🌍 Exploration'),

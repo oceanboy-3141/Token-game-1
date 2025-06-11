@@ -1,0 +1,160 @@
+{
+  "stats": {
+    "games_played": 3,
+    "total_score": 0,
+    "perfects": 6,
+    "excellents": 4,
+    "perfect_streak": 6,
+    "max_perfect_streak": 6,
+    "correct_streak": 8,
+    "max_correct_streak": 8,
+    "words_tried": [
+      "chapter",
+      "commerce",
+      "rew",
+      "ubic",
+      "sad",
+      "kind",
+      "\u04d9\u0445",
+      "\u05e2\u05e0\u05d2",
+      "mad",
+      "cool",
+      "essay"
+    ],
+    "hints_viewed": 10,
+    "tutorials_completed": 0,
+    "data_exports": 0,
+    "leaderboard_submissions": 0,
+    "mode_wins": {
+      "normal": 0,
+      "antonym": 0,
+      "category": 0
+    },
+    "categories_played": [],
+    "night_games": 0,
+    "morning_games": 0,
+    "comeback_wins": 0
+  },
+  "achievements": {
+    "test_achievement": {
+      "progress": 3,
+      "unlocked": true,
+      "unlock_date": "2025-06-11T07:20:15.221685"
+    },
+    "perfect_shot": {
+      "progress": 1,
+      "unlocked": true,
+      "unlock_date": "2025-06-11T07:21:51.141682"
+    },
+    "sharpshooter": {
+      "progress": 5,
+      "unlocked": true,
+      "unlock_date": "2025-06-11T07:22:23.746576"
+    },
+    "marksman": {
+      "progress": 6,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "word_sniper": {
+      "progress": 3,
+      "unlocked": true,
+      "unlock_date": "2025-06-11T07:22:11.190437"
+    },
+    "word_explorer": {
+      "progress": 11,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "vocabulary_master": {
+      "progress": 11,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "token_researcher": {
+      "progress": 3,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "synonym_specialist": {
+      "progress": 0,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "antonym_expert": {
+      "progress": 0,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "category_king": {
+      "progress": 0,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "hot_streak": {
+      "progress": 3,
+      "unlocked": true,
+      "unlock_date": "2025-06-11T07:21:51.141682"
+    },
+    "on_fire": {
+      "progress": 5,
+      "unlocked": true,
+      "unlock_date": "2025-06-11T07:22:11.190437"
+    },
+    "unstoppable": {
+      "progress": 7,
+      "unlocked": true,
+      "unlock_date": "2025-06-11T07:22:23.746576"
+    },
+    "token_student": {
+      "progress": 10,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "token_scholar": {
+      "progress": 0,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "research_contributor": {
+      "progress": 0,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "lucky_shot": {
+      "progress": 0,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "comeback_kid": {
+      "progress": 0,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "night_owl": {
+      "progress": 0,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "early_bird": {
+      "progress": 0,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "high_scorer": {
+      "progress": 0,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "point_collector": {
+      "progress": 0,
+      "unlocked": false,
+      "unlock_date": null
+    },
+    "leaderboard_climber": {
+      "progress": 0,
+      "unlocked": false,
+      "unlock_date": null
+    }
+  }
+}

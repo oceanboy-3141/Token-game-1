@@ -519,6 +519,7 @@ class StartupDialog:
             
             # Categories
             categories = [
+                ('test', '🧪 Test'),
                 ('accuracy', '🎯 Accuracy'),
                 ('streaks', '🔥 Streaks'), 
                 ('exploration', '🌍 Exploration'),

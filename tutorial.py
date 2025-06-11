@@ -410,6 +410,16 @@ Ready to explore the hidden structure of language? Let's play!''',
     
     def close_tutorial(self):
         """Close the tutorial and launch the main game."""
+        
+        # Track tutorial completion for achievements
+        try:
+            from achievements import AchievementManager
+            achievement_manager = AchievementManager()
+            new_achievements = achievement_manager.track_game_event("tutorial_completed")
+            print(f"🎓 Tutorial completed! New achievements: {[a.name for a in new_achievements]}")
+        except Exception as e:
+            print(f"Error tracking tutorial completion: {e}")
+        
         self.root.destroy()  # Destroy tutorial window
         
         # Import and launch the main game
