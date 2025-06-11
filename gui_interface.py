@@ -693,68 +693,57 @@ class TokenGameGUI:
             pass
     
     def start_new_round(self):
-        """Start a new round."""
+        """Start a new round of the game."""
+        if not self.game_logic:
+            return
+        
+        # Track game started for achievements (only on first round)
+        if hasattr(self.game_logic, 'current_round') and self.game_logic.current_round == 1:
+            if self.achievement_manager:
+                new_achievements = self.achievement_manager.track_game_event("game_started")
+                for achievement in new_achievements:
+                    self.show_achievement_notification(achievement)
+                    print(f"🏆 Achievement unlocked: {achievement.name}")
+        
         round_info = self.game_logic.start_new_round()
         
-        # Check if game has ended
-        if round_info.get('game_ended', False):
+        if 'error' in round_info or round_info.get('game_ended', False):
             self.show_final_results(round_info)
             return
         
-        if 'error' in round_info:
-            messagebox.showinfo("Game Complete", "Game has already ended!")
-            return
-        
-        # Track game start for achievements (only on first round)
-        if self.achievement_manager and round_info.get('round_number') == 1:
-            print("🎮 Tracking game_started event...")  # Debug
-            new_achievements = self.achievement_manager.track_game_event("game_started")
-            print(f"🏆 Got {len(new_achievements)} new achievements from game start")  # Debug
-            for achievement in new_achievements:
-                print(f"🎖️ Showing notification for: {achievement.name}")  # Debug
-                self.show_achievement_notification(achievement)
-        
+        # Update UI
         self.target_word_label.config(
             text=round_info['target_word'].upper(),
             fg=MaterialColors.PRIMARY,
             bg=MaterialColors.TARGET_HIGHLIGHT
         )
-        # Update info labels with game mode context
-        mode_text = ""
-        if round_info['game_mode'] == 'antonym':
-            mode_text = " | 🔄 ANTONYM MODE: Find opposite words!"
-        elif round_info['game_mode'] == 'category':
-            mode_text = f" | 📂 CATEGORY: {round_info['category'].title()} words only"
-        elif round_info['game_mode'] == 'speed':
-            mode_text = f" | ⚡ SPEED MODE: {round_info['time_limit']}s per round!"
         
-        info_text = f"Token ID: {round_info['target_token_id']}"
-        if round_info['difficulty'] != 'mixed':
-            info_text += f" | Difficulty: {round_info['difficulty'].title()}"
-        info_text += mode_text
-        
-        self.target_info_label.config(text=info_text)
-        self.round_label.config(text=f"{round_info['round_number']} / {round_info['max_rounds']}")
-        
-        # Update progress bars
-        self.update_progress_bars(round_info)
+        self.target_info_label.config(text=f"Token ID: {round_info['target_token_id']}")
+        self.round_label.config(text=f"{round_info['current_round']} / {round_info['max_rounds']}")
         
         self.guess_entry.delete(0, tk.END)
-        self.guess_entry.focus()
-        self.current_round_active = True
+        self.guess_entry.config(state='normal')
+        self.submit_btn.config(state='normal', text="Submit Guess")
         
         # Clear previous feedback
         for widget in self.feedback_frame.winfo_children():
             widget.destroy()
         
-        # Re-enable next button
-        self.next_btn.config(state='normal')
+        # Update progress bars
+        self.update_progress_bars(round_info)
+        
+        # Update next button
+        if round_info['current_round'] < round_info['max_rounds']:
+            self.next_btn.config(text="Skip Round", state='normal')
+        
+        print(f"🎯 Round {round_info['current_round']} started: {round_info['target_word']}")
+        self.current_round_active = True
     
     def update_progress_bars(self, round_info=None):
         """Update progress bars to show game and round progress."""
         if round_info:
             # Update game progress
-            game_progress = (round_info['round_number'] / round_info['max_rounds']) * 100
+            game_progress = (round_info['current_round'] / round_info['max_rounds']) * 100
             self.round_progress['value'] = game_progress
             
             # Reset attempts progress for new round
@@ -827,7 +816,7 @@ class TokenGameGUI:
                 self.next_btn.config(state='disabled')  # Disable button during auto-advance
             
             # Check if this was the last round
-            if result['round_number'] >= result['max_rounds']:
+            if result['current_round'] >= result['max_rounds']:
                 # Enable "Next Round" button to show final results
                 self.next_btn.config(text="View Results", bg='#4CAF50')
             
@@ -2006,21 +1995,26 @@ Worst Distance: {stats['worst_distance']}"""
         )
         export_btn.pack(side=tk.LEFT, padx=10)
         
-        close_btn = tk.Button(
+        # Add proper exit button
+        exit_btn = tk.Button(
             button_frame,
-            text="❌ Close",
+            text="🚪 Exit Game",
             font=('Arial', 14),
-            bg='#666',
+            bg='#D32F2F',
             fg='white',
             padx=20,
             pady=10,
-            command=results_window.destroy
+            command=self.exit_application
         )
-        close_btn.pack(side=tk.LEFT, padx=10)
+        exit_btn.pack(side=tk.LEFT, padx=10)
         
         # Disable main game controls
         self.current_round_active = False
         self.next_btn.config(text="Game Complete", state='disabled')
+    
+    def exit_application(self):
+        """Exit the application."""
+        self.root.quit()
     
     def run(self):
         """Start the game."""

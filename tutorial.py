@@ -422,25 +422,47 @@ Ready to explore the hidden structure of language? Let's play!''',
         
         self.root.destroy()  # Destroy tutorial window
         
-        # Import and launch the main game
+        # Launch the main game directly without startup dialog
         try:
-            import main
-            main.main()  # Start the main game
+            from gui_interface import TokenGameGUI
+            from game_logic import GameLogic
+            
+            # Start the GUI game first
+            game = TokenGameGUI()
+            
+            # Create game logic with default settings
+            game_logic = GameLogic(
+                max_rounds=10,
+                game_mode='normal',
+                difficulty='mixed',
+                category='all'
+            )
+            
+            # Assign the game logic AFTER GUI is initialized
+            game.game_logic = game_logic
+            
+            # Set window title
+            game.root.title("Token Quest - Research Edition")
+            
+            # Start first round (this will initialize current_round properly)
+            game.start_new_round()
+            
+            print("✅ Main game launched successfully from tutorial")
+            game.run()
+            
         except Exception as e:
-            print(f"Error launching main game: {e}")
-            # Fallback: try to run the game directly
+            print(f"Error launching main game from tutorial: {e}")
+            # Fallback: try to run using subprocess
             try:
                 import subprocess
                 import sys
                 import os
                 
-                # Get the current directory and run main.py
                 current_dir = os.path.dirname(os.path.abspath(__file__))
                 main_py = os.path.join(current_dir, 'main.py')
                 subprocess.Popen([sys.executable, main_py])
             except Exception as e2:
                 print(f"Fallback launch also failed: {e2}")
-                # Just close tutorial if all else fails
                 pass
     
     def run(self):

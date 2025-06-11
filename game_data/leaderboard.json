@@ -1,6 +1,19 @@
 {
   "normal": [
     {
+      "player_name": "adam",
+      "score": 61,
+      "accuracy": 85.71428571428571,
+      "correct_guesses": 6,
+      "total_rounds": 7,
+      "average_distance": 741.8571428571429,
+      "best_distance": 1,
+      "difficulty": "mixed",
+      "category": "all",
+      "date": "2025-06-11 16:18:30",
+      "timestamp": "2025-06-11T16:18:30.995080"
+    },
+    {
       "player_name": "OceanBoy",
       "score": 9,
       "accuracy": 16.666666666666664,
@@ -18,8 +31,8 @@
   "category": [],
   "speed": [],
   "all_time_stats": {
-    "total_games": 1,
-    "total_score": 9,
-    "best_accuracy": 16.666666666666664
+    "total_games": 2,
+    "total_score": 70,
+    "best_accuracy": 85.71428571428571
   }
 }

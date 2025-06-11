@@ -1,28 +1,33 @@
 {
   "stats": {
-    "games_played": 3,
+    "games_played": 5,
     "total_score": 0,
-    "perfects": 6,
-    "excellents": 4,
-    "perfect_streak": 6,
+    "perfects": 8,
+    "excellents": 8,
+    "perfect_streak": 0,
     "max_perfect_streak": 6,
-    "correct_streak": 8,
+    "correct_streak": 6,
     "max_correct_streak": 8,
     "words_tried": [
-      "chapter",
-      "commerce",
-      "rew",
-      "ubic",
-      "sad",
       "kind",
       "\u04d9\u0445",
-      "\u05e2\u05e0\u05d2",
       "mad",
+      "\u05e2\u05e0\u05d2",
+      "egal",
+      "usuarios",
+      "chapter",
+      "istik",
+      "rew",
+      "arf",
+      "ubic",
+      "commerce",
       "cool",
-      "essay"
+      "essay",
+      "attempt",
+      "sad"
     ],
-    "hints_viewed": 10,
-    "tutorials_completed": 0,
+    "hints_viewed": 17,
+    "tutorials_completed": 4,
     "data_exports": 0,
     "leaderboard_submissions": 0,
     "mode_wins": {
@@ -37,9 +42,9 @@
   },
   "achievements": {
     "test_achievement": {
-      "progress": 3,
+      "progress": 5,
       "unlocked": true,
-      "unlock_date": "2025-06-11T07:20:15.221685"
+      "unlock_date": "2025-06-11T16:20:49.781092"
     },
     "perfect_shot": {
       "progress": 1,
@@ -52,7 +57,7 @@
       "unlock_date": "2025-06-11T07:22:23.746576"
     },
     "marksman": {
-      "progress": 6,
+      "progress": 8,
       "unlocked": false,
       "unlock_date": null
     },
@@ -62,17 +67,17 @@
       "unlock_date": "2025-06-11T07:22:11.190437"
     },
     "word_explorer": {
-      "progress": 11,
+      "progress": 16,
       "unlocked": false,
       "unlock_date": null
     },
     "vocabulary_master": {
-      "progress": 11,
+      "progress": 16,
       "unlocked": false,
       "unlock_date": null
     },
     "token_researcher": {
-      "progress": 3,
+      "progress": 5,
       "unlocked": false,
       "unlock_date": null
     },
@@ -107,14 +112,14 @@
       "unlock_date": "2025-06-11T07:22:23.746576"
     },
     "token_student": {
-      "progress": 10,
+      "progress": 17,
       "unlocked": false,
       "unlock_date": null
     },
     "token_scholar": {
-      "progress": 0,
-      "unlocked": false,
-      "unlock_date": null
+      "progress": 1,
+      "unlocked": true,
+      "unlock_date": "2025-06-11T16:01:24.453692"
     },
     "research_contributor": {
       "progress": 0,

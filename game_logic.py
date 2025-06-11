@@ -163,7 +163,8 @@ class GameLogic:
         return {
             'target_word': self.current_target_word,
             'target_token_id': self.current_target_token_id,
-            'round_number': self.round_number,
+            'current_round': self.round_number,
+            'round_number': self.round_number,  # Keep for backward compatibility
             'max_rounds': self.max_rounds,
             'attempts_left': self.max_attempts,
             'game_ended': False,
@@ -236,7 +237,8 @@ class GameLogic:
                 'total_score': self.score,
                 'feedback': feedback,
                 'guess_info': guess_info,
-                'round_number': self.round_number,
+                'current_round': self.round_number,
+                'round_number': self.round_number,  # Keep for backward compatibility
                 'max_rounds': self.max_rounds,
                 'attempts_used': self.current_attempts,
                 'attempts_left': self.max_attempts - self.current_attempts,
@@ -617,4 +619,6 @@ class GameLogic:
             'brightness': 'Light and darkness words',
             'actions': 'Action and movement words',
             'difficulty': 'Difficulty and complexity words'
-        } 
+        }
+
+ 
