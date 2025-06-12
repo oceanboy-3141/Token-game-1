@@ -586,27 +586,32 @@ class EnhancedDataCollector:
     def _export_consolidated_csv(self, filename: str):
         """Export consolidated CSV for statistical analysis."""
         try:
-            consolidated_data = []
-            
-            for guess in self.session_data['guesses']:
-                row = {
-                    'session_id': guess.get('session_id', ''),
-                    'timestamp': guess.get('timestamp', ''),
-                    'target_word': guess.get('target_word', ''),
-                    'guess_word': guess.get('guess_word', ''),
-                    'token_distance': guess.get('token_distance', 0),
-                    'points_earned': guess.get('points_earned', 0),
-                    'response_time_ms': guess.get('response_time_ms', 0),
-                    'accuracy_level': guess.get('accuracy_level', ''),
-                    'game_mode': guess.get('game_mode', ''),
-                    'category': guess.get('category', ''),
-                    'hint_used': guess.get('hint_used', False)
-                }
-                consolidated_data.append(row)
-            
-            if consolidated_data:
-                df = pd.DataFrame(consolidated_data)
-                df.to_csv(filename, index=False)
+            with open(filename, 'w', newline='', encoding='utf-8') as f:
+                if not self.session_data['guesses']:
+                    return
+                
+                # Write header
+                writer = csv.writer(f)
+                writer.writerow([
+                    'session_id', 'timestamp', 'target_word', 'guess_word',
+                    'token_distance', 'points_earned', 'accuracy_level',
+                    'game_mode', 'category', 'hint_used'
+                ])
+                
+                # Write data
+                for guess in self.session_data['guesses']:
+                    writer.writerow([
+                        guess.get('session_id', ''),
+                        guess.get('timestamp', ''),
+                        guess.get('target_word', ''),
+                        guess.get('guess_word', ''),
+                        guess.get('token_distance', 0),
+                        guess.get('points_earned', 0),
+                        guess.get('accuracy_level', ''),
+                        guess.get('game_mode', ''),
+                        guess.get('category', ''),
+                        guess.get('hint_used', False)
+                    ])
                 
         except Exception as e:
             print(f"❌ Error creating consolidated CSV: {e}")

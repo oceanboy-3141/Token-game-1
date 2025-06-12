@@ -14,6 +14,19 @@
       "timestamp": "2025-06-11T16:18:30.995080"
     },
     {
+      "player_name": "ME",
+      "score": 41,
+      "accuracy": 50.0,
+      "correct_guesses": 3,
+      "total_rounds": 6,
+      "average_distance": 28499.666666666668,
+      "best_distance": 0,
+      "difficulty": "mixed",
+      "category": "all",
+      "date": "2025-06-11 20:25:08",
+      "timestamp": "2025-06-11T20:25:08.862867"
+    },
+    {
       "player_name": "OceanBoy",
       "score": 9,
       "accuracy": 16.666666666666664,
@@ -31,8 +44,8 @@
   "category": [],
   "speed": [],
   "all_time_stats": {
-    "total_games": 2,
-    "total_score": 70,
+    "total_games": 3,
+    "total_score": 111,
     "best_accuracy": 85.71428571428571
   }
 }

@@ -38,7 +38,9 @@ class StartupDialog:
             'category': 'all',
             'theme': 'light',
             'rounds': 10,
-            'start_game': False
+            'start_game': False,
+            'researcher_mode': False,
+            'research_folder': ''
         }
         
         # Theme colors
@@ -261,6 +263,71 @@ class StartupDialog:
             width=18
         )
         rounds_combo.grid(row=1, column=3, padx=10, pady=8)
+        
+        # Researcher Data Collection Toggle
+        researcher_frame = tk.LabelFrame(
+            settings_frame,
+            text="🔬 Researcher Data Collection",
+            font=('Arial', 12, 'bold'),
+            bg='#f0f0f0',
+            fg='#2196F3'
+        )
+        researcher_frame.pack(fill='x', pady=10, padx=20)
+        
+        # Toggle and folder selection
+        toggle_frame = tk.Frame(researcher_frame, bg='#f0f0f0')
+        toggle_frame.pack(pady=10, fill='x')
+        
+        # Toggle switch
+        self.researcher_mode = tk.BooleanVar(value=False)
+        researcher_toggle = tk.Checkbutton(
+            toggle_frame,
+            text="🔬 Enable Researcher Mode",
+            variable=self.researcher_mode,
+            font=('Arial', 11, 'bold'),
+            bg='#f0f0f0',
+            fg='#2196F3',
+            command=self.toggle_researcher_mode
+        )
+        researcher_toggle.pack(anchor='w')
+        
+        # Folder selection frame (initially hidden)
+        self.folder_frame = tk.Frame(researcher_frame, bg='#f0f0f0')
+        
+        tk.Label(
+            self.folder_frame,
+            text="📁 Research Folder Name:",
+            font=('Arial', 10, 'bold'),
+            bg='#f0f0f0',
+            fg='#333'
+        ).pack(anchor='w', pady=(5, 2))
+        
+        self.research_folder_var = tk.StringVar(value="")
+        self.folder_entry = tk.Entry(
+            self.folder_frame,
+            textvariable=self.research_folder_var,
+            font=('Arial', 11),
+            width=40,
+            relief='solid',
+            bd=1
+        )
+        self.folder_entry.pack(anchor='w', pady=(0, 5))
+        
+        tk.Label(
+            self.folder_frame,
+            text="💡 Example: 'Study_2024_TokenSpace' or 'AI_Research_Lab_Data'",
+            font=('Arial', 9, 'italic'),
+            bg='#f0f0f0',
+            fg='#666'
+        ).pack(anchor='w')
+        
+        tk.Label(
+            self.folder_frame,
+            text="⚠️ Data will be saved IMMEDIATELY to this folder during gameplay",
+            font=('Arial', 9, 'bold'),
+            bg='#f0f0f0',
+            fg='#FF5722'
+        ).pack(anchor='w', pady=(5, 0))
     
     def create_theme_section(self, parent):
         """Create the theme selection section."""
@@ -649,6 +716,15 @@ class StartupDialog:
         except Exception as e:
             messagebox.showerror("Achievements Error", f"Could not show achievements: {e}")
     
+    def toggle_researcher_mode(self):
+        """Toggle researcher mode and show/hide folder selection."""
+        if self.researcher_mode.get():
+            self.folder_frame.pack(fill='x', pady=(5, 10))
+            self.folder_entry.focus()
+        else:
+            self.folder_frame.pack_forget()
+            self.research_folder_var.set("")
+
     def quick_start(self, mode):
         """Quick start with a specific mode."""
         self.settings['game_mode'] = mode
@@ -696,6 +772,25 @@ class StartupDialog:
     
     def start_game(self):
         """Start the game with selected settings."""
+        # Validate researcher mode settings
+        if self.researcher_mode.get():
+            folder_name = self.research_folder_var.get().strip()
+            if not folder_name:
+                messagebox.showerror(
+                    "Researcher Mode Error", 
+                    "Please enter a research folder name when Researcher Mode is enabled!"
+                )
+                return
+            
+            # Validate folder name (no invalid characters)
+            import re
+            if not re.match(r'^[a-zA-Z0-9_\-\s]+$', folder_name):
+                messagebox.showerror(
+                    "Invalid Folder Name", 
+                    "Folder name can only contain letters, numbers, spaces, hyphens, and underscores."
+                )
+                return
+        
         # Collect settings from UI
         self.settings.update({
             'game_mode': self.mode_var.get(),
@@ -703,6 +798,8 @@ class StartupDialog:
             'category': self.cat_var.get(),
             'rounds': int(self.rounds_var.get()),
             'theme': self.theme_var.get(),
+            'researcher_mode': self.researcher_mode.get(),
+            'research_folder': self.research_folder_var.get().strip(),
             'start_game': True
         })
         

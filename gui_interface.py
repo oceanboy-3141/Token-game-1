@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext, simpledialog
 import time
 from game_logic import GameLogic
-from data_collector import DataCollector
+from enhanced_data_collector import EnhancedDataCollector
 from leaderboard import Leaderboard
 
 # Add tutorial import
@@ -73,10 +73,13 @@ class MaterialTypography:
 
 
 class TokenGameGUI:
-    def __init__(self):
+    def __init__(self, researcher_settings=None):
         self.root = tk.Tk()
         self.root.title("Token Quest - Educational Research Edition")
         self.root.geometry("1200x800")
+        
+        # Store researcher settings
+        self.researcher_settings = researcher_settings or {}
         
         # Material Design window setup
         self._setup_window()
@@ -87,7 +90,7 @@ class TokenGameGUI:
         
         # Initialize game components
         self.game_logic = GameLogic()
-        self.data_collector = DataCollector()
+        self.data_collector = self._create_enhanced_data_collector()
         self.leaderboard = Leaderboard()
         
         # Initialize achievements
@@ -109,6 +112,143 @@ class TokenGameGUI:
         # Configure ttk styles
         self._configure_ttk_styles()
     
+    def _create_enhanced_data_collector(self):
+        """Create an enhanced data collector with automatic comprehensive logging."""
+        import os
+        
+        # Check if researcher mode is enabled with custom folder
+        if self.researcher_settings.get('researcher_mode') and self.researcher_settings.get('research_folder'):
+            research_folder_name = self.researcher_settings['research_folder']
+            print(f"🔬 Researcher Mode ENABLED - Using folder: '{research_folder_name}'")
+            
+            # Try multiple locations for the researcher folder
+            possible_paths = [
+                # Desktop location
+                os.path.join(os.path.expanduser("~"), "Desktop", research_folder_name),
+                # Documents location
+                os.path.join(os.path.expanduser("~"), "Documents", research_folder_name),
+                # Current directory
+                os.path.join(os.getcwd(), research_folder_name),
+                # Game directory
+                os.path.join(os.getcwd(), "research_data", research_folder_name)
+            ]
+        else:
+            # Default paths for regular users
+            possible_paths = [
+                # User's preferred location
+                os.path.expanduser("~/Desktop/Game Coding Projects/vibe coding/Token data from token game"),
+                # Alternative desktop location
+                os.path.join(os.path.expanduser("~"), "Desktop", "Token data from token game"),
+                # Current directory fallback
+                os.path.join(os.getcwd(), "Token data from token game"),
+                # Game data subdirectory fallback
+                os.path.join(os.getcwd(), "game_data", "comprehensive_research_data")
+            ]
+        
+        research_data_dir = None
+        for path in possible_paths:
+            try:
+                os.makedirs(path, exist_ok=True)
+                # Test write access
+                test_file = os.path.join(path, "test_write.tmp")
+                with open(test_file, 'w') as f:
+                    f.write("test")
+                os.remove(test_file)
+                research_data_dir = path
+                if self.researcher_settings.get('researcher_mode'):
+                    print(f"🔬 RESEARCHER MODE: Data directory created at: {research_data_dir}")
+                    print(f"📊 ALL game data will be saved IMMEDIATELY to this folder!")
+                else:
+                    print(f"✅ Research data directory created: {research_data_dir}")
+                break
+            except Exception as e:
+                print(f"❌ Could not create {path}: {e}")
+                continue
+        
+        if not research_data_dir:
+            research_data_dir = "game_data"  # Final fallback
+            os.makedirs(research_data_dir, exist_ok=True)
+        
+        return EnhancedDataCollector(research_data_dir)
+
+    def show_inline_error(self, title: str, message: str):
+        """Show an inline error message without disrupting the main window."""
+        # Clear any existing feedback
+        for widget in self.feedback_frame.winfo_children():
+            widget.destroy()
+        
+        # Create error card
+        error_card = self.create_material_card(self.feedback_frame, pady=20)
+        error_card.pack(fill='x', pady=16)
+        error_card.configure(bg='#FFEBEE')  # Light red background
+        
+        # Error icon and title
+        header_frame = tk.Frame(error_card, bg='#FFEBEE')
+        header_frame.pack(fill='x', pady=(0, 10))
+        
+        title_label = tk.Label(
+            header_frame,
+            text=title,
+            font=MaterialTypography.TITLE_MEDIUM,
+            bg='#FFEBEE',
+            fg='#D32F2F'
+        )
+        title_label.pack()
+        
+        # Error message
+        message_label = tk.Label(
+            error_card,
+            text=message,
+            font=MaterialTypography.BODY_MEDIUM,
+            bg='#FFEBEE',
+            fg='#B71C1C',
+            wraplength=600,
+            justify='center'
+        )
+        message_label.pack(pady=(0, 10))
+        
+        # Auto-clear after 3 seconds
+        self.root.after(3000, lambda: error_card.destroy() if error_card.winfo_exists() else None)
+        
+        # Focus back to entry
+        self.guess_entry.focus()
+    
+    def show_inline_message(self, title: str, message: str):
+        """Show an inline informational message without disrupting the main window."""
+        # Clear any existing feedback
+        for widget in self.feedback_frame.winfo_children():
+            widget.destroy()
+        
+        # Create info card
+        info_card = self.create_material_card(self.feedback_frame, pady=20)
+        info_card.pack(fill='x', pady=16)
+        info_card.configure(bg='#E8F5E8')  # Light green background
+        
+        # Info icon and title
+        header_frame = tk.Frame(info_card, bg='#E8F5E8')
+        header_frame.pack(fill='x', pady=(0, 10))
+        
+        title_label = tk.Label(
+            header_frame,
+            text=title,
+            font=MaterialTypography.TITLE_MEDIUM,
+            bg='#E8F5E8',
+            fg='#2E7D32'
+        )
+        title_label.pack()
+        
+        # Info message
+        message_label = tk.Label(
+            info_card,
+            text=message,
+            font=MaterialTypography.BODY_MEDIUM,
+            bg='#E8F5E8',
+            fg='#1B5E20',
+            wraplength=600,
+            justify='center'
+        )
+        message_label.pack(pady=(0, 10))
+
     def _close_active_popup(self):
         """Close any currently active popup window."""
         if self.active_popup and self.active_popup.winfo_exists():
@@ -784,12 +924,12 @@ class TokenGameGUI:
     def submit_guess(self):
         """Submit the player's guess."""
         if not self.current_round_active:
-            messagebox.showwarning("No Active Round", "Please start a new round first!")
+            self.show_inline_error("⚠️ No Active Round", "Please start a new round first!")
             return
         
         guess = self.guess_entry.get().strip()
         if not guess:
-            messagebox.showwarning("Empty Guess", "Please enter a word!")
+            self.show_inline_error("⚠️ Empty Guess", "Please enter a word!")
             return
         
         result = self.game_logic.submit_guess(guess)
@@ -820,11 +960,10 @@ class TokenGameGUI:
             self.show_guess_result(result)
             
             # Log data for research
-            self.data_collector.log_guess(self.game_logic.game_history[-1])
+            self.data_collector.log_comprehensive_guess(result)
             
-            # Update score display with animation
+            # Update score display
             self.score_label.config(text=str(result['total_score']))
-            self.pulse_animation(self.score_label, scale_factor=1.2, duration=400)
             
             # Update accuracy display
             self.accuracy_label.config(text=str(self.game_logic.correct_guesses))
@@ -832,14 +971,21 @@ class TokenGameGUI:
             # Update progress bars
             self.update_progress_bars()
             
-            # Add to results log (commented out - removing ugly log display)
-            # self.add_to_results_log(result)
+            # Clear the guess entry
+            self.guess_entry.delete(0, tk.END)
             
-            # Check if max attempts reached or word is correct - auto advance
+            # SIMPLIFIED AUTO-ADVANCE LOGIC - Check if max attempts reached or word is correct
             if result.get('max_attempts_reached') or result['feedback']['is_correct']:
-                # Auto-advance to next word after a short delay
-                self.root.after(2000, self.start_new_round)  # 2 second delay
-                self.next_btn.config(state='disabled')  # Disable button during auto-advance
+                print(f"🔄 Auto-advancing: max_attempts={result.get('max_attempts_reached')}, correct={result['feedback']['is_correct']}")
+                # Show a brief inline message and auto-advance
+                if result.get('max_attempts_reached'):
+                    self.show_inline_message("🔄 Round Complete", f"3 attempts used! Moving to next word...\nAttempts used: {result.get('attempts_used', 0)}")
+                else:
+                    self.show_inline_message("🎉 Correct!", "Great job! Moving to next word...")
+                
+                # Auto-advance after brief delay to show message
+                self.root.after(1500, self.start_new_round)
+                return
             
             # Check if this was the last round
             if result['current_round'] >= result['max_rounds']:
@@ -849,13 +995,13 @@ class TokenGameGUI:
         else:
             # Invalid guess - check if max attempts reached
             if result.get('max_attempts_reached'):
-                messagebox.showinfo("Max Attempts", "3 attempts used! Moving to next word...")
-                self.start_new_round()  # Auto advance
+                print(f"🔄 Invalid guess but max attempts reached: {result.get('attempts_used', 0)}")
+                self.show_inline_message("🔄 Round Complete", f"3 attempts used! Moving to next word...\nAttempts used: {result.get('attempts_used', 0)}")
+                # Auto advance after showing message briefly
+                self.root.after(1500, self.start_new_round)
             else:
-                messagebox.showerror("Invalid Guess", result['error'])
+                self.show_inline_error("❌ Invalid Guess", result['error'])
             return
-        
-            self.guess_entry.delete(0, tk.END)
     
     def show_guess_result(self, result):
         """Display the result of a guess with enhanced material design feedback and animations."""
@@ -993,8 +1139,8 @@ class TokenGameGUI:
         # Animate the result card entry
         self.animate_feedback_entry(result_card)
         
-        # Schedule to reset target word display with smooth transition
-        self.root.after(5000, lambda: self.reset_target_display_smooth())
+        # Schedule to reset target word display with smooth transition (much faster)
+        self.root.after(1000, lambda: self.reset_target_display_smooth())
     
     def create_material_token_visualization(self, parent, result, bg_color):
         """Create a modern material design token space visualization."""
@@ -1166,7 +1312,7 @@ class TokenGameGUI:
         hint_data = self.game_logic.get_hint()
         
         if 'error' in hint_data:
-            messagebox.showwarning("No Hint Available", hint_data['error'])
+            self.show_inline_error("💡 No Hint Available", hint_data['error'])
             return
         
         # Track hint viewed for achievements
@@ -1877,7 +2023,8 @@ Worst Distance: {stats['worst_distance']}"""
     def export_data(self):
         """Export game data for research."""
         try:
-            csv_file = self.data_collector.export_to_csv()
+            # Use the enhanced data collector's export method
+            exported_files = self.data_collector.export_comprehensive_data()
             session_file = self.data_collector.save_session()
             
             # Track data export for achievements
@@ -1886,10 +2033,11 @@ Worst Distance: {stats['worst_distance']}"""
                 for achievement in new_achievements:
                     self.show_achievement_notification(achievement)
             
-            message = f"Data exported successfully!\n\nFiles created:\n- {csv_file}\n- {session_file}"
-            messagebox.showinfo("Export Successful", message)
+            files_list = "\n".join([f"- {file}" for file in exported_files])
+            message = f"Data exported successfully!\n\nFiles created:\n{files_list}\n- {session_file}"
+            self.show_inline_message("📊 Export Successful", message)
         except Exception as e:
-            messagebox.showerror("Export Error", f"Failed to export data: {str(e)}")
+            self.show_inline_error("📊 Export Error", f"Failed to export data: {str(e)}")
     
     def show_final_results(self, round_info):
         """Show final game results in a popup."""

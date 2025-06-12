@@ -254,7 +254,8 @@ class GameLogic:
                 'error': 'Word must be a single token',
                 'guess_info': guess_info,
                 'attempts_used': self.current_attempts,
-                'attempts_left': self.max_attempts - self.current_attempts
+                'attempts_left': self.max_attempts - self.current_attempts,
+                'max_attempts_reached': self.current_attempts >= self.max_attempts
             }
     
     def _calculate_points(self, distance: int) -> int:
