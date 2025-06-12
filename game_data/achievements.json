@@ -2,31 +2,51 @@
   "stats": {
     "games_played": 5,
     "total_score": 0,
-    "perfects": 8,
+    "perfects": 27,
     "excellents": 8,
-    "perfect_streak": 0,
-    "max_perfect_streak": 6,
-    "correct_streak": 6,
-    "max_correct_streak": 8,
+    "perfect_streak": 4,
+    "max_perfect_streak": 14,
+    "correct_streak": 4,
+    "max_correct_streak": 14,
     "words_tried": [
-      "kind",
-      "\u04d9\u0445",
-      "mad",
-      "\u05e2\u05e0\u05d2",
-      "egal",
-      "usuarios",
-      "chapter",
-      "istik",
-      "rew",
-      "arf",
-      "ubic",
+      "sip",
+      "hot",
       "commerce",
+      "bright",
+      "big",
+      "arf",
+      "cold",
+      "\u05e2\u05e0\u05d2",
+      "usuarios",
+      "jump",
+      "1",
+      "istik",
+      "dash",
+      "mad",
+      "happy",
+      "\u4eba\u7247\u5728\u7ebf\u89c2\u770b",
+      "chapter",
       "cool",
-      "essay",
+      "\u00e4llt",
+      "egal",
+      "small",
+      "slow",
       "attempt",
-      "sad"
+      "kind",
+      "ire",
+      "essay",
+      "ubic",
+      "sad",
+      "ore",
+      "\u04d9\u0445",
+      "basic",
+      "rew",
+      "run",
+      "fat",
+      "tiny",
+      "walk"
     ],
-    "hints_viewed": 17,
+    "hints_viewed": 22,
     "tutorials_completed": 4,
     "data_exports": 0,
     "leaderboard_submissions": 0,
@@ -44,7 +64,7 @@
     "test_achievement": {
       "progress": 5,
       "unlocked": true,
-      "unlock_date": "2025-06-11T16:20:49.781092"
+      "unlock_date": "2025-06-11T17:54:25.581112"
     },
     "perfect_shot": {
       "progress": 1,
@@ -57,9 +77,9 @@
       "unlock_date": "2025-06-11T07:22:23.746576"
     },
     "marksman": {
-      "progress": 8,
-      "unlocked": false,
-      "unlock_date": null
+      "progress": 10,
+      "unlocked": true,
+      "unlock_date": "2025-06-11T16:28:58.347335"
     },
     "word_sniper": {
       "progress": 3,
@@ -67,12 +87,12 @@
       "unlock_date": "2025-06-11T07:22:11.190437"
     },
     "word_explorer": {
-      "progress": 16,
+      "progress": 36,
       "unlocked": false,
       "unlock_date": null
     },
     "vocabulary_master": {
-      "progress": 16,
+      "progress": 36,
       "unlocked": false,
       "unlock_date": null
     },
@@ -112,7 +132,7 @@
       "unlock_date": "2025-06-11T07:22:23.746576"
     },
     "token_student": {
-      "progress": 17,
+      "progress": 22,
       "unlocked": false,
       "unlock_date": null
     },

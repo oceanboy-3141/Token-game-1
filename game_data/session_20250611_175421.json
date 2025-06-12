@@ -1,0 +1,23 @@
+{
+  "session_id": "20250611_175421",
+  "start_time": "2025-06-11T17:54:25.673834",
+  "end_time": "2025-06-11T17:54:37.687580",
+  "total_guesses": 1,
+  "guesses": [
+    {
+      "session_id": "20250611_175421",
+      "timestamp": "2025-06-11T17:54:25.673834",
+      "round": 1,
+      "target_word": "run",
+      "target_token_id": 12935,
+      "guess_word": "run",
+      "guess_token_id": 12935,
+      "distance": 0,
+      "round_score": 10,
+      "total_score": 10,
+      "is_correct": true,
+      "result_type": "PERFECT",
+      "attempt_number": 1
+    }
+  ]
+}

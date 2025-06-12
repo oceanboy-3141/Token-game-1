@@ -578,9 +578,35 @@ class TokenGameGUI:
         )
         self.settings_btn.pack(side='left', padx=(12, 0))
         
-        # Feedback area (initially hidden)
-        self.feedback_frame = tk.Frame(main_container, bg=MaterialColors.BACKGROUND)
-        self.feedback_frame.pack(fill='x', pady=(0, 24))
+        # Feedback area with scrolling (initially hidden)
+        feedback_outer = tk.Frame(main_container, bg=MaterialColors.BACKGROUND)
+        feedback_outer.pack(fill='x', pady=(0, 24))
+        
+        # Create scrollable feedback area
+        feedback_canvas = tk.Canvas(
+            feedback_outer, 
+            bg=MaterialColors.BACKGROUND,
+            highlightthickness=0,
+            height=300  # Max height before scrolling - reduced for better visibility
+        )
+        feedback_scrollbar = ttk.Scrollbar(feedback_outer, orient="vertical", command=feedback_canvas.yview)
+        self.feedback_frame = tk.Frame(feedback_canvas, bg=MaterialColors.BACKGROUND)
+        
+        self.feedback_frame.bind(
+            "<Configure>",
+            lambda e: feedback_canvas.configure(scrollregion=feedback_canvas.bbox("all"))
+        )
+        
+        feedback_canvas.create_window((0, 0), window=self.feedback_frame, anchor="nw")
+        feedback_canvas.configure(yscrollcommand=feedback_scrollbar.set)
+        
+        feedback_canvas.pack(side="left", fill="both", expand=True)
+        feedback_scrollbar.pack(side="right", fill="y")
+        
+        # Mouse wheel scrolling
+        def _on_mousewheel(event):
+            feedback_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        feedback_canvas.bind_all("<MouseWheel>", _on_mousewheel)
         
         # Setup modern menu
         self._setup_material_menu()
@@ -940,28 +966,29 @@ class TokenGameGUI:
                 justify='left'
             ).pack(anchor='w', padx=16, pady=(0, 12))
         
-        # Token fact with modern styling
+        # Token fact with modern styling and enhanced visibility
         if 'token_fact' in result:
-            fact_card = tk.Frame(result_card, bg=MaterialColors.SURFACE_VARIANT, relief='flat', bd=0)
-            fact_card.pack(fill='x', padx=16, pady=8)
+            fact_card = tk.Frame(result_card, bg='#E8F5E8', relief='solid', bd=2)  # More visible background
+            fact_card.pack(fill='x', padx=16, pady=12)
             
+            # Enhanced header with more emphasis
             tk.Label(
                 fact_card,
-                text="💡 Did You Know?",
-                font=MaterialTypography.TITLE_SMALL,
-                bg=MaterialColors.SURFACE_VARIANT,
-                fg=MaterialColors.PRIMARY
-            ).pack(anchor='w', padx=16, pady=(12, 8))
+                text="💡 Did You Know? (Educational Fact)",
+                font=MaterialTypography.TITLE_MEDIUM,  # Larger font
+                bg='#E8F5E8',
+                fg=MaterialColors.SUCCESS
+            ).pack(anchor='w', padx=16, pady=(16, 8))
             
             tk.Label(
                 fact_card,
                 text=result['token_fact'],
-                font=MaterialTypography.BODY_MEDIUM,
-                bg=MaterialColors.SURFACE_VARIANT,
-                fg=MaterialColors.ON_SURFACE_VARIANT,
+                font=MaterialTypography.BODY_LARGE,  # Larger font for fact
+                bg='#E8F5E8',
+                fg=MaterialColors.ON_SURFACE,
                 wraplength=600,
                 justify='left'
-            ).pack(anchor='w', padx=16, pady=(0, 12))
+            ).pack(anchor='w', padx=16, pady=(0, 16))
         
         # Animate the result card entry
         self.animate_feedback_entry(result_card)

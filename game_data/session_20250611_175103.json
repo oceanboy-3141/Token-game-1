@@ -1,0 +1,38 @@
+{
+  "session_id": "20250611_175103",
+  "start_time": "2025-06-11T17:51:32.534727",
+  "end_time": "2025-06-11T17:54:02.889139",
+  "total_guesses": 2,
+  "guesses": [
+    {
+      "session_id": "20250611_175103",
+      "timestamp": "2025-06-11T17:51:32.534727",
+      "round": 1,
+      "target_word": "run",
+      "target_token_id": 12935,
+      "guess_word": "run",
+      "guess_token_id": 12935,
+      "distance": 0,
+      "round_score": 10,
+      "total_score": 10,
+      "is_correct": true,
+      "result_type": "PERFECT",
+      "attempt_number": 1
+    },
+    {
+      "session_id": "20250611_175103",
+      "timestamp": "2025-06-11T17:51:42.711897",
+      "round": 2,
+      "target_word": "cold",
+      "target_token_id": 178320,
+      "guess_word": "cold",
+      "guess_token_id": 178320,
+      "distance": 0,
+      "round_score": 10,
+      "total_score": 20,
+      "is_correct": true,
+      "result_type": "PERFECT",
+      "attempt_number": 1
+    }
+  ]
+}
