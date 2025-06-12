@@ -5,6 +5,8 @@ Manages all tiktoken operations for Token Quest
 
 import tiktoken
 import random
+import logging
+from functools import lru_cache
 from typing import List, Tuple, Optional, Dict
 
 
@@ -28,9 +30,44 @@ class TokenHandler:
             "📈 Token IDs can reveal biases in training data frequency."
         ]
         
+        # Local cache for id→word look-ups (fast runtime, small memory)
+        self._id_to_word: Dict[int, str] = {}
+        # Configure logger
+        self._logger = logging.getLogger(__name__)
+        
+    # ─────────────────────────────────────────────
+    # Caching helpers
+    # ─────────────────────────────────────────────
+
+    @lru_cache(maxsize=100_000)
+    def _encode_cached(self, text: str) -> Tuple[int, ...]:
+        """Cached BPE encoding (immutable tuple so it can be cached)."""
+        return tuple(self.encoder.encode(text))
+
+    @lru_cache(maxsize=100_000)
+    def _decode_single_cached(self, token_id: int) -> str:
+        """Cached single-token decoding."""
+        return self.encoder.decode([token_id])
+
+    def _word_from_id(self, token_id: int) -> str:
+        """Return decoded word for a token id using local + LRU cache."""
+        if token_id in self._id_to_word:
+            return self._id_to_word[token_id]
+        try:
+            word = self._decode_single_cached(token_id)
+        except Exception as exc:
+            self._logger.debug("Decode failed for id %s: %s", token_id, exc)
+            word = ""
+        self._id_to_word[token_id] = word
+        return word
+
+    # ─────────────────────────────────────────────
+    # Public API (uses caches)
+    # ─────────────────────────────────────────────
+
     def get_token_ids(self, text: str) -> List[int]:
         """Get token IDs for a given text."""
-        return self.encoder.encode(text)
+        return list(self._encode_cached(text))
     
     def get_single_token_id(self, word: str) -> Optional[int]:
         """Get token ID for a word if it's a single token, None otherwise."""
@@ -41,6 +78,9 @@ class TokenHandler:
     
     def decode_tokens(self, token_ids: List[int]) -> str:
         """Decode token IDs back to text."""
+        # Fast-path for single id using cache
+        if len(token_ids) == 1:
+            return self._decode_single_cached(token_ids[0])
         return self.encoder.decode(token_ids)
     
     def is_single_token(self, word: str) -> bool:
@@ -75,13 +115,10 @@ class TokenHandler:
         end_id = center_token_id + range_size
         
         for token_id in range(start_id, end_id + 1):
-            try:
-                decoded = self.encoder.decode([token_id])
-                # Filter for actual words (basic filtering)
-                if decoded.strip() and decoded.isalpha() and len(decoded.strip()) > 1:
-                    words.append(decoded.strip())
-            except:
-                continue
+            decoded = self._word_from_id(token_id)
+            # Filter for real-looking words
+            if decoded and decoded.isalpha() and len(decoded) > 1:
+                words.append(decoded)
                 
         return words[:20]  # Limit results
     
@@ -96,16 +133,13 @@ class TokenHandler:
         # Find words in the visualization range
         nearby_words = []
         for token_id in range(vis_start, vis_end + 1, 5):  # Sample every 5th token
-            try:
-                decoded = self.encoder.decode([token_id])
-                if decoded.strip() and decoded.isalpha() and len(decoded.strip()) > 1:
-                    nearby_words.append({
-                        'word': decoded.strip(),
-                        'token_id': token_id,
-                        'distance_from_target': abs(token_id - target_id)
-                    })
-            except:
-                continue
+            decoded = self._word_from_id(token_id)
+            if decoded and decoded.isalpha() and len(decoded) > 1:
+                nearby_words.append({
+                    'word': decoded,
+                    'token_id': token_id,
+                    'distance_from_target': abs(token_id - target_id)
+                })
         
         return {
             'target_id': target_id,

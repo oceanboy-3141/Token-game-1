@@ -1,2 +1,11 @@
 tiktoken>=0.5.0
-pyinstaller>=5.0.0 
+pyinstaller>=5.0.0
+flask>=2.2.0
+flask-sqlalchemy
+flask-login
+flask-wtf
+flask-limiter
+werkzeug
+jinja2
+gunicorn
+python-dotenv 

@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Token Quest{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- User Info Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                    <h4 class="card-title">{{ user.username }}</h4>
+                    <p class="text-muted">Token Quest Explorer</p>
+                    
+                    <div class="row text-center mt-4">
+                        <div class="col-6">
+                            <h5 class="text-primary">{{ user.total_games }}</h5>
+                            <small class="text-muted">Games Played</small>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="text-success">{{ user.best_score }}</h5>
+                            <small class="text-muted">Best Score</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="d-grid">
+                            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                                <i class="fas fa-play me-2"></i>Play Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Quick Stats
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Total Score</span>
+                            <strong>{{ user.total_score }}</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Average Score</span>
+                            <strong>
+                                {% if user.total_games > 0 %}
+                                    {{ "%.1f"|format(user.total_score / user.total_games) }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </strong>
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between">
+                            <span>Member Since</span>
+                            <strong>{{ user.created_at[:10] if user.created_at else 'Unknown' }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Games -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Recent Games
+                    </h5>
+                    <small class="text-muted">Last 10 sessions</small>
+                </div>
+                <div class="card-body">
+                    {% if recent_sessions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Mode</th>
+                                        <th>Difficulty</th>
+                                        <th>Score</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for session in recent_sessions %}
+                                    <tr>
+                                        <td>
+                                            <small>{{ session.created_at[:10] if session.created_at else 'Unknown' }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                {{ session.game_mode|title if session.game_mode else 'Classic' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if session.difficulty == 'easy' %}bg-success
+                                                {% elif session.difficulty == 'medium' %}bg-warning
+                                                {% else %}bg-danger{% endif %}">
+                                                {{ session.difficulty|title if session.difficulty else 'Medium' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong class="text-primary">{{ session.score or 0 }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if session.completed_at %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Completed
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-pause me-1"></i>In Progress
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-gamepad fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No games played yet</h5>
+                            <p class="text-muted mb-4">Start your first Token Quest to see your progress here!</p>
+                            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                                <i class="fas fa-play me-2"></i>Start Playing
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Achievement Section (Future Feature) -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-trophy me-2"></i>Achievements
+                        <small class="text-muted">(Coming Soon)</small>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center p-3 border rounded">
+                                <i class="fas fa-medal fa-2x text-muted mb-2"></i>
+                                <h6 class="text-muted">First Steps</h6>
+                                <small class="text-muted">Play your first game</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center p-3 border rounded">
+                                <i class="fas fa-fire fa-2x text-muted mb-2"></i>
+                                <h6 class="text-muted">Hot Streak</h6>
+                                <small class="text-muted">Score 500+ points</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center p-3 border rounded">
+                                <i class="fas fa-brain fa-2x text-muted mb-2"></i>
+                                <h6 class="text-muted">Token Master</h6>
+                                <small class="text-muted">Perfect distance match</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add some interactive elements
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate stats on page load
+        const statValues = document.querySelectorAll('.text-primary, .text-success');
+        statValues.forEach(stat => {
+            stat.style.opacity = '0';
+            stat.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                stat.style.transition = 'all 0.5s ease';
+                stat.style.opacity = '1';
+                stat.style.transform = 'translateY(0)';
+            }, 100);
+        });
+
+        // Add hover effects to achievement cards
+        const achievementCards = document.querySelectorAll('.border.rounded');
+        achievementCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.transition = 'transform 0.3s ease';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>
+{% endblock %} 

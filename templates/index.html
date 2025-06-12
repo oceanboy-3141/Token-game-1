@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Token Quest - Educational Word Game{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Hero Section -->
+            <div class="text-center text-white mb-5">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-brain me-3"></i>Token Quest
+                </h1>
+                <p class="lead mb-4">
+                    Explore the fascinating world of language model tokenization through an engaging word puzzle game
+                </p>
+                <p class="mb-4">
+                    Discover how Large Language Models break down language into tokens and whether synonyms cluster together in token space
+                </p>
+            </div>
+
+            <!-- Game Features -->
+            <div class="row mb-5">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <i class="fas fa-puzzle-piece fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Educational Gameplay</h5>
+                            <p class="card-text">
+                                Learn about tokenization while playing an engaging word guessing game with multiple difficulty levels
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Research Insights</h5>
+                            <p class="card-text">
+                                Contribute to research on semantic similarity and token space relationships in language models
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <i class="fas fa-users fa-3x text-warning mb-3"></i>
+                            <h5 class="card-title">Community</h5>
+                            <p class="card-text">
+                                Track your progress, compete with others, and share your discoveries about language patterns
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            {% if not current_user.is_authenticated %}
+            <div class="row justify-content-center mb-5">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h4 class="card-title mb-3">Ready to Start Your Token Quest?</h4>
+                            <p class="card-text mb-4">
+                                Create an account to save your progress, track your learning, and contribute to our research
+                            </p>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-md-2">
+                                    <i class="fas fa-user-plus me-2"></i>Get Started
+                                </a>
+                                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- How It Works -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0">
+                                <i class="fas fa-question-circle me-2"></i>How Token Quest Works
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5><i class="fas fa-play-circle text-primary me-2"></i>The Game</h5>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <i class="fas fa-arrow-right text-muted me-2"></i>
+                                            You're given a target word and its token ID
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-arrow-right text-muted me-2"></i>
+                                            Guess words that might have similar token IDs
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-arrow-right text-muted me-2"></i>
+                                            Score points based on how close your guesses are
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-arrow-right text-muted me-2"></i>
+                                            Learn about tokenization through gameplay
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5><i class="fas fa-microscope text-success me-2"></i>The Research</h5>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <i class="fas fa-arrow-right text-muted me-2"></i>
+                                            Explore if synonyms have similar token IDs
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-arrow-right text-muted me-2"></i>
+                                            Understand how LLMs process language
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-arrow-right text-muted me-2"></i>
+                                            Contribute to NLP research through play
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-arrow-right text-muted me-2"></i>
+                                            Discover patterns in token space
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Modes -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0">
+                                <i class="fas fa-gamepad me-2"></i>Game Modes
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="text-center">
+                                        <i class="fas fa-star fa-2x text-primary mb-2"></i>
+                                        <h6>Classic Mode</h6>
+                                        <p class="small text-muted">
+                                            Find words with similar meanings and close token IDs
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="text-center">
+                                        <i class="fas fa-exchange-alt fa-2x text-warning mb-2"></i>
+                                        <h6>Antonym Mode</h6>
+                                        <p class="small text-muted">
+                                            Discover words with opposite meanings - are their tokens far apart?
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="text-center">
+                                        <i class="fas fa-layer-group fa-2x text-success mb-2"></i>
+                                        <h6>Category Mode</h6>
+                                        <p class="small text-muted">
+                                            Explore words from specific semantic categories
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity / Leaderboard Preview -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">
+                                <i class="fas fa-trophy me-2"></i>Community Highlights
+                            </h4>
+                            <small class="text-muted">Live leaderboard</small>
+                        </div>
+                        <div class="card-body">
+                            <div id="leaderboard-preview">
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Loading community data...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Load leaderboard preview
+    async function loadLeaderboardPreview() {
+        try {
+            const data = await apiCall('/api/leaderboard');
+            const container = document.getElementById('leaderboard-preview');
+            
+            if (data.success && (data.top_players.length > 0 || data.recent_scores.length > 0)) {
+                let html = '<div class="row">';
+                
+                // Top players
+                if (data.top_players.length > 0) {
+                    html += '<div class="col-md-6"><h6 class="text-primary mb-3"><i class="fas fa-crown me-2"></i>Top Players</h6>';
+                    data.top_players.slice(0, 5).forEach((player, index) => {
+                        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+                        html += `
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                                <span>${medal} ${player.username}</span>
+                                <span class="badge bg-primary">${player.best_score} pts</span>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+                
+                // Recent scores
+                if (data.recent_scores.length > 0) {
+                    html += '<div class="col-md-6"><h6 class="text-success mb-3"><i class="fas fa-clock me-2"></i>Recent High Scores</h6>';
+                    data.recent_scores.slice(0, 5).forEach(score => {
+                        const date = new Date(score.completed_at).toLocaleDateString();
+                        html += `
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                                <div>
+                                    <strong>${score.username}</strong>
+                                    <small class="text-muted d-block">${score.difficulty} • ${date}</small>
+                                </div>
+                                <span class="badge bg-success">${score.score} pts</span>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+                
+                html += '</div>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = `
+                    <div class="text-center text-muted">
+                        <i class="fas fa-users fa-3x mb-3"></i>
+                        <p>Be the first to play and appear on the leaderboard!</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            document.getElementById('leaderboard-preview').innerHTML = `
+                <div class="text-center text-muted">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <p>Unable to load community data</p>
+                </div>
+            `;
+        }
+    }
+
+    // Load leaderboard when page loads
+    document.addEventListener('DOMContentLoaded', loadLeaderboardPreview);
+</script>
+{% endblock %} 

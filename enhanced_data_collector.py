@@ -8,7 +8,12 @@ import os
 from datetime import datetime
 from typing import List, Dict, Any
 import time
+import queue
+import threading
+import logging
+from concurrent.futures import ThreadPoolExecutor
 
+logger = logging.getLogger(__name__)
 
 class EnhancedDataCollector:
     """
@@ -22,6 +27,14 @@ class EnhancedDataCollector:
         
         # Ensure directory exists
         os.makedirs(research_data_dir, exist_ok=True)
+        
+        # Setup async writing
+        self._write_queue = queue.Queue()
+        self._write_thread = threading.Thread(target=self._write_worker, daemon=True)
+        self._write_thread.start()
+        
+        # Thread pool for CPU-bound tasks
+        self._thread_pool = ThreadPoolExecutor(max_workers=2)
         
         # Comprehensive data storage
         self.session_data = {
@@ -45,10 +58,10 @@ class EnhancedDataCollector:
         # Real-time auto-save files
         self.setup_auto_save_files()
         
-        print(f"📊 Research data collector ready: {research_data_dir}")
-        print(f"🔍 DEBUG: Data collector will save to: {os.path.abspath(research_data_dir)}")
-        print(f"🔍 DEBUG: Session ID: {self.session_id}")
-        print(f"🔍 DEBUG: Files will be created: {list(self.files.keys())}")
+        logger.info("Research data collector ready: %s", research_data_dir)
+        logger.debug("Data collector will save to: %s", os.path.abspath(research_data_dir))
+        logger.debug("Session ID: %s", self.session_id)
+        logger.debug("Files will be created: %s", list(self.files.keys()))
     
     def setup_auto_save_files(self):
         """Setup auto-save files for continuous data collection."""
@@ -271,44 +284,47 @@ class EnhancedDataCollector:
     
     def _append_to_csv_immediately(self, guess_data: Dict):
         """Immediately append guess data to CSV for real-time research analysis."""
-        try:
-            with open(self.files['guesses_detailed'], 'a', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                
-                # Calculate additional research metrics
-                target_word = guess_data.get('target_word', '')
-                guess_word = guess_data.get('guess_word', '')
-                
-                row = [
-                    guess_data.get('timestamp', ''),
-                    guess_data.get('session_id', ''),
-                    guess_data.get('game_id', ''),
-                    guess_data.get('round_id', ''),
-                    guess_data.get('guess_number', 0),
-                    target_word,
-                    guess_data.get('target_token_id', 0),
-                    guess_word,
-                    guess_data.get('guess_token_id', 0),
-                    guess_data.get('token_distance', 0),
-                    guess_data.get('category', ''),
-                    guess_data.get('points_earned', 0),
-                    guess_data.get('total_score', 0),
-                    guess_data.get('response_time_ms', 0),
-                    guess_data.get('hint_used', False),
-                    guess_data.get('game_mode', ''),
-                    guess_data.get('difficulty', ''),
-                    guess_data.get('category', ''),
-                    len(target_word),
-                    len(guess_word),
-                    abs(ord(target_word[0].lower()) - ord(guess_word[0].lower())) if target_word and guess_word else 0,
-                    guess_data.get('token_distance', 0) <= 50,  # is_correct threshold
-                    guess_data.get('accuracy_level', ''),
-                    guess_data.get('educational_context', '')
-                ]
-                
-                writer.writerow(row)
-        except Exception as e:
-            print(f"❌ Error writing to CSV: {e}")
+        def _do_append():
+            try:
+                with open(self.files['guesses_detailed'], 'a', newline='', encoding='utf-8') as f:
+                    writer = csv.writer(f)
+                    
+                    # Calculate additional research metrics
+                    target_word = guess_data.get('target_word', '')
+                    guess_word = guess_data.get('guess_word', '')
+                    
+                    row = [
+                        guess_data.get('timestamp', ''),
+                        guess_data.get('session_id', ''),
+                        guess_data.get('game_id', ''),
+                        guess_data.get('round_id', ''),
+                        guess_data.get('guess_number', 0),
+                        target_word,
+                        guess_data.get('target_token_id', 0),
+                        guess_word,
+                        guess_data.get('guess_token_id', 0),
+                        guess_data.get('token_distance', 0),
+                        guess_data.get('category', ''),
+                        guess_data.get('points_earned', 0),
+                        guess_data.get('total_score', 0),
+                        guess_data.get('response_time_ms', 0),
+                        guess_data.get('hint_used', False),
+                        guess_data.get('game_mode', ''),
+                        guess_data.get('difficulty', ''),
+                        guess_data.get('category', ''),
+                        len(target_word),
+                        len(guess_word),
+                        abs(ord(target_word[0].lower()) - ord(guess_word[0].lower())) if target_word and guess_word else 0,
+                        guess_data.get('token_distance', 0) <= 50,  # is_correct threshold
+                        guess_data.get('accuracy_level', ''),
+                        guess_data.get('educational_context', '')
+                    ]
+                    
+                    writer.writerow(row)
+            except Exception as e:
+                logger.error("Error writing to CSV: %s", e, exc_info=True)
+        
+        self._queue_write(_do_append)
     
     def _log_token_relationship(self, guess_data: Dict):
         """Log token relationship data for semantic similarity research."""
@@ -433,39 +449,45 @@ class EnhancedDataCollector:
         return distribution
     
     def _auto_save_session(self):
-        """Automatically save session data."""
-        try:
-            # Update session info
-            self.session_data['session_info']['end_time'] = datetime.now().isoformat()
-            
-            # Save comprehensive session data
-            with open(self.files['session_summary'], 'w', encoding='utf-8') as f:
-                json.dump(self.session_data, f, indent=2, default=str)
-            
-            # Save to daily comprehensive file
-            daily_data = self._load_daily_data()
-            daily_data[self.session_id] = self.session_data
-            
-            with open(self.files['daily_comprehensive'], 'w', encoding='utf-8') as f:
-                json.dump(daily_data, f, indent=2, default=str)
-            
-            # Save session data
-            with open(self.files['session'], 'w') as f:
-                json.dump(self.session_data, f, indent=2)
-                
-        except Exception as e:
-            print(f"❌ Error auto-saving session: {e}")
-    
-    def _load_daily_data(self) -> Dict:
-        """Load existing daily data."""
-        try:
-            if os.path.exists(self.files['daily_comprehensive']):
-                with open(self.files['daily_comprehensive'], 'r', encoding='utf-8') as f:
-                    return json.load(f)
-        except Exception as e:
-            print(f"❌ Error loading daily data: {e}")
+        """Auto-save session data to JSON file."""
+        def _do_save():
+            try:
+                with open(self.files['session'], 'w', encoding='utf-8') as f:
+                    json.dump(self.session_data, f, ensure_ascii=False, indent=2)
+            except Exception as e:
+                logger.error("Error auto-saving session: %s", e, exc_info=True)
         
-        return {}
+        self._queue_write(_do_save)
+    
+    def _write_worker(self):
+        """Background thread that processes write requests."""
+        while True:
+            try:
+                task = self._write_queue.get()
+                if task is None:  # Shutdown signal
+                    break
+                func, args, kwargs = task
+                func(*args, **kwargs)
+            except Exception as e:
+                logger.error("Error in write worker: %s", e, exc_info=True)
+            finally:
+                self._write_queue.task_done()
+    
+    def _queue_write(self, func, *args, **kwargs):
+        """Queue a write operation to be performed asynchronously."""
+        self._write_queue.put((func, args, kwargs))
+    
+    def __del__(self):
+        """Cleanup when collector is destroyed."""
+        try:
+            # Signal write thread to stop
+            self._write_queue.put(None)
+            # Wait for queue to empty
+            self._write_queue.join()
+            # Shutdown thread pool
+            self._thread_pool.shutdown(wait=True)
+        except Exception as e:
+            logger.error("Error during cleanup: %s", e, exc_info=True)
     
     def export_comprehensive_data(self, options: Dict = None) -> List[str]:
         """Export comprehensive research data in multiple formats."""
