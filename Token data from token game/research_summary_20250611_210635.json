@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "export_timestamp": "2025-06-11T21:06:35.185428",
+    "session_id": "20250611_210448",
+    "data_collection_version": "2.0",
+    "research_focus": "token_space_semantic_similarity"
+  },
+  "session_overview": {
+    "session_id": "20250611_210448",
+    "start_time": "2025-06-11T21:04:48.695189",
+    "end_time": "2025-06-11T21:06:09.258693",
+    "total_games": 0,
+    "total_rounds": 0,
+    "total_guesses": 21
+  },
+  "games_summary": {
+    "total_games": 0,
+    "total_rounds": 0,
+    "total_guesses": 21,
+    "total_hints": 0
+  },
+  "research_insights": {
+    "average_token_distance": 62095.23809523809,
+    "distance_distribution": {
+      "far": 17,
+      "very_close": 4
+    },
+    "semantic_accuracy_correlation": 0,
+    "response_time_patterns": {},
+    "hint_effectiveness": {},
+    "mode_performance_comparison": {}
+  },
+  "token_analysis": {
+    "token_clustering_analysis": "To be implemented with more data",
+    "frequency_correlation": "Requires external frequency data",
+    "positional_analysis": "Based on token ID ranges"
+  },
+  "semantic_patterns": {
+    "category_clustering": "Analyze within-category vs cross-category guesses",
+    "synonym_detection": "Track synonym pairs in token space",
+    "antonym_patterns": "Analyze antonym token distances"
+  },
+  "raw_data_files": [
+    "daily_comprehensive",
+    "guesses_detailed",
+    "token_relationships",
+    "semantic_analysis",
+    "performance_metrics",
+    "session_summary",
+    "session"
+  ]
+}

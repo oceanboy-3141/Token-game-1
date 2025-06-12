@@ -14,6 +14,19 @@
       "timestamp": "2025-06-11T16:18:30.995080"
     },
     {
+      "player_name": "DUDE",
+      "score": 51,
+      "accuracy": 20.0,
+      "correct_guesses": 4,
+      "total_rounds": 20,
+      "average_distance": 38800.9,
+      "best_distance": 0,
+      "difficulty": "mixed",
+      "category": "all",
+      "date": "2025-06-11 20:48:14",
+      "timestamp": "2025-06-11T20:48:14.878992"
+    },
+    {
       "player_name": "ME",
       "score": 41,
       "accuracy": 50.0,
@@ -44,8 +57,8 @@
   "category": [],
   "speed": [],
   "all_time_stats": {
-    "total_games": 3,
-    "total_score": 111,
+    "total_games": 4,
+    "total_score": 162,
     "best_accuracy": 85.71428571428571
   }
 }

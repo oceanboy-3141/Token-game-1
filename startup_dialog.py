@@ -43,6 +43,9 @@ class StartupDialog:
             'research_folder': ''
         }
         
+        # Track if research folder is saved
+        self.folder_saved = False
+        
         # Theme colors
         self.themes = {
             'light': {
@@ -302,16 +305,44 @@ class StartupDialog:
             fg='#333'
         ).pack(anchor='w', pady=(5, 2))
         
+        # Entry and save button frame
+        entry_frame = tk.Frame(self.folder_frame, bg='#f0f0f0')
+        entry_frame.pack(anchor='w', pady=(0, 5), fill='x')
+        
         self.research_folder_var = tk.StringVar(value="")
         self.folder_entry = tk.Entry(
-            self.folder_frame,
+            entry_frame,
             textvariable=self.research_folder_var,
             font=('Arial', 11),
-            width=40,
+            width=35,
             relief='solid',
             bd=1
         )
-        self.folder_entry.pack(anchor='w', pady=(0, 5))
+        self.folder_entry.pack(side='left', padx=(0, 10))
+        self.folder_entry.bind('<Return>', lambda e: self.save_research_folder())
+        
+        # Save button
+        self.save_folder_btn = tk.Button(
+            entry_frame,
+            text="💾 Save",
+            font=('Arial', 10, 'bold'),
+            bg='#4CAF50',
+            fg='white',
+            padx=15,
+            pady=5,
+            command=self.save_research_folder
+        )
+        self.save_folder_btn.pack(side='left')
+        
+        # Status indicator
+        self.folder_status_label = tk.Label(
+            self.folder_frame,
+            text="",
+            font=('Arial', 9, 'bold'),
+            bg='#f0f0f0',
+            fg='#666'
+        )
+        self.folder_status_label.pack(anchor='w', pady=(5, 0))
         
         tk.Label(
             self.folder_frame,
@@ -724,6 +755,56 @@ class StartupDialog:
         else:
             self.folder_frame.pack_forget()
             self.research_folder_var.set("")
+            self.folder_saved = False
+            self.folder_status_label.config(text="")
+
+    def save_research_folder(self):
+        """Save and validate the research folder name."""
+        folder_name = self.research_folder_var.get().strip()
+        
+        if not folder_name:
+            self.folder_status_label.config(
+                text="❌ Please enter a folder name first!",
+                fg='#F44336'
+            )
+            return
+        
+        # Validate folder name (no invalid characters)
+        import re
+        if not re.match(r'^[a-zA-Z0-9_\-\s]+$', folder_name):
+            self.folder_status_label.config(
+                text="❌ Invalid characters! Use only letters, numbers, spaces, hyphens, underscores",
+                fg='#F44336'
+            )
+            return
+        
+        # Save the folder name
+        self.folder_saved = True
+        self.settings['research_folder'] = folder_name
+        
+        # Show success message
+        self.folder_status_label.config(
+            text=f"✅ Folder '{folder_name}' saved! Ready for data collection.",
+            fg='#4CAF50'
+        )
+        
+        # Change button to indicate saved
+        self.save_folder_btn.config(
+            text="✅ Saved",
+            bg='#2E7D32'
+        )
+        
+        print(f"🔬 Research folder saved: '{folder_name}'")
+        
+        # Auto-save after 2 seconds, change button back
+        self.root.after(2000, self.reset_save_button)
+
+    def reset_save_button(self):
+        """Reset the save button back to normal state."""
+        self.save_folder_btn.config(
+            text="💾 Save",
+            bg='#4CAF50'
+        )
 
     def quick_start(self, mode):
         """Quick start with a specific mode."""
@@ -774,20 +855,18 @@ class StartupDialog:
         """Start the game with selected settings."""
         # Validate researcher mode settings
         if self.researcher_mode.get():
+            if not self.folder_saved:
+                messagebox.showerror(
+                    "Researcher Mode Error", 
+                    "Please click the '💾 Save' button to save your research folder name first!"
+                )
+                return
+            
             folder_name = self.research_folder_var.get().strip()
             if not folder_name:
                 messagebox.showerror(
                     "Researcher Mode Error", 
                     "Please enter a research folder name when Researcher Mode is enabled!"
-                )
-                return
-            
-            # Validate folder name (no invalid characters)
-            import re
-            if not re.match(r'^[a-zA-Z0-9_\-\s]+$', folder_name):
-                messagebox.showerror(
-                    "Invalid Folder Name", 
-                    "Folder name can only contain letters, numbers, spaces, hyphens, and underscores."
                 )
                 return
         

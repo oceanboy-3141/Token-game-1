@@ -120,18 +120,20 @@ class TokenGameGUI:
         if self.researcher_settings.get('researcher_mode') and self.researcher_settings.get('research_folder'):
             research_folder_name = self.researcher_settings['research_folder']
             print(f"🔬 Researcher Mode ENABLED - Using folder: '{research_folder_name}'")
+            print(f"🔍 DEBUG: Full researcher settings: {self.researcher_settings}")
             
             # Try multiple locations for the researcher folder
             possible_paths = [
-                # Desktop location
-                os.path.join(os.path.expanduser("~"), "Desktop", research_folder_name),
-                # Documents location
-                os.path.join(os.path.expanduser("~"), "Documents", research_folder_name),
-                # Current directory
+                # FIRST: Current game directory (where you're looking!)
                 os.path.join(os.getcwd(), research_folder_name),
-                # Game directory
-                os.path.join(os.getcwd(), "research_data", research_folder_name)
+                # SECOND: Game data subdirectory
+                os.path.join(os.getcwd(), "research_data", research_folder_name),
+                # Desktop location (fallback)
+                os.path.join(os.path.expanduser("~"), "Desktop", research_folder_name),
+                # Documents location (fallback)
+                os.path.join(os.path.expanduser("~"), "Documents", research_folder_name)
             ]
+            print(f"🔍 DEBUG: Trying these paths: {possible_paths}")
         else:
             # Default paths for regular users
             possible_paths = [
@@ -146,8 +148,9 @@ class TokenGameGUI:
             ]
         
         research_data_dir = None
-        for path in possible_paths:
+        for i, path in enumerate(possible_paths):
             try:
+                print(f"🔍 DEBUG: Trying path {i+1}/{len(possible_paths)}: {path}")
                 os.makedirs(path, exist_ok=True)
                 # Test write access
                 test_file = os.path.join(path, "test_write.tmp")
@@ -158,6 +161,7 @@ class TokenGameGUI:
                 if self.researcher_settings.get('researcher_mode'):
                     print(f"🔬 RESEARCHER MODE: Data directory created at: {research_data_dir}")
                     print(f"📊 ALL game data will be saved IMMEDIATELY to this folder!")
+                    print(f"🔍 DEBUG: You should see files appear in: {research_data_dir}")
                 else:
                     print(f"✅ Research data directory created: {research_data_dir}")
                 break
@@ -1984,7 +1988,7 @@ class TokenGameGUI:
             
             # Reset game
             self.game_logic.reset_game()
-            self.data_collector = DataCollector()  # New session
+            self.data_collector = self._create_enhanced_data_collector()  # New session
             
             # Reset UI
             self.score_label.config(text="Score: 0")

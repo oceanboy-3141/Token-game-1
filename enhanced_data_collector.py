@@ -46,6 +46,9 @@ class EnhancedDataCollector:
         self.setup_auto_save_files()
         
         print(f"📊 Research data collector ready: {research_data_dir}")
+        print(f"🔍 DEBUG: Data collector will save to: {os.path.abspath(research_data_dir)}")
+        print(f"🔍 DEBUG: Session ID: {self.session_id}")
+        print(f"🔍 DEBUG: Files will be created: {list(self.files.keys())}")
     
     def setup_auto_save_files(self):
         """Setup auto-save files for continuous data collection."""
@@ -128,6 +131,7 @@ class EnhancedDataCollector:
         self._auto_save_session()
         
         print(f"🎮 Game started: {game_id}")
+        print(f"🔍 DEBUG: Game data saved to session file")
     
     def log_round_start(self, round_info: Dict):
         """Log the start of a new round with detailed context."""
@@ -199,6 +203,9 @@ class EnhancedDataCollector:
         self.session_data['guesses'].append(comprehensive_guess)
         if current_round:
             current_round['guesses'].append(comprehensive_guess)
+        
+        print(f"🔍 DEBUG: Guess logged - Target: {comprehensive_guess['target_word']}, Guess: {comprehensive_guess['guess_word']}")
+        print(f"🔍 DEBUG: Saving to: {self.research_data_dir}")
         
         self.session_data['session_info']['total_guesses'] += 1
         

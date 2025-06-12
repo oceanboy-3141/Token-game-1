@@ -1,0 +1,1 @@
+timestamp,word_pair_id,word1,word1_token_id,word2,word2_token_id,token_distance,semantic_relationship,game_context,player_perceived_similarity,actual_similarity_score,word1_category,word2_category,frequency_difference,length_difference,alphabetical_closeness
