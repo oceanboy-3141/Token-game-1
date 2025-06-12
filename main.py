@@ -32,7 +32,7 @@ except ImportError:
         print("Please try restarting your Python environment")
         sys.exit(1)
 
-from gui_interface import TokenGameGUI
+from main_gui import TokenGameGUI
 from game_logic import GameLogic
 from startup_dialog import show_startup_dialog
 
