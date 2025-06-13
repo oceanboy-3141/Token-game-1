@@ -1,0 +1,839 @@
+{% extends "simple_base.html" %}
+
+{% block title %}Play - Token Quest{% endblock %}
+
+{% block content %}
+<!-- Game Stats -->
+<div class="game-stats" id="gameStats" style="display: none;">
+    <div class="stat-card">
+        <div class="stat-value" id="currentScore">0</div>
+        <div class="stat-label">Score</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="attempts">0</div>
+        <div class="stat-label">Attempts</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="difficulty">-</div>
+        <div class="stat-label">Difficulty</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="gameMode">-</div>
+        <div class="stat-label">Mode</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="roundNumber">1</div>
+        <div class="stat-label">Round</div>
+    </div>
+</div>
+
+<!-- Game Setup -->
+<div class="card" id="gameSetup">
+    <div class="text-center mb-4">
+        <h1 style="color: #4f46e5; margin-bottom: 1rem;">🎮 Start Your Token Quest</h1>
+        {% if session.user_id %}
+            <p>Welcome back, {{ session.username }}! Your progress will be saved.</p>
+        {% else %}
+            <p>Playing as guest - <a href="/register" style="color: #4f46e5;">create an account</a> to save your progress!</p>
+        {% endif %}
+        <p>Choose your game settings and begin exploring token space!</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="form-label">Difficulty Level</label>
+                <select id="difficultySelect" class="form-control">
+                    <option value="easy">🟢 Easy - Common words</option>
+                    <option value="medium" selected>🟡 Medium - Mixed vocabulary</option>
+                    <option value="hard">🔴 Hard - Complex words</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="form-label">Game Mode</label>
+                <select id="gameModeSelect" class="form-control">
+                    <option value="classic" selected>⭐ Classic - Find similar words</option>
+                    <option value="antonym">🔄 Antonym - Find opposites</option>
+                    <option value="category">📚 Category - Themed words</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="form-label">Max Rounds</label>
+                <select id="maxRoundsSelect" class="form-control">
+                    <option value="5">5 rounds - Quick game</option>
+                    <option value="10" selected>10 rounds - Standard</option>
+                    <option value="15">15 rounds - Extended</option>
+                    <option value="25">25 rounds - Marathon</option>
+                    <option value="999">∞ Endless mode</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Theme Settings -->
+    <div class="row" style="margin-top: 20px;">
+        <div class="col">
+            <div class="form-group">
+                <label class="form-label">🎨 Choose Your Theme</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+                    <button type="button" class="theme-btn" data-theme="default" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: 2px solid transparent; padding: 10px; border-radius: 8px; cursor: pointer;">
+                        🌌 Cosmic
+                    </button>
+                    <button type="button" class="theme-btn" data-theme="ocean" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: 2px solid transparent; padding: 10px; border-radius: 8px; cursor: pointer;">
+                        🌊 Ocean
+                    </button>
+                    <button type="button" class="theme-btn" data-theme="sunset" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: 2px solid transparent; padding: 10px; border-radius: 8px; cursor: pointer;">
+                        🌅 Sunset
+                    </button>
+                    <button type="button" class="theme-btn" data-theme="forest" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: 2px solid transparent; padding: 10px; border-radius: 8px; cursor: pointer;">
+                        🌲 Forest
+                    </button>
+                    <button type="button" class="theme-btn" data-theme="neon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: 2px solid transparent; padding: 10px; border-radius: 8px; cursor: pointer;">
+                        ⚡ Neon
+                    </button>
+                    <button type="button" class="theme-btn" data-theme="retro" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: 2px solid transparent; padding: 10px; border-radius: 8px; cursor: pointer;">
+                        📼 Retro
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center" style="margin-top: 20px;">
+        <button id="tutorialBtn" class="btn" style="background: #10b981; color: white; font-size: 1.1rem; padding: 12px 30px; margin-right: 15px;">
+            🤖 Tutorial
+        </button>
+        <button id="startGameBtn" class="btn btn-primary" style="font-size: 1.2rem; padding: 15px 40px;">
+            🚀 Start Game
+        </button>
+    </div>
+</div>
+
+<!-- Target Word Display -->
+<div class="target-word-card" id="targetWordCard" style="display: none;">
+    <div class="target-word" id="targetWord">-</div>
+    <div class="token-id">Token ID: <span id="targetTokenId">-</span></div>
+    <p style="margin-top: 15px; opacity: 0.9;">Find words with similar token IDs!</p>
+</div>
+
+<!-- Game Interface -->
+<div class="card" id="gameInterface" style="display: none;">
+    <div class="form-group">
+        <input type="text" id="guessInput" class="form-control guess-input" 
+               placeholder="Enter your guess..." autocomplete="off">
+    </div>
+
+    <div class="game-controls">
+        <button id="submitGuessBtn" class="btn btn-primary">
+            🎯 Submit Guess
+        </button>
+        <button id="getHintsBtn" class="btn btn-warning">
+            💡 Get Hints
+        </button>
+        <button id="endGameBtn" class="btn btn-danger">
+            🏁 End Game
+        </button>
+    </div>
+</div>
+
+<!-- Results Display -->
+<div class="card" id="resultsCard" style="display: none;">
+    <h3 style="text-align: center; margin-bottom: 1rem;">📊 Guess Result</h3>
+    <div id="resultContent"></div>
+</div>
+
+<!-- Hints Modal -->
+<div id="hintsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%;">
+        <h3 style="margin-bottom: 1rem; text-align: center;">💡 Hints</h3>
+        <div id="hintsContent"></div>
+        <div class="text-center mt-3">
+            <button id="closeHintsBtn" class="btn btn-primary">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Tutorial Modal -->
+<div id="tutorialModal" class="tutorial-modal">
+    <div class="tutorial-content">
+        <!-- Step 1: Introduction -->
+        <div class="tutorial-step active" id="step1">
+            <div class="robot-character">🤖</div>
+            <h2 style="color: #4f46e5; margin-bottom: 1rem;">Hi! I'm Tokky! 👋</h2>
+            <div class="speech-bubble">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">
+                    Welcome to Token Quest! I'm your friendly AI guide, and I'm here to teach you about the fascinating world of language model tokenization!
+                </p>
+                <p>
+                    🧠 <strong>What you'll learn:</strong> How AI breaks down language into "tokens" and whether similar words have similar token IDs!
+                </p>
+            </div>
+            <button class="btn btn-primary" onclick="nextTutorialStep()">Let's Start! 🚀</button>
+        </div>
+
+        <!-- Step 2: What are Tokens -->
+        <div class="tutorial-step" id="step2">
+            <div class="robot-character">🤖</div>
+            <h2 style="color: #4f46e5; margin-bottom: 1rem;">What are Tokens? 🔤</h2>
+            <div class="speech-bubble">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">
+                    Think of tokens as the "words" that AI understands! When you type "hello", the AI converts it to a number called a Token ID.
+                </p>
+                <div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin: 15px 0;">
+                    <strong>Example:</strong><br>
+                    "happy" → Token ID: 6380<br>
+                    "sad" → Token ID: 12703<br>
+                    "joyful" → Token ID: 6380 (close to "happy"!)
+                </div>
+                <p>
+                    🎯 <strong>The Big Question:</strong> Do words with similar meanings have similar token IDs?
+                </p>
+            </div>
+            <button class="btn btn-primary" onclick="nextTutorialStep()">I Get It! 💡</button>
+        </div>
+
+        <!-- Step 3: How to Play -->
+        <div class="tutorial-step" id="step3">
+            <div class="robot-character">🤖</div>
+            <h2 style="color: #4f46e5; margin-bottom: 1rem;">How to Play 🎮</h2>
+            <div class="speech-bubble">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">
+                    It's simple! I'll give you a target word and its token ID. Your job is to guess words that might have similar token IDs!
+                </p>
+            </div>
+            <div class="mini-game">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 15px;">
+                    <div style="font-size: 2rem; font-weight: bold;">happy</div>
+                    <div style="font-size: 1.2rem; opacity: 0.9;">Token ID: 6380</div>
+                </div>
+                <input type="text" placeholder="Try: glad, joyful, excited..." style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px; text-align: center;" readonly>
+                <p style="margin-top: 10px; color: #6b7280;">
+                    💡 <strong>Tip:</strong> Words with similar meanings often have closer token IDs!
+                </p>
+            </div>
+            <button class="btn btn-primary" onclick="nextTutorialStep()">Got It! 🎯</button>
+        </div>
+
+        <!-- Step 4: Scoring -->
+        <div class="tutorial-step" id="step4">
+            <div class="robot-character">🤖</div>
+            <h2 style="color: #4f46e5; margin-bottom: 1rem;">Scoring System 📊</h2>
+            <div class="speech-bubble">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">
+                    The closer your guess is to the target token ID, the more points you get!
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0;">
+                    <div style="background: #10b981; color: white; padding: 10px; border-radius: 8px; text-align: center;">
+                        <strong>Perfect!</strong><br>
+                        Distance: 0-1<br>
+                        10 points
+                    </div>
+                    <div style="background: #f59e0b; color: white; padding: 10px; border-radius: 8px; text-align: center;">
+                        <strong>Close</strong><br>
+                        Distance: 2-100<br>
+                        9 points
+                    </div>
+                    <div style="background: #ef4444; color: white; padding: 10px; border-radius: 8px; text-align: center;">
+                        <strong>Far</strong><br>
+                        Distance: 1000+<br>
+                        0-5 points
+                    </div>
+                </div>
+                <p>
+                    🏆 <strong>Goal:</strong> Get the highest score by finding words with the closest token IDs!
+                </p>
+            </div>
+            <button class="btn btn-primary" onclick="nextTutorialStep()">Ready to Play! 🏆</button>
+        </div>
+
+        <!-- Step 5: Game Modes -->
+        <div class="tutorial-step" id="step5">
+            <div class="robot-character">🤖</div>
+            <h2 style="color: #4f46e5; margin-bottom: 1rem;">Game Modes 🎯</h2>
+            <div class="speech-bubble">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">
+                    Choose your adventure! Each mode tests different aspects of language understanding:
+                </p>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin: 15px 0;">
+                    <div style="background: #f0f9ff; border: 2px solid #0ea5e9; padding: 15px; border-radius: 10px;">
+                        <strong>⭐ Classic Mode:</strong> Find words with similar meanings (synonyms)
+                    </div>
+                    <div style="background: #fef3c7; border: 2px solid #f59e0b; padding: 15px; border-radius: 10px;">
+                        <strong>🔄 Antonym Mode:</strong> Find words with opposite meanings (higher scores for bigger distances!)
+                    </div>
+                    <div style="background: #f0fdf4; border: 2px solid #10b981; padding: 15px; border-radius: 10px;">
+                        <strong>📚 Category Mode:</strong> All words from the same category (emotions, sizes, etc.)
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="nextTutorialStep()">Awesome! 🌟</button>
+        </div>
+
+        <!-- Step 6: Ready to Play -->
+        <div class="tutorial-step" id="step6">
+            <div class="robot-character">🤖</div>
+            <h2 style="color: #4f46e5; margin-bottom: 1rem;">You're Ready! 🎉</h2>
+            <div class="speech-bubble">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">
+                    Congratulations! You now understand how Token Quest works. Remember:
+                </p>
+                <ul style="text-align: left; margin: 15px 0; padding-left: 20px;">
+                    <li>🎯 Find words with similar token IDs</li>
+                    <li>💡 Use hints if you get stuck</li>
+                    <li>🏆 Aim for the highest score</li>
+                    <li>🧠 Learn about how AI processes language</li>
+                    <li>🎨 Customize your theme for fun!</li>
+                </ul>
+                <p style="font-size: 1.2rem; font-weight: bold; color: #4f46e5;">
+                    Have fun exploring the world of tokens! 🚀
+                </p>
+            </div>
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="closeTutorial()">Start Playing! 🎮</button>
+                <button class="btn" style="background: #6b7280; color: white;" onclick="restartTutorial()">Restart Tutorial 🔄</button>
+            </div>
+        </div>
+
+        <!-- Close button -->
+        <button onclick="closeTutorial()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280;">✕</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Theme Variables */
+:root {
+    --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --primary-color: #4f46e5;
+    --accent-color: #7c3aed;
+}
+
+/* Theme Styles */
+.theme-cosmic { --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%); --primary-color: #4f46e5; --accent-color: #7c3aed; }
+.theme-ocean { --bg-gradient: linear-gradient(135deg, #667eea 0%, #06b6d4 100%); --primary-color: #0891b2; --accent-color: #0e7490; }
+.theme-sunset { --bg-gradient: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); --primary-color: #dc2626; --accent-color: #b91c1c; }
+.theme-forest { --bg-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%); --primary-color: #047857; --accent-color: #065f46; }
+.theme-neon { --bg-gradient: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); --primary-color: #a855f7; --accent-color: #9333ea; }
+.theme-retro { --bg-gradient: linear-gradient(135deg, #f97316 0%, #eab308 100%); --primary-color: #ea580c; --accent-color: #dc2626; }
+
+body {
+    background: var(--bg-gradient) !important;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color)) !important;
+}
+
+.target-word-card {
+    background: var(--bg-gradient) !important;
+}
+
+.theme-btn.active {
+    border: 2px solid #fff !important;
+    transform: scale(1.05);
+}
+
+/* Tutorial Styles */
+.tutorial-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 2000;
+    display: none;
+}
+
+.tutorial-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+    width: 800px;
+}
+
+.robot-character {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    margin: 0 auto 20px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+.tutorial-step {
+    display: none;
+    text-align: center;
+}
+
+.tutorial-step.active {
+    display: block;
+}
+
+.mini-game {
+    background: #f8fafc;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 2px solid #e5e7eb;
+}
+
+.speech-bubble {
+    background: #f0f9ff;
+    border: 2px solid #0ea5e9;
+    border-radius: 20px;
+    padding: 20px;
+    margin: 20px 0;
+    position: relative;
+}
+
+.speech-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #0ea5e9;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let gameState = {
+    active: false,
+    targetWord: '',
+    targetTokenId: null,
+    score: 0,
+    attempts: 0,
+    difficulty: 'medium',
+    gameMode: 'classic'
+};
+
+// DOM Elements
+const gameSetup = document.getElementById('gameSetup');
+const gameStats = document.getElementById('gameStats');
+const targetWordCard = document.getElementById('targetWordCard');
+const gameInterface = document.getElementById('gameInterface');
+const resultsCard = document.getElementById('resultsCard');
+const hintsModal = document.getElementById('hintsModal');
+
+const startGameBtn = document.getElementById('startGameBtn');
+const submitGuessBtn = document.getElementById('submitGuessBtn');
+const getHintsBtn = document.getElementById('getHintsBtn');
+const endGameBtn = document.getElementById('endGameBtn');
+const closeHintsBtn = document.getElementById('closeHintsBtn');
+
+const difficultySelect = document.getElementById('difficultySelect');
+const gameModeSelect = document.getElementById('gameModeSelect');
+const maxRoundsSelect = document.getElementById('maxRoundsSelect');
+const tutorialBtn = document.getElementById('tutorialBtn');
+const guessInput = document.getElementById('guessInput');
+
+// Event Listeners
+startGameBtn.addEventListener('click', startGame);
+submitGuessBtn.addEventListener('click', submitGuess);
+getHintsBtn.addEventListener('click', getHints);
+endGameBtn.addEventListener('click', endGame);
+closeHintsBtn.addEventListener('click', () => hintsModal.style.display = 'none');
+tutorialBtn.addEventListener('click', showTutorial);
+
+guessInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        submitGuess();
+    }
+});
+
+// Theme system
+document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Remove active class from all buttons
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        // Add active class to clicked button
+        btn.classList.add('active');
+        
+        // Apply theme
+        const theme = btn.dataset.theme;
+        document.body.className = `theme-${theme}`;
+        
+        // Update theme button styles
+        updateThemeButtons();
+        
+        // Save theme preference
+        localStorage.setItem('tokenquest-theme', theme);
+    });
+});
+
+// Load saved theme
+const savedTheme = localStorage.getItem('tokenquest-theme') || 'default';
+document.body.className = `theme-${savedTheme}`;
+document.querySelector(`[data-theme="${savedTheme}"]`)?.classList.add('active');
+
+function updateThemeButtons() {
+    const themes = {
+        'default': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        'ocean': 'linear-gradient(135deg, #667eea 0%, #06b6d4 100%)',
+        'sunset': 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
+        'forest': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+        'neon': 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+        'retro': 'linear-gradient(135deg, #f97316 0%, #eab308 100%)'
+    };
+    
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        const theme = btn.dataset.theme;
+        btn.style.background = themes[theme];
+    });
+}
+
+// Game Functions
+async function startGame() {
+    try {
+        const difficulty = difficultySelect.value;
+        const gameMode = gameModeSelect.value;
+
+        const response = await apiCall('/api/start_game', {
+            difficulty: difficulty,
+            game_mode: gameMode,
+            max_rounds: parseInt(maxRoundsSelect.value)
+        }, 'POST');
+
+        if (response.success) {
+            gameState = {
+                active: true,
+                targetWord: response.target_word,
+                targetTokenId: response.target_token_id,
+                score: response.current_score || 0,
+                attempts: 0,
+                difficulty: response.difficulty,
+                gameMode: response.game_mode,
+                roundNumber: response.round_number || 1,
+                maxRounds: response.max_rounds || parseInt(maxRoundsSelect.value)
+            };
+
+            updateUI();
+            showAlert(`Game started! Round ${gameState.roundNumber}/${gameState.maxRounds} - Good luck!`, 'success');
+        }
+    } catch (error) {
+        console.error('Failed to start game:', error);
+    }
+}
+
+async function startNewRound() {
+    try {
+        // Clear previous results
+        resultsCard.style.display = 'none';
+        
+        const response = await apiCall('/api/start_game', {
+            difficulty: gameState.difficulty,
+            game_mode: gameState.gameMode,
+            max_rounds: gameState.maxRounds || 10
+        }, 'POST');
+
+        if (response.success) {
+            // Update game state with new round info
+            gameState.targetWord = response.target_word;
+            gameState.targetTokenId = response.target_token_id;
+            gameState.attempts = 0; // Reset attempts for new round
+            gameState.roundNumber = response.round_number; // Use server's round number
+            // Update score from server (keeps accumulated score)
+            if (response.current_score !== undefined) {
+                gameState.score = response.current_score;
+            }
+
+            updateUI();
+            showAlert(`Round ${gameState.roundNumber}/${gameState.maxRounds} started!`, 'success');
+        }
+    } catch (error) {
+        console.error('Failed to start new round:', error);
+    }
+}
+
+async function submitGuess() {
+    const word = guessInput.value.trim();
+    if (!word) {
+        showAlert('Please enter a word', 'error');
+        return;
+    }
+
+    try {
+        const response = await apiCall('/api/make_guess', {
+            word: word
+        }, 'POST');
+
+        if (response.success) {
+            gameState.score = response.total_score;
+            gameState.attempts = response.attempts;
+
+            displayResult(response);
+            updateUI();
+            guessInput.value = '';
+
+            if (response.is_correct) {
+                showAlert('🎉 Correct! Perfect match!', 'success');
+                
+                // Disable input during transition
+                guessInput.disabled = true;
+                submitGuessBtn.disabled = true;
+                
+                // Auto-advance after correct guess
+                setTimeout(() => {
+                    // Re-enable input
+                    guessInput.disabled = false;
+                    submitGuessBtn.disabled = false;
+                    
+                    // Check if we've reached max rounds
+                    if (gameState.roundNumber >= gameState.maxRounds) {
+                        showGameComplete();
+                    } else {
+                        startNewRound();
+                    }
+                }, 1500);
+            } else if (response.attempts >= 3) {
+                // Max attempts reached - auto-advance to next round
+                showAlert('Max attempts reached! Moving to next word...', 'info');
+                
+                // Disable input during transition
+                guessInput.disabled = true;
+                submitGuessBtn.disabled = true;
+                
+                setTimeout(() => {
+                    // Re-enable input
+                    guessInput.disabled = false;
+                    submitGuessBtn.disabled = false;
+                    
+                    // Check if we've reached max rounds
+                    if (gameState.roundNumber >= gameState.maxRounds) {
+                        showGameComplete();
+                    } else {
+                        startNewRound();
+                    }
+                }, 1500);
+            }
+        }
+    } catch (error) {
+        console.error('Failed to submit guess:', error);
+    }
+}
+
+async function getHints() {
+    try {
+        const response = await apiCall('/api/get_hints', {}, 'POST');
+
+        if (response.success) {
+            displayHints(response.hints);
+        }
+    } catch (error) {
+        console.error('Failed to get hints:', error);
+    }
+}
+
+async function endGame() {
+    try {
+        await apiCall('/api/end_game', {}, 'POST');
+        
+        gameState.active = false;
+        updateUI();
+        showAlert(`Game ended! Final score: ${gameState.score}`, 'info');
+    } catch (error) {
+        console.error('Failed to end game:', error);
+    }
+}
+
+function showGameComplete() {
+    // Calculate performance stats
+    const averageScore = Math.round(gameState.score / gameState.roundNumber);
+    let performance = 'Good effort!';
+    
+    if (averageScore >= 8) {
+        performance = '🏆 Excellent! You\'re a token master!';
+    } else if (averageScore >= 6) {
+        performance = '🌟 Great job! You understand tokens well!';
+    } else if (averageScore >= 4) {
+        performance = '👍 Nice work! Keep practicing!';
+    }
+    
+    // Show completion message
+    showAlert(`
+        🎉 Game Complete! 🎉<br><br>
+        <strong>Final Score:</strong> ${gameState.score} points<br>
+        <strong>Rounds Completed:</strong> ${gameState.roundNumber}/${gameState.maxRounds}<br>
+        <strong>Average per Round:</strong> ${averageScore} points<br><br>
+        ${performance}
+    `, 'success', 5000);
+    
+    // End the game
+    setTimeout(() => {
+        endGame();
+    }, 5000);
+}
+
+function updateUI() {
+    if (gameState.active) {
+        // Show game interface
+        gameSetup.style.display = 'none';
+        gameStats.style.display = 'grid';
+        targetWordCard.style.display = 'block';
+        gameInterface.style.display = 'block';
+
+        // Update content
+        document.getElementById('targetWord').textContent = gameState.targetWord;
+        document.getElementById('targetTokenId').textContent = gameState.targetTokenId;
+        document.getElementById('currentScore').textContent = gameState.score;
+        document.getElementById('attempts').textContent = gameState.attempts;
+        document.getElementById('difficulty').textContent = gameState.difficulty;
+        document.getElementById('gameMode').textContent = gameState.gameMode;
+        document.getElementById('roundNumber').textContent = `${gameState.roundNumber || 1}/${gameState.maxRounds || 10}`;
+
+        guessInput.focus();
+    } else {
+        // Show setup
+        gameSetup.style.display = 'block';
+        gameStats.style.display = 'none';
+        targetWordCard.style.display = 'none';
+        gameInterface.style.display = 'none';
+        resultsCard.style.display = 'none';
+    }
+}
+
+function displayResult(result) {
+    const resultContent = document.getElementById('resultContent');
+    
+    const distance = result.distance;
+    let color = '#ef4444'; // red
+    let message = 'Far away';
+    
+    if (distance === 0) {
+        color = '#10b981'; // green
+        message = 'Perfect match!';
+    } else if (distance <= 10) {
+        color = '#10b981'; // green
+        message = 'Very close!';
+    } else if (distance <= 50) {
+        color = '#f59e0b'; // yellow
+        message = 'Getting closer';
+    } else if (distance <= 100) {
+        color = '#f97316'; // orange
+        message = 'Somewhat close';
+    }
+
+    resultContent.innerHTML = `
+        <div style="text-align: center;">
+            <h4 style="color: ${color}; margin-bottom: 1rem;">${message}</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 1rem;">
+                <div>
+                    <strong>Your Word:</strong><br>
+                    <span style="font-size: 1.2rem; color: #4f46e5;">${result.guess_word}</span>
+                </div>
+                <div>
+                    <strong>Token ID:</strong><br>
+                    <span style="font-size: 1.2rem; font-family: monospace;">${result.guess_token_id}</span>
+                </div>
+                <div>
+                    <strong>Distance:</strong><br>
+                    <span style="font-size: 1.2rem; color: ${color};">${distance}</span>
+                </div>
+                <div>
+                    <strong>Points:</strong><br>
+                    <span style="font-size: 1.2rem; color: #10b981;">+${result.score}</span>
+                </div>
+            </div>
+            <p style="color: #6b7280;">
+                Target: ${gameState.targetWord} (${gameState.targetTokenId}) | 
+                Your guess: ${result.guess_word} (${result.guess_token_id})
+            </p>
+        </div>
+    `;
+    
+    resultsCard.style.display = 'block';
+}
+
+function displayHints(hints) {
+    const hintsContent = document.getElementById('hintsContent');
+    
+    hintsContent.innerHTML = `
+        <div style="margin-bottom: 1rem;">
+            <strong>Target Token ID:</strong> ${gameState.targetTokenId}
+        </div>
+        <ul style="list-style: none; padding: 0;">
+            ${hints.map(hint => `<li style="margin-bottom: 0.5rem;">💡 ${hint}</li>`).join('')}
+        </ul>
+    `;
+    
+    hintsModal.style.display = 'block';
+}
+
+// Tutorial Functions
+let currentTutorialStep = 1;
+
+function showTutorial() {
+    document.getElementById('tutorialModal').style.display = 'block';
+    currentTutorialStep = 1;
+    showTutorialStep(1);
+}
+
+function closeTutorial() {
+    document.getElementById('tutorialModal').style.display = 'none';
+}
+
+function restartTutorial() {
+    currentTutorialStep = 1;
+    showTutorialStep(1);
+}
+
+function nextTutorialStep() {
+    currentTutorialStep++;
+    if (currentTutorialStep <= 6) {
+        showTutorialStep(currentTutorialStep);
+    } else {
+        closeTutorial();
+    }
+}
+
+function showTutorialStep(step) {
+    // Hide all steps
+    document.querySelectorAll('.tutorial-step').forEach(s => s.classList.remove('active'));
+    // Show current step
+    document.getElementById(`step${step}`).classList.add('active');
+}
+
+// Check if this is first visit
+if (!localStorage.getItem('tokenquest-tutorial-seen')) {
+    // Auto-show tutorial for new users
+    setTimeout(() => {
+        showTutorial();
+        localStorage.setItem('tokenquest-tutorial-seen', 'true');
+    }, 1000);
+}
+
+// Initialize
+updateUI();
+updateThemeButtons();
+</script>
+{% endblock %} 

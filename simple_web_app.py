@@ -10,7 +10,7 @@ import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Import our game modules
-from game_logic import TokenGame
+from game_logic import GameLogic
 from token_handler import TokenHandler
 
 app = Flask(__name__)
@@ -114,9 +114,12 @@ def update_user_stats(user_id, score):
 @app.route('/')
 def index():
     """Main page."""
-    if 'user_id' in session:
-        return render_template('simple_game.html')
     return render_template('simple_index.html')
+
+@app.route('/play')
+def play():
+    """Play page - accessible to everyone."""
+    return render_template('simple_game.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -163,26 +166,45 @@ def logout():
 @app.route('/api/start_game', methods=['POST'])
 def api_start_game():
     """Start a new game session."""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Not logged in'}), 401
+    # Allow guest play - no login required
     
     try:
         data = request.get_json()
         difficulty = data.get('difficulty', 'medium')
         game_mode = data.get('game_mode', 'classic')
+        max_rounds = data.get('max_rounds', 10)
         
         # Initialize game
-        game = TokenGame(difficulty=difficulty, game_mode=game_mode)
-        target_word, target_token_id = game.get_current_target()
+        game = GameLogic(game_mode=game_mode, difficulty=difficulty)
+        round_info = game.start_new_round()
+        
+        if 'error' in round_info:
+            return jsonify({'success': False, 'error': round_info['error']}), 400
+        
+        target_word = round_info['target_word']
+        target_token_id = round_info['target_token_id']
+        
+        # Check if we're continuing an existing game or starting fresh
+        existing_game_state = session.get('game_state')
+        if existing_game_state and existing_game_state.get('difficulty') == difficulty and existing_game_state.get('game_mode') == game_mode and existing_game_state.get('max_rounds') == max_rounds:
+            # Continue existing game - keep the score and increment round
+            current_score = existing_game_state.get('score', 0)
+            current_round = existing_game_state.get('round_number', 1) + 1
+        else:
+            # New game - start fresh
+            current_score = 0
+            current_round = 1
         
         # Store game state in session
         session['game_state'] = {
             'target_word': target_word,
             'target_token_id': target_token_id,
             'attempts': 0,
-            'score': 0,
+            'score': current_score,
             'difficulty': difficulty,
-            'game_mode': game_mode
+            'game_mode': game_mode,
+            'round_number': current_round,
+            'max_rounds': max_rounds
         }
         
         return jsonify({
@@ -190,7 +212,10 @@ def api_start_game():
             'target_word': target_word,
             'target_token_id': target_token_id,
             'difficulty': difficulty,
-            'game_mode': game_mode
+            'game_mode': game_mode,
+            'current_score': current_score,
+            'round_number': current_round,
+            'max_rounds': max_rounds
         })
     
     except Exception as e:
@@ -199,8 +224,7 @@ def api_start_game():
 @app.route('/api/make_guess', methods=['POST'])
 def api_make_guess():
     """Process a guess."""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Not logged in'}), 401
+    # Allow guest play - no login required
     
     try:
         data = request.get_json()
@@ -214,39 +238,47 @@ def api_make_guess():
         if not game_state:
             return jsonify({'success': False, 'error': 'No active game'}), 400
         
-        # Process guess
-        guess_token_id = token_handler.get_token_id(guess_word)
-        if guess_token_id is None:
+        # Create a temporary game object to process the guess
+        game = GameLogic(game_mode=game_state['game_mode'], difficulty=game_state['difficulty'])
+        game.current_target_word = game_state['target_word']
+        game.current_target_token_id = game_state['target_token_id']
+        game.score = game_state['score']
+        game.current_attempts = game_state['attempts']
+        
+        # Process guess using GameLogic
+        result = game.submit_guess(guess_word)
+        
+        if not result.get('valid_guess', True):
             return jsonify({
                 'success': False,
-                'error': 'Word not found in token vocabulary or is multi-token'
+                'error': result.get('error', 'Invalid guess')
             }), 400
         
-        target_token_id = game_state['target_token_id']
-        distance = abs(guess_token_id - target_token_id)
-        
-        # Calculate score
-        max_score = 100
-        score = max(0, max_score - int(distance * 0.5))
-        
         # Update game state
-        game_state['attempts'] += 1
-        game_state['score'] += score
+        game_state['attempts'] = result['attempts_used']
+        game_state['score'] = result['total_score']
         session['game_state'] = game_state
         
-        # Check if correct
-        is_correct = distance == 0
+        # Extract result data
+        guess_token_id = result['guess_token_id']
+        distance = result['distance']
+        score = result['round_score']
+        total_score = result['total_score']
+        is_correct = result['feedback']['is_correct']
         
         return jsonify({
             'success': True,
             'guess_word': guess_word,
             'guess_token_id': guess_token_id,
-            'target_token_id': target_token_id,
+            'target_token_id': game_state['target_token_id'],
             'distance': distance,
             'score': score,
-            'total_score': game_state['score'],
+            'total_score': total_score,
             'attempts': game_state['attempts'],
-            'is_correct': is_correct
+            'is_correct': is_correct,
+            'feedback': result['feedback'],
+            'educational_explanation': result['educational_explanation'],
+            'token_fact': result['token_fact']
         })
     
     except Exception as e:
@@ -255,8 +287,7 @@ def api_make_guess():
 @app.route('/api/get_hints', methods=['POST'])
 def api_get_hints():
     """Get hints for the current target word."""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Not logged in'}), 401
+    # Allow guest play - no login required
     
     try:
         game_state = session.get('game_state')
@@ -283,13 +314,11 @@ def api_get_hints():
 @app.route('/api/end_game', methods=['POST'])
 def api_end_game():
     """End the current game session."""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Not logged in'}), 401
-    
     try:
         game_state = session.get('game_state')
         
-        if game_state:
+        # Only save to database if user is logged in
+        if game_state and 'user_id' in session:
             # Update user statistics
             update_user_stats(session['user_id'], game_state['score'])
             
@@ -313,4 +342,5 @@ def api_end_game():
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True, host='127.0.0.1', port=5000) 
+    # Run on all network interfaces so others can access it
+    app.run(debug=True, host='0.0.0.0', port=5000) 

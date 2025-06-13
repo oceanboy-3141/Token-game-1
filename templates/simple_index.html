@@ -1,0 +1,110 @@
+{% extends "simple_base.html" %}
+
+{% block title %}Token Quest - Educational Word Game{% endblock %}
+
+{% block content %}
+<div class="text-center text-white mb-5">
+    <h1 style="font-size: 3rem; font-weight: bold; margin-bottom: 1rem;">
+        🧠 Token Quest
+    </h1>
+    <p style="font-size: 1.2rem; margin-bottom: 1rem;">
+        Explore the fascinating world of language model tokenization through an engaging word puzzle game
+    </p>
+    <p style="margin-bottom: 2rem;">
+        Discover how Large Language Models break down language into tokens and whether synonyms cluster together in token space
+    </p>
+</div>
+
+<!-- Game Features -->
+<div class="row mb-5">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <h3 style="color: #4f46e5; margin-bottom: 1rem;">🧩 Educational Gameplay</h3>
+            <p>Learn about tokenization while playing an engaging word guessing game with multiple difficulty levels</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <h3 style="color: #10b981; margin-bottom: 1rem;">📊 Research Insights</h3>
+            <p>Contribute to research on semantic similarity and token space relationships in language models</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <h3 style="color: #f59e0b; margin-bottom: 1rem;">👥 Community</h3>
+            <p>Track your progress, compete with others, and share your discoveries about language patterns</p>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="card text-center">
+    <h2 style="margin-bottom: 1rem;">Ready to Start Your Token Quest?</h2>
+    <p style="margin-bottom: 2rem;">
+        Jump right in and start playing! No registration required.
+    </p>
+    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem;">
+        <a href="/play" class="btn btn-primary" style="font-size: 1.3rem; padding: 20px 40px;">
+            🎮 Play Now!
+        </a>
+    </div>
+    
+    <div style="border-top: 1px solid #e5e7eb; padding-top: 1.5rem; margin-top: 1.5rem;">
+        <p style="color: #6b7280; margin-bottom: 1rem;">
+            <strong>Optional:</strong> Create an account to save your progress and compete on leaderboards
+        </p>
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <a href="/register" class="btn" style="background: #10b981; color: white; padding: 10px 20px;">
+                📊 Create Account
+            </a>
+            <a href="/login" class="btn" style="background: #6b7280; color: white; padding: 10px 20px;">
+                🔑 Login
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="card mt-4">
+    <h3 style="margin-bottom: 2rem; text-align: center;">❓ How Token Quest Works</h3>
+    <div class="row">
+        <div class="col-md-6">
+            <h4 style="color: #4f46e5; margin-bottom: 1rem;">🎮 The Game</h4>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 0.5rem;">➤ You're given a target word and its token ID</li>
+                <li style="margin-bottom: 0.5rem;">➤ Guess words that might have similar token IDs</li>
+                <li style="margin-bottom: 0.5rem;">➤ Score points based on how close your guesses are</li>
+                <li style="margin-bottom: 0.5rem;">➤ Learn about tokenization through gameplay</li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h4 style="color: #10b981; margin-bottom: 1rem;">🔬 The Research</h4>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 0.5rem;">➤ Explore if synonyms have similar token IDs</li>
+                <li style="margin-bottom: 0.5rem;">➤ Understand how LLMs process language</li>
+                <li style="margin-bottom: 0.5rem;">➤ Contribute to NLP research through play</li>
+                <li style="margin-bottom: 0.5rem;">➤ Discover patterns in token space</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Game Modes -->
+<div class="card mt-4">
+    <h3 style="margin-bottom: 2rem; text-align: center;">🎯 Game Modes</h3>
+    <div class="row">
+        <div class="col-md-4 text-center">
+            <h4 style="color: #4f46e5;">⭐ Classic Mode</h4>
+            <p>Find words with similar meanings and close token IDs</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <h4 style="color: #f59e0b;">🔄 Antonym Mode</h4>
+            <p>Discover words with opposite meanings - are their tokens far apart?</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <h4 style="color: #10b981;">📚 Category Mode</h4>
+            <p>Explore words from specific semantic categories</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

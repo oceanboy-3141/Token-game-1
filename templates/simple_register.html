@@ -1,0 +1,60 @@
+{% extends "simple_base.html" %}
+
+{% block title %}Register - Token Quest{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto;">
+    <div class="card">
+        <div class="text-center mb-4">
+            <h1 style="color: #4f46e5; margin-bottom: 1rem;">🚀 Join Token Quest</h1>
+            <p style="color: #6b7280;">Create your account and start exploring tokenization</p>
+        </div>
+
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.1rem;">
+                🚀 Create Account
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <p>
+                Already have an account? 
+                <a href="/login" style="color: #4f46e5; text-decoration: none;">
+                    Sign in here
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Benefits -->
+    <div class="row mt-4 text-white">
+        <div class="col text-center">
+            <h4 style="margin-bottom: 1rem;">🎓 Learn</h4>
+            <p>Understand how AI processes language</p>
+        </div>
+        <div class="col text-center">
+            <h4 style="margin-bottom: 1rem;">🔬 Research</h4>
+            <p>Contribute to NLP research</p>
+        </div>
+        <div class="col text-center">
+            <h4 style="margin-bottom: 1rem;">🎮 Play</h4>
+            <p>Enjoy educational gameplay</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 
