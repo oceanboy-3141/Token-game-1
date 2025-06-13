@@ -7,19 +7,12 @@ from tkinter import ttk, messagebox
 import time
 import os
 
-from material_components import MaterialColors, MaterialComponents, MaterialTypography
-from animations import AnimationManager
-from dialogs import DialogManager
+from .material_components import MaterialColors, MaterialComponents, MaterialTypography
+from .animations import AnimationManager
+from .dialogs import DialogManager
 from game_logic import GameLogic
 from leaderboard import Leaderboard
-
-# Add tutorial import
-try:
-    from tutorial import show_tutorial
-except ImportError:
-    def show_tutorial():
-        messagebox.showinfo("Tutorial", "Tutorial system not available.")
-
+from .tutorial import show_tutorial
 
 class TokenGameGUI:
     def __init__(self):

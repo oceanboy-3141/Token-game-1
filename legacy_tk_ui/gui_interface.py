@@ -11,7 +11,7 @@ from leaderboard import Leaderboard
 
 # Add tutorial import
 try:
-    from tutorial import show_tutorial
+    from .tutorial import show_tutorial
 except ImportError:
     def show_tutorial():
         messagebox.showinfo("Tutorial", "Tutorial system not available.")

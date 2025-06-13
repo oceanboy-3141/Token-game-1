@@ -3,7 +3,7 @@ Animation System for Token Quest
 Contains smooth transitions, visual effects, and interactive animations
 """
 import tkinter as tk
-from material_components import MaterialColors, MaterialUtils
+from .material_components import MaterialColors, MaterialUtils
 
 
 class AnimationManager:

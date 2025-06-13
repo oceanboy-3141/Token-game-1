@@ -4,8 +4,8 @@ Contains all modal dialogs, popups, and secondary windows
 """
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext, simpledialog
-from material_components import MaterialColors, MaterialComponents, MaterialTypography, MaterialUtils
-from animations import AnimationManager
+from .material_components import MaterialColors, MaterialComponents, MaterialTypography, MaterialUtils
+from .animations import AnimationManager
 
 
 class DialogManager:

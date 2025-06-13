@@ -9,33 +9,34 @@ Purpose: Investigate if LLMs place semantically similar words similarly in token
 
 import sys
 import os
-import subprocess
 
 # Add current directory to path to ensure module imports work
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Auto-install tiktoken if missing
 try:
-    import tiktoken
-except ImportError:
-    print("📦 tiktoken not found, installing automatically...")
-    try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "tiktoken"])
-        print("✅ tiktoken installed successfully!")
-        import tiktoken
-    except subprocess.CalledProcessError:
-        print("❌ Failed to install tiktoken automatically!")
-        print("Please install it manually with: pip install tiktoken")
-        sys.exit(1)
-    except ImportError:
-        print("❌ Still can't import tiktoken after installation!")
-        print("Please try restarting your Python environment")
-        sys.exit(1)
+    import tiktoken  # noqa: F401  (imported for side-effects in rest of app)
+except ImportError as exc:
+    # Avoid heavy, surprise dependency installation at runtime – it is slow and
+    # brittle in restricted environments.  Instead, fail fast with a clear
+    # message so the user can resolve the dependency explicitly.
+    print("❌ Required dependency 'tiktoken' is missing.")
+    print("   Please install it with:  pip install tiktoken")
+    sys.exit(1)
 
-from gui_interface import TokenGameGUI
+from legacy_tk_ui.gui_interface import TokenGameGUI
+from legacy_tk_ui.startup_dialog import show_startup_dialog
 from game_logic import GameLogic
-from startup_dialog import show_startup_dialog
 
+# --------------------------------------
+# UI theme palette (built once at import)
+# --------------------------------------
+THEMES = {
+    'light': {'bg': '#f0f0f0', 'text': '#333333', 'card_bg': '#ffffff'},
+    'dark': {'bg': '#2b2b2b', 'text': '#ffffff', 'card_bg': '#3c3c3c'},
+    'blue': {'bg': '#E3F2FD', 'text': '#0D47A1', 'card_bg': '#BBDEFB'},
+    'green': {'bg': '#E8F5E8', 'text': '#1B5E20', 'card_bg': '#C8E6C9'},
+}
 
 def apply_theme_and_title(game, settings):
     """Apply the selected theme and update window title."""
@@ -44,17 +45,9 @@ def apply_theme_and_title(game, settings):
     mode_text = f" - {mode.title()} Mode" if mode != 'normal' else ""
     game.root.title(f"Token Quest - Research Edition{mode_text}")
     
-    # Theme colors
-    themes = {
-        'light': {'bg': '#f0f0f0', 'text': '#333333', 'card_bg': '#ffffff'},
-        'dark': {'bg': '#2b2b2b', 'text': '#ffffff', 'card_bg': '#3c3c3c'},
-        'blue': {'bg': '#E3F2FD', 'text': '#0D47A1', 'card_bg': '#BBDEFB'},
-        'green': {'bg': '#E8F5E8', 'text': '#1B5E20', 'card_bg': '#C8E6C9'}
-    }
-    
     theme_name = settings.get('theme', 'light')
-    if theme_name in themes:
-        theme = themes[theme_name]
+    if theme_name in THEMES:
+        theme = THEMES[theme_name]
         
         # Apply theme to main window
         game.root.configure(bg=theme['bg'])

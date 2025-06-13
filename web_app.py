@@ -26,7 +26,7 @@ import json
 import os
 from pathlib import Path
 
-from game_logic import GameLogic, TokenGame
+from game_logic import GameLogic
 from token_handler import TokenHandler
 from config import get_web_config, get_game_config
 from async_data_collector import AsyncDataCollector
@@ -238,9 +238,11 @@ def api_start_game():
         db.session.add(game_session)
         db.session.commit()
         
-        # Initialize game
-        game = TokenGame(difficulty=difficulty, game_mode=game_mode)
-        target_word, target_token_id = game.get_current_target()
+        # Initialize game logic and start first round
+        game_logic = GameLogic(game_mode=game_mode, difficulty=difficulty)
+        round_info = game_logic.start_new_round()
+        target_word = round_info['target_word']
+        target_token_id = round_info['target_token_id']
         
         # Store game state in session
         session['game_session_id'] = game_session.id
@@ -283,7 +285,7 @@ def api_make_guess():
             return jsonify({'success': False, 'error': 'No active game'}), 400
         
         # Process guess
-        guess_token_id = token_handler.get_token_id(guess_word)
+        guess_token_id = token_handler.get_single_token_id(guess_word)
         if guess_token_id is None:
             return jsonify({
                 'success': False,
