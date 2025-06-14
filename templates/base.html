@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Token Quest - Educational Research Edition{% endblock %}</title>
+    
+    <!-- Material Design Colors and Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>🎯 Token Quest</h1>
+            <nav class="header-nav">
+                <a href="{{ url_for('index') }}" class="nav-link">Game</a>
+                <a href="{{ url_for('settings') }}" class="nav-link">Settings</a>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Research Edition - Analyzing Token ID Relationships</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html> 

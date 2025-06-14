@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="game-container">
+    <!-- Game Status Card -->
+    <div class="material-card" id="status-card">
+        <div class="card-header">
+            <h2>Game Status</h2>
+        </div>
+        <div class="card-content">
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">Round:</span>
+                    <span class="status-value" id="current-round">-</span>
+                    <span class="status-max">/ <span id="max-rounds">-</span></span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Score:</span>
+                    <span class="status-value" id="current-score">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Correct:</span>
+                    <span class="status-value" id="correct-guesses">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Attempts Left:</span>
+                    <span class="status-value" id="attempts-left">3</span>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="game-progress"></div>
+                </div>
+                <span class="progress-text">Game Progress</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Target Word Card -->
+    <div class="material-card" id="target-card">
+        <div class="card-header">
+            <h2>🎯 Target Word</h2>
+        </div>
+        <div class="card-content">
+            <div class="target-display">
+                <div class="target-word" id="target-word">Click "Start Game" to begin!</div>
+                <div class="target-token" id="target-token">Token ID: -</div>
+                <div class="target-hint" id="target-hint">Find a word with a similar meaning or nearby token ID</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guess Input Card -->
+    <div class="material-card" id="input-card">
+        <div class="card-header">
+            <h2>💭 Your Guess</h2>
+        </div>
+        <div class="card-content">
+            <form id="guess-form" class="guess-form">
+                <div class="input-group">
+                    <input type="text" id="guess-input" class="guess-input" 
+                           placeholder="Enter your guess..." autocomplete="off">
+                    <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
+                        <span class="material-icons">send</span>
+                        Submit
+                    </button>
+                </div>
+            </form>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="hint-btn" disabled>
+                    <span class="material-icons">lightbulb</span>
+                    Get Hint
+                </button>
+                <button class="btn btn-success" id="start-btn">
+                    <span class="material-icons">play_arrow</span>
+                    Start Game
+                </button>
+                <button class="btn btn-warning" id="new-game-btn" style="display: none;">
+                    <span class="material-icons">refresh</span>
+                    New Game
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Card -->
+    <div class="material-card" id="results-card" style="display: none;">
+        <div class="card-header">
+            <h2>📊 Result</h2>
+        </div>
+        <div class="card-content">
+            <div id="result-content">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Visualization Card -->
+    <div class="material-card" id="visualization-card" style="display: none;">
+        <div class="card-header">
+            <h2>🔢 Token Space Visualization</h2>
+        </div>
+        <div class="card-content">
+            <canvas id="token-canvas" width="800" height="200"></canvas>
+            <div class="visualization-legend">
+                <div class="legend-item">
+                    <div class="legend-color target"></div>
+                    <span>Target Word</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color guess"></div>
+                    <span>Your Guess</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color connection"></div>
+                    <span>Distance</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hint Modal -->
+    <div id="hint-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💡 Hints</h3>
+                <button class="close-btn" id="close-hint">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="hint-tabs">
+                    <button class="tab-btn active" data-tab="semantic">🧠 Semantic</button>
+                    <button class="tab-btn" data-tab="token">🔢 Token Space</button>
+                    <button class="tab-btn" data-tab="educational">📚 Educational</button>
+                </div>
+                <div class="hint-content">
+                    <div id="hint-content-area">
+                        Select a hint type above
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loading" class="loading-spinner" style="display: none;">
+    <div class="spinner"></div>
+    <p>Processing...</p>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Initialize the game when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎮 Token Quest Web Version Loaded!');
+    initializeGame();
+});
+</script>
+{% endblock %} 

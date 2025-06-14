@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Token Quest{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <div class="material-card">
+        <div class="card-header">
+            <h2>⚙️ Game Settings</h2>
+        </div>
+        <div class="card-content">
+            <form id="settings-form">
+                <div style="display: grid; gap: 1.5rem;">
+                    
+                    <div class="form-group">
+                        <label for="game-mode"><strong>Game Mode:</strong></label>
+                        <select id="game-mode" name="game_mode" class="form-select">
+                            <option value="normal">Normal</option>
+                            <option value="antonym">Antonym Mode</option>
+                            <option value="category">Category Mode</option>
+                            <option value="speed">Speed Mode</option>
+                        </select>
+                        <small>Normal: Find similar words | Antonym: Find opposite words</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="difficulty"><strong>Difficulty:</strong></label>
+                        <select id="difficulty" name="difficulty" class="form-select">
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                            <option value="mixed" selected>Mixed</option>
+                        </select>
+                        <small>Controls the complexity of target words</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category"><strong>Word Category:</strong></label>
+                        <select id="category" name="category" class="form-select">
+                            <option value="all" selected>All Categories</option>
+                            <option value="emotions">Emotions</option>
+                            <option value="size">Size</option>
+                            <option value="speed">Speed</option>
+                            <option value="quality">Quality</option>
+                            <option value="temperature">Temperature</option>
+                            <option value="brightness">Brightness</option>
+                            <option value="actions">Actions</option>
+                        </select>
+                        <small>Focus on specific types of words</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rounds"><strong>Number of Rounds:</strong></label>
+                        <select id="rounds" name="rounds" class="form-select">
+                            <option value="5">5 Rounds</option>
+                            <option value="10" selected>10 Rounds</option>
+                            <option value="15">15 Rounds</option>
+                            <option value="20">20 Rounds</option>
+                        </select>
+                        <small>How many rounds to play</small>
+                    </div>
+
+                </div>
+
+                <div class="action-buttons" style="margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-icons">save</span>
+                        Save Settings
+                    </button>
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                        <span class="material-icons">arrow_back</span>
+                        Back to Game
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Current Settings Display -->
+    <div class="material-card">
+        <div class="card-header">
+            <h2>📊 Current Settings</h2>
+        </div>
+        <div class="card-content">
+            <div id="current-settings">
+                <p>Settings will be loaded here...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: var(--on-surface);
+}
+
+.form-select {
+    padding: 0.75rem;
+    border: 2px solid var(--outline);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--surface);
+    color: var(--on-surface);
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.form-group small {
+    color: var(--on-surface-variant);
+    font-size: 0.875rem;
+}
+</style>
+
+<script>
+document.getElementById('settings-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const settings = {
+        game_mode: formData.get('game_mode'),
+        difficulty: formData.get('difficulty'),
+        category: formData.get('category'),
+        rounds: parseInt(formData.get('rounds'))
+    };
+    
+    console.log('Saving settings:', settings);
+    
+    // Save to localStorage for now
+    localStorage.setItem('token-quest-settings', JSON.stringify(settings));
+    
+    alert('Settings saved! They will apply to your next game.');
+});
+
+// Load current settings
+document.addEventListener('DOMContentLoaded', function() {
+    const savedSettings = localStorage.getItem('token-quest-settings');
+    if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        
+        // Update form fields
+        document.getElementById('game-mode').value = settings.game_mode || 'normal';
+        document.getElementById('difficulty').value = settings.difficulty || 'mixed';
+        document.getElementById('category').value = settings.category || 'all';
+        document.getElementById('rounds').value = settings.rounds || 10;
+        
+        // Update current settings display
+        document.getElementById('current-settings').innerHTML = `
+            <p><strong>Game Mode:</strong> ${settings.game_mode || 'normal'}</p>
+            <p><strong>Difficulty:</strong> ${settings.difficulty || 'mixed'}</p>
+            <p><strong>Category:</strong> ${settings.category || 'all'}</p>
+            <p><strong>Rounds:</strong> ${settings.rounds || 10}</p>
+        `;
+    }
+});
+</script>
+{% endblock %} 
