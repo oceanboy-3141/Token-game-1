@@ -1,0 +1,112 @@
+{
+  "20250613_194705": {
+    "session_info": {
+      "session_id": "20250613_194705",
+      "start_time": "2025-06-13T19:47:05.228863",
+      "end_time": "2025-06-13T19:47:08.427193",
+      "total_games": 1,
+      "total_rounds": 1,
+      "total_guesses": 0
+    },
+    "games": [
+      {
+        "game_id": "20250613_194705_game_1",
+        "session_id": "20250613_194705",
+        "start_time": "2025-06-13T19:47:08.396187",
+        "end_time": null,
+        "configuration": {
+          "game_mode": "normal",
+          "difficulty": "mixed",
+          "category": "all",
+          "max_rounds": 10
+        },
+        "rounds": [],
+        "total_score": 0,
+        "total_rounds": 0,
+        "correct_guesses": 0,
+        "hints_used": 0,
+        "average_response_time": 0,
+        "educational_interactions": 0
+      }
+    ],
+    "rounds": [
+      {
+        "round_id": "20250613_194705_round_1",
+        "session_id": "20250613_194705",
+        "game_id": "20250613_194705_game_1",
+        "start_time": "2025-06-13T19:47:08.427193",
+        "end_time": null,
+        "round_number": 1,
+        "target_word": "easy",
+        "target_token_id": 84936,
+        "game_mode": "normal",
+        "difficulty": "mixed",
+        "category": "all",
+        "guesses": [],
+        "hints_requested": 0,
+        "round_score": 0,
+        "completed": false
+      }
+    ],
+    "guesses": [],
+    "hint_usage": [],
+    "educational_interactions": [],
+    "token_analysis": [],
+    "performance_metrics": []
+  },
+  "20250613_194715": {
+    "session_info": {
+      "session_id": "20250613_194715",
+      "start_time": "2025-06-13T19:47:15.389250",
+      "end_time": "2025-06-13T19:47:15.451805",
+      "total_games": 1,
+      "total_rounds": 1,
+      "total_guesses": 0
+    },
+    "games": [
+      {
+        "game_id": "20250613_194715_game_1",
+        "session_id": "20250613_194715",
+        "start_time": "2025-06-13T19:47:15.404329",
+        "end_time": null,
+        "configuration": {
+          "game_mode": "normal",
+          "difficulty": "mixed",
+          "category": "all",
+          "max_rounds": 10
+        },
+        "rounds": [],
+        "total_score": 0,
+        "total_rounds": 0,
+        "correct_guesses": 0,
+        "hints_used": 0,
+        "average_response_time": 0,
+        "educational_interactions": 0
+      }
+    ],
+    "rounds": [
+      {
+        "round_id": "20250613_194715_round_1",
+        "session_id": "20250613_194715",
+        "game_id": "20250613_194715_game_1",
+        "start_time": "2025-06-13T19:47:15.451805",
+        "end_time": null,
+        "round_number": 1,
+        "target_word": "slow",
+        "target_token_id": 69974,
+        "game_mode": "normal",
+        "difficulty": "mixed",
+        "category": "all",
+        "guesses": [],
+        "hints_requested": 0,
+        "round_score": 0,
+        "completed": false
+      }
+    ],
+    "guesses": [],
+    "hint_usage": [],
+    "educational_interactions": [],
+    "token_analysis": [],
+    "performance_metrics": []
+  }
+}

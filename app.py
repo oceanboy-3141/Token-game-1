@@ -56,6 +56,7 @@ def start_game():
     """Start a new game round"""
     game_session = get_or_create_game_session()
     game_logic = game_session['game_logic']
+    data_collector = game_session['data_collector']
     
     # Apply any settings from the request
     settings = request.json or {}
@@ -70,6 +71,20 @@ def start_game():
     
     # Start new round using existing logic
     round_info = game_logic.start_new_round()
+    
+    # Log the round start
+    if round_info.get('current_round') == 1:
+        # Log game start on first round
+        game_config = {
+            'game_mode': settings.get('game_mode', 'normal'),
+            'difficulty': settings.get('difficulty', 'mixed'),
+            'category': settings.get('category', 'all'),
+            'max_rounds': round_info.get('max_rounds', 10)
+        }
+        data_collector.log_game_start(game_config)
+    
+    # Log round start
+    data_collector.log_round_start(round_info)
     
     return jsonify({
         'success': True,
@@ -94,15 +109,20 @@ def submit_guess():
     
     # Log data using existing system
     if result.get('valid_guess'):
-        data_collector.log_guess(
-            target_word=game_logic.current_target_word,
-            target_token_id=game_logic.current_target_token_id,
-            guess_word=guess_word,
-            guess_token_id=result.get('guess_token_id'),
-            distance=result.get('distance'),
-            points=result.get('points'),
-            round_number=game_logic.round_number
-        )
+        # Create comprehensive guess data for the enhanced data collector
+        guess_data = {
+            'target_word': game_logic.current_target_word,
+            'target_token_id': game_logic.current_target_token_id,
+            'guess_word': guess_word,
+            'guess_token_id': result.get('guess_token_id'),
+            'distance': result.get('distance'),
+            'points': result.get('points'),
+            'round_number': game_logic.round_number,
+            'attempts_used': game_logic.current_attempts,
+            'feedback': result.get('feedback', ''),
+            'correct': result.get('correct', False)
+        }
+        data_collector.log_comprehensive_guess(guess_data)
     
     return jsonify({
         'success': True,
