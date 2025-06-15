@@ -245,10 +245,16 @@ async function submitGuess() {
             
             // Auto-advance to next round after 2 seconds (since we only have 1 attempt)
             setTimeout(() => {
-                if (!data.result.game_ended && gameState.currentRound < gameState.maxRounds) {
-                    startNextRound();
-                } else {
+                // Check if game ended from the API response
+                if (data.result.game_ended || gameState.currentRound >= gameState.maxRounds) {
+                    console.log('🎉 Game completed! Final results:', {
+                        score: gameState.score,
+                        correctGuesses: gameState.correctGuesses,
+                        rounds: gameState.maxRounds
+                    });
                     showGameCompleted();
+                } else {
+                    startNextRound();
                 }
             }, 2000);
             
@@ -643,10 +649,15 @@ function showTimeoutCountdown() {
             // Move to next round
             setTimeout(() => {
                 elements.resultsCard.style.display = 'none';
-                if (gameState.currentRound < gameState.maxRounds) {
-                    startNextRound();
-                } else {
+                if (gameState.currentRound >= gameState.maxRounds) {
+                    console.log('🎉 Game completed after timeout! Final results:', {
+                        score: gameState.score,
+                        correctGuesses: gameState.correctGuesses,
+                        rounds: gameState.maxRounds
+                    });
                     showGameCompleted();
+                } else {
+                    startNextRound();
                 }
             }, 500);
         }
@@ -725,16 +736,68 @@ function resetGameUI() {
 function showGameCompleted() {
     console.log('🎉 Game completed!');
     
+    // Calculate accuracy
+    const accuracy = gameState.maxRounds > 0 ? (gameState.correctGuesses / gameState.maxRounds * 100) : 0;
+    
+    // Determine performance level
+    let performanceLevel = '';
+    let performanceIcon = '';
+    let performanceColor = '';
+    
+    if (accuracy >= 80) {
+        performanceLevel = 'Outstanding!';
+        performanceIcon = '🏆';
+        performanceColor = '#FFD700';
+    } else if (accuracy >= 60) {
+        performanceLevel = 'Great Job!';
+        performanceIcon = '🥇';
+        performanceColor = '#4CAF50';
+    } else if (accuracy >= 40) {
+        performanceLevel = 'Good Effort!';
+        performanceIcon = '🥈';
+        performanceColor = '#FF9800';
+    } else {
+        performanceLevel = 'Keep Practicing!';
+        performanceIcon = '🥉';
+        performanceColor = '#FF6B6B';
+    }
+    
     elements.resultContent.innerHTML = `
-        <div class="result-excellent">
-            <h3>🎉 Game Completed!</h3>
-            <p><strong>Final Score:</strong> ${gameState.score} points</p>
-            <p><strong>Correct Guesses:</strong> ${gameState.correctGuesses} / ${gameState.maxRounds}</p>
-            <p>Thank you for contributing to our research!</p>
-            <button class="btn btn-success" onclick="startCompletelyNewGame()">
-                <span class="material-icons">play_arrow</span>
-                Play Again
-            </button>
+        <div class="result-excellent game-complete-summary">
+            <div class="performance-header" style="color: ${performanceColor}">
+                <h2>${performanceIcon} ${performanceLevel}</h2>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">${gameState.score}</div>
+                    <div class="stat-label">Total Points</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${accuracy.toFixed(1)}%</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${gameState.correctGuesses}/${gameState.maxRounds}</div>
+                    <div class="stat-label">Correct</div>
+                </div>
+            </div>
+            
+            <div class="completion-message">
+                <p>🎯 Game Complete! Submit your score to the leaderboard!</p>
+                <p><em>Your score modal should appear shortly...</em></p>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="handleGameCompletion()">
+                    <span class="material-icons">leaderboard</span>
+                    Submit Score
+                </button>
+                <button class="btn btn-secondary" onclick="startCompletelyNewGame()">
+                    <span class="material-icons">play_arrow</span>
+                    Play Again
+                </button>
+            </div>
         </div>
     `;
     
@@ -744,8 +807,10 @@ function showGameCompleted() {
     gameState.gameCompleted = true;
     gameState.gameStarted = false;
     
-    // Show score submission modal
-    handleGameCompletion();
+    // Show score submission modal after a short delay
+    setTimeout(() => {
+        handleGameCompletion();
+    }, 1000);
 }
 
 function showLoading(show) {
@@ -894,14 +959,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Function to handle game completion and show score modal
 async function handleGameCompletion() {
+    console.log('🎯 Handling game completion...');
     try {
         const response = await fetch('/api/get_final_results');
         const data = await response.json();
         
+        console.log('📊 Final results response:', data);
+        
         if (data.success) {
+            console.log('✅ Showing score submission modal');
             showScoreSubmissionModal(data.results);
+        } else {
+            console.error('❌ Failed to get final results:', data.error);
+            alert('Could not load final results: ' + data.error);
         }
     } catch (error) {
-        console.error('Error getting final results:', error);
+        console.error('❌ Error getting final results:', error);
+        alert('Network error getting final results. You can still play again!');
     }
 } 

@@ -82,6 +82,11 @@ def game_setup(mode):
                          mode_icon=mode_info[mode]['icon'],
                          mode_description=mode_info[mode]['description'])
 
+@app.route('/tutorial')
+def tutorial():
+    """Interactive tutorial with Tokky"""
+    return render_template('tutorial.html')
+
 @app.route('/settings')
 def settings():
     """Appearance settings page"""

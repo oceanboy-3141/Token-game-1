@@ -1,0 +1,693 @@
+{% extends "base.html" %}
+
+{% block title %}Tutorial - Meet Tokky!{% endblock %}
+
+{% block extra_head %}
+<style>
+.tutorial-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.tokky-welcome {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 20px;
+    text-align: center;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.tokky-avatar {
+    width: 120px;
+    height: 120px;
+    background: white;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+.tutorial-step {
+    background: var(--card-bg);
+    border: var(--card-border);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--card-shadow);
+    display: none;
+    animation: fadeInStep 0.5s ease;
+}
+
+.tutorial-step.active {
+    display: block;
+    border-left: 5px solid #4CAF50;
+}
+
+@keyframes fadeInStep {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.step-number {
+    background: #4CAF50;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.step-number.completed {
+    background: #2E7D32;
+}
+
+.tokky-bubble {
+    background: #e3f2fd;
+    border: 2px solid #2196F3;
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    position: relative;
+    animation: fadeIn 0.5s ease;
+}
+
+.tokky-bubble::before {
+    content: '🤖';
+    position: absolute;
+    left: -15px;
+    top: -10px;
+    background: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #2196F3;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.demo-game {
+    background: var(--card-bg);
+    border: 2px dashed #4CAF50;
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.demo-target {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #4CAF50;
+    margin-bottom: 0.5rem;
+}
+
+.demo-token {
+    color: #666;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.demo-input {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.demo-input input {
+    padding: 0.8rem;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    min-width: 200px;
+}
+
+.demo-input input:focus {
+    border-color: #4CAF50;
+    outline: none;
+}
+
+.tutorial-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.big-nav-buttons {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 1rem;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+}
+
+.big-nav-buttons .btn {
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+    min-width: 120px;
+}
+
+.btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+}
+
+.token-visualization {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.token-box {
+    background: #e8f5e8;
+    border: 2px solid #4CAF50;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    min-width: 120px;
+}
+
+.token-distance {
+    background: #fff3e0;
+    border: 2px solid #FF9800;
+    border-radius: 15px;
+    padding: 1rem;
+    text-align: center;
+    font-weight: bold;
+    color: #F57C00;
+}
+
+.progress-bar {
+    background: #f0f0f0;
+    border-radius: 10px;
+    height: 8px;
+    margin-top: 2rem;
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: linear-gradient(90deg, #4CAF50, #45a049);
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    width: 0%;
+}
+
+.hidden {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .tutorial-container {
+        padding: 1rem;
+    }
+    
+    .demo-input {
+        flex-direction: column;
+    }
+    
+    .demo-input input {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .tutorial-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn {
+        width: 100%;
+        max-width: 250px;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tutorial-container">
+    <!-- Welcome Section -->
+    <div class="tokky-welcome">
+        <div class="tokky-avatar">🤖</div>
+        <h1>Hi! I'm Tokky! 👋</h1>
+        <p>I'm your AI guide here to help you master Token Quest! Get ready to discover the amazing world of tokens while having tons of fun!</p>
+    </div>
+
+    <!-- Tutorial Steps -->
+    <div class="tutorial-steps">
+        <!-- Step 1: Introduction -->
+        <div class="tutorial-step active" id="step-1">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <h2>Welcome to Token Quest!</h2>
+            </div>
+            
+            <div class="tokky-bubble">
+                "Token Quest is like a detective game for words! You'll see a target word, and your job is to find other words that are similar to it. But here's the mystery - every word has a special number called a 'token ID'! Think of it like each word having its own secret code! 🎯"
+            </div>
+            
+            <p>The big question we're trying to solve: <strong>Do words with similar meanings actually have token IDs that are close together?</strong> That's what we're here to discover! Nobody knows for sure - that's the whole point of our research!</p>
+            
+            <div class="demo-game">
+                <div class="demo-target">Example: HAPPY</div>
+                <div class="demo-token">Token ID: 39,784</div>
+                <p>Your goal: Find words that mean something similar to "HAPPY"!</p>
+            </div>
+        </div>
+
+        <!-- Step 2: How Token IDs Work -->
+        <div class="tutorial-step" id="step-2">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <h2>What are Token IDs?</h2>
+            </div>
+            
+            <div class="tokky-bubble">
+                "Imagine if every word had a house number on a really long street! Token IDs are like those house numbers. Our hypothesis is that words that live close to each other (with similar numbers) might be related! But we need to test this theory! 🏠"
+            </div>
+            
+            <div class="token-visualization">
+                <div class="token-box">
+                    <strong>HAPPY</strong><br>
+                    Token: 39,784
+                </div>
+                <div class="token-distance">Distance: ?</div>
+                <div class="token-box">
+                    <strong>JOYFUL</strong><br>
+                    Token: ?
+                </div>
+            </div>
+            
+            <p><strong>The big question:</strong> ARE words with similar meanings actually close together in token space? Or is it just random? That's what we're going to find out by playing!</p>
+        </div>
+
+        <!-- Step 3: Making Your First Guess -->
+        <div class="tutorial-step" id="step-3">
+            <div class="step-header">
+                <div class="step-number">3</div>
+                <h2>Let's Make a Guess!</h2>
+            </div>
+            
+            <div class="tokky-bubble">
+                "Now for the fun part! Let's practice with a real example. I'll show you a target word, and you can type in a word that you think is similar. Don't worry about being perfect - this is just practice to see how it works! 🎮"
+            </div>
+            
+            <div class="demo-game">
+                <div class="demo-target">TARGET: BRIGHT</div>
+                <div class="demo-token">Token ID: 28,974</div>
+                
+                <div class="demo-input">
+                    <input type="text" id="practice-input" placeholder="Type a similar word..." maxlength="20">
+                    <button class="btn btn-primary" onclick="makePracticeGuess()">Submit Guess</button>
+                </div>
+                
+                <div id="practice-result" class="hidden">
+                    <!-- Result will appear here -->
+                </div>
+            </div>
+            
+            <div class="tokky-bubble hidden" id="practice-hint">
+                "Think of words that describe something that shines or glows! Words like 'shiny', 'brilliant', 'glowing', or 'luminous' might be interesting to test! ✨"
+            </div>
+        </div>
+
+        <!-- Step 4: Scoring System -->
+        <div class="tutorial-step" id="step-4">
+            <div class="step-header">
+                <div class="step-number">4</div>
+                <h2>How Scoring Works</h2>
+            </div>
+            
+            <div class="tokky-bubble">
+                "Here's how we measure success in our research! The closer your word's token ID is to the target word's token ID, the more points you get! If you guess the exact same word, you get maximum points. But even close guesses earn you points - this helps us see patterns! 🏆"
+            </div>
+            
+            <div class="token-visualization">
+                <div style="text-align: center; width: 100%;">
+                    <h4>Scoring Examples:</h4>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem;">
+                        <div style="background: #e8f5e8; padding: 1rem; border-radius: 10px; min-width: 150px;">
+                            <strong>Perfect Match!</strong><br>
+                            Distance: 0<br>
+                            <span style="color: #4CAF50;">100 Points! 🎉</span>
+                        </div>
+                        <div style="background: #fff9c4; padding: 1rem; border-radius: 10px; min-width: 150px;">
+                            <strong>Very Close</strong><br>
+                            Distance: 1-100<br>
+                            <span style="color: #FFA000;">80-95 Points! 🌟</span>
+                        </div>
+                        <div style="background: #ffe0b2; padding: 1rem; border-radius: 10px; min-width: 150px;">
+                            <strong>Pretty Good</strong><br>
+                            Distance: 101-500<br>
+                            <span style="color: #FF6F00;">50-79 Points! 👍</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Game Modes -->
+        <div class="tutorial-step" id="step-5">
+            <div class="step-header">
+                <div class="step-number">5</div>
+                <h2>Different Game Modes</h2>
+            </div>
+            
+            <div class="tokky-bubble">
+                "Token Quest has three exciting game modes! Each one tests our hypothesis in a different way, helping us discover how words and tokens might work together! 🎪"
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin: 1rem 0;">
+                <div style="background: #e3f2fd; border: 2px solid #2196F3; border-radius: 15px; padding: 1.5rem; text-align: center;">
+                    <h3>🤝 Synonym Hunt</h3>
+                    <p>Find words with similar meanings! Test if related words actually cluster together in token space.</p>
+                </div>
+                
+                <div style="background: #fce4ec; border: 2px solid #E91E63; border-radius: 15px; padding: 1.5rem; text-align: center;">
+                    <h3>⚡ Antonym Challenge</h3>
+                    <p>Find opposites! Research whether words with opposite meanings are really positioned far apart in token space.</p>
+                </div>
+                
+                <div style="background: #f3e5f5; border: 2px solid #9C27B0; border-radius: 15px; padding: 1.5rem; text-align: center;">
+                    <h3>🏃 Speed Mode</h3>
+                    <p>Race against time! Test your intuition about word relationships under pressure.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Tips and Tricks -->
+        <div class="tutorial-step" id="step-6">
+            <div class="step-header">
+                <div class="step-number">6</div>
+                <h2>Pro Tips from Tokky!</h2>
+            </div>
+            
+            <div class="tokky-bubble">
+                "Here are my favorite strategies to become a Token Quest researcher! These tips will help you make better guesses and discover patterns in how computers process language! 🧠✨"
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin: 1rem 0;">
+                <div style="background: #e8f5e8; border-left: 4px solid #4CAF50; padding: 1rem; border-radius: 10px;">
+                    <h4>💡 Think Synonyms First</h4>
+                    <p>Start with words that mean the same thing. Do "big" and "large" really have close token IDs? Let's find out!</p>
+                </div>
+                
+                <div style="background: #fff3e0; border-left: 4px solid #FF9800; padding: 1rem; border-radius: 10px;">
+                    <h4>🔍 Use the Hint System</h4>
+                    <p>Stuck? Click the hint button! I'll give you semantic hints, token space hints, and fun facts!</p>
+                </div>
+                
+                <div style="background: #e3f2fd; border-left: 4px solid #2196F3; padding: 1rem; border-radius: 10px;">
+                    <h4>🎯 Try Different Word Forms</h4>
+                    <p>Sometimes "running", "runs", and "run" have different token IDs. Experiment!</p>
+                </div>
+                
+                <div style="background: #f3e5f5; border-left: 4px solid #9C27B0; padding: 1rem; border-radius: 10px;">
+                    <h4>🌟 Learn from Every Guess</h4>
+                    <p>There are no "wrong" guesses - only data points! Pay attention to the distances and patterns to help solve the mystery.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 7: Ready to Play -->
+        <div class="tutorial-step" id="step-7">
+            <div class="step-header">
+                <div class="step-number">7</div>
+                <h2>You're Ready to Play!</h2>
+            </div>
+            
+            <div class="tokky-bubble">
+                "Congratulations! You're now ready to become a Token Quest researcher! Remember, every guess helps us discover something new about how language works in the digital world. Let's solve this mystery together! 🎉🚀"
+            </div>
+            
+            <div class="tutorial-buttons">
+                <a href="{{ url_for('game_setup', mode='synonym') }}" class="btn btn-primary">
+                    🤝 Start Synonym Hunt
+                </a>
+                <a href="{{ url_for('game_setup', mode='antonym') }}" class="btn btn-primary">
+                    ⚡ Try Antonym Challenge
+                </a>
+                <a href="{{ url_for('home') }}" class="btn btn-secondary">
+                    🏠 Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+    </div>
+</div>
+
+<!-- Big Floating Navigation Buttons -->
+<div class="big-nav-buttons">
+    <button class="btn btn-secondary" id="prev-btn" onclick="previousStep()" disabled>
+        ← Previous
+    </button>
+    <button class="btn btn-primary" id="next-btn" onclick="nextStep()">
+        Next →
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentStep = 1;
+const totalSteps = 7;
+
+// Practice guess responses (pre-written, no API needed!)
+const practiceResponses = {
+    'bright': { distance: 0, points: 100, message: "Perfect! 'Bright' is the exact target word!" },
+    'shiny': { distance: 127, points: 95, message: "Excellent! 'Shiny' is very close to 'bright'!" },
+    'brilliant': { distance: 203, points: 88, message: "Great guess! 'Brilliant' shares the brightness concept!" },
+    'luminous': { distance: 445, points: 75, message: "Good thinking! 'Luminous' relates to light and brightness!" },
+    'glowing': { distance: 312, points: 82, message: "Nice! 'Glowing' captures the light-emitting aspect!" },
+    'radiant': { distance: 189, points: 90, message: "Wonderful! 'Radiant' is very similar to 'bright'!" },
+    'dark': { distance: 2847, points: 15, message: "Interesting! 'Dark' is actually the opposite of 'bright'!" },
+    'dim': { distance: 1923, points: 25, message: "That's more of an opposite! 'Dim' means not bright." },
+    'default': { distance: 1200, points: 40, message: "Good try! This word has some connection to 'bright'." }
+};
+
+function updateProgress() {
+    const progress = (currentStep / totalSteps) * 100;
+    document.getElementById('progress-fill').style.width = progress + '%';
+}
+
+function updateButtons() {
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    
+    prevBtn.disabled = currentStep === 1;
+    
+    if (currentStep === totalSteps) {
+        nextBtn.textContent = "Start Playing! 🎮";
+        nextBtn.onclick = () => window.location.href = "{{ url_for('home') }}";
+    } else {
+        nextBtn.textContent = "Next →";
+        nextBtn.onclick = nextStep;
+    }
+}
+
+function showStep(stepNumber) {
+    // Hide all steps and show only the current one
+    for (let i = 1; i <= totalSteps; i++) {
+        const step = document.getElementById(`step-${i}`);
+        step.classList.remove('active');
+        
+        if (i === stepNumber) {
+            step.classList.add('active');
+            // Update step number display
+            const stepNum = step.querySelector('.step-number');
+            if (i < currentStep) {
+                stepNum.classList.add('completed');
+                stepNum.textContent = '✓';
+            } else {
+                stepNum.classList.remove('completed');
+                stepNum.textContent = i;
+            }
+        }
+    }
+    
+    updateProgress();
+    updateButtons();
+    
+    // Scroll to top of the tutorial container
+    document.querySelector('.tutorial-container').scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+    });
+}
+
+function nextStep() {
+    if (currentStep < totalSteps) {
+        currentStep++;
+        showStep(currentStep);
+    }
+}
+
+function previousStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+    }
+}
+
+function makePracticeGuess() {
+    const input = document.getElementById('practice-input');
+    const guess = input.value.toLowerCase().trim();
+    const resultDiv = document.getElementById('practice-result');
+    const hintDiv = document.getElementById('practice-hint');
+    
+    if (!guess) {
+        alert("Please enter a word first!");
+        return;
+    }
+    
+    // Get response from our pre-written responses
+    const response = practiceResponses[guess] || practiceResponses['default'];
+    
+    // Show result
+    resultDiv.innerHTML = `
+        <div style="background: #e8f5e8; border: 2px solid #4CAF50; border-radius: 15px; padding: 1.5rem; margin-top: 1rem; text-align: center;">
+            <h3>Result for "${guess.toUpperCase()}"</h3>
+            <div class="token-visualization">
+                <div class="token-box">
+                    <strong>BRIGHT</strong><br>
+                    Token: 28,974
+                </div>
+                <div class="token-distance">Distance: ${response.distance}</div>
+                <div class="token-box">
+                    <strong>${guess.toUpperCase()}</strong><br>
+                    Token: ${28974 + response.distance}
+                </div>
+            </div>
+            <div style="background: #4CAF50; color: white; padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                <strong>+${response.points} Points!</strong><br>
+                ${response.message}
+            </div>
+        </div>
+    `;
+    
+    resultDiv.classList.remove('hidden');
+    
+    // Show hint if it's a less optimal guess
+    if (response.points < 70) {
+        hintDiv.classList.remove('hidden');
+    }
+    
+    // Clear input
+    input.value = '';
+    
+    // Add some encouraging Tokky dialogue
+    setTimeout(() => {
+        const encouragement = document.createElement('div');
+        encouragement.className = 'tokky-bubble';
+        encouragement.innerHTML = `"${getTokkyEncouragement(response.points)}"`;
+        resultDiv.appendChild(encouragement);
+    }, 1000);
+}
+
+function getTokkyEncouragement(points) {
+    if (points >= 90) {
+        return "WOW! That's fascinating data! You found a word that's really close in token space! 🌟";
+    } else if (points >= 70) {
+        return "Interesting! That word seems to have a pretty close token ID. This is valuable research data! 👏";
+    } else if (points >= 50) {
+        return "Good observation! Every guess helps us understand the relationship between meaning and tokens! 🎯";
+    } else {
+        return "Fascinating! Even distant guesses give us important clues about how tokens are organized! This is all valuable research! 💪";
+    }
+}
+
+// Initialize tutorial
+document.addEventListener('DOMContentLoaded', function() {
+    updateProgress();
+    updateButtons();
+    
+    // Add enter key support for practice input
+    document.getElementById('practice-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            makePracticeGuess();
+        }
+    });
+});
+</script>
+{% endblock %} 

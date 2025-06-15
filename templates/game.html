@@ -394,6 +394,113 @@
     font-weight: bold;
     margin-left: 0.5rem;
 }
+
+/* Game Completion Summary Styles */
+.game-complete-summary {
+    padding: 2rem !important;
+    text-align: center;
+}
+
+.performance-header h2 {
+    font-size: 2rem;
+    margin: 1rem 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.completion-message {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid #4CAF50;
+}
+
+.completion-message p {
+    margin: 0.5rem 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.action-buttons .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.action-buttons .btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.action-buttons .btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.action-buttons .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        max-width: 250px;
+        justify-content: center;
+    }
+}
 </style>
 {% endblock %}
 
