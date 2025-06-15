@@ -28,8 +28,8 @@
             <div class="theme-btn dark" data-theme="dark">
                 <div class="theme-name">Dark Mode</div>
             </div>
-            <div class="theme-btn electric" data-theme="electric">
-                <div class="theme-name">Electric Neon</div>
+            <div class="theme-btn forest" data-theme="forest">
+                <div class="theme-name">Forest Green</div>
             </div>
             <div class="theme-btn royal" data-theme="royal">
                 <div class="theme-name">Royal Purple</div>
@@ -172,11 +172,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 root.style.setProperty('--text-light', '#ffffff');
                 break;
             case 'lava':
-                root.style.setProperty('--primary-start', '#ff3838');
-                root.style.setProperty('--primary-end', '#ff2d92');
-                root.style.setProperty('--background', 'linear-gradient(135deg, #ff3838 0%, #ff6b35 100%)');
-                root.style.setProperty('--text-primary', '#ffffff');
+                root.style.setProperty('--primary-start', '#ff6b35');
+                root.style.setProperty('--primary-end', '#f7931e');
+                root.style.setProperty('--secondary-start', '#ff8500');
+                root.style.setProperty('--secondary-end', '#ff9500');
+                root.style.setProperty('--background', 'linear-gradient(135deg, #ff4500 0%, #ff6b35 25%, #ff8500 50%, #ff6b35 75%, #ff4500 100%)');
+                root.style.setProperty('--surface', 'rgba(255, 255, 255, 0.95)');
+                root.style.setProperty('--surface-glass', 'rgba(255, 107, 53, 0.1)');
+                root.style.setProperty('--text-primary', '#2d1810');
+                root.style.setProperty('--text-secondary', '#4a2c1a');
                 root.style.setProperty('--text-light', '#ffffff');
+                root.style.setProperty('--shadow', '0 10px 30px rgba(255, 107, 53, 0.4)');
+                root.style.setProperty('--shadow-hover', '0 20px 60px rgba(255, 107, 53, 0.6)');
                 break;
             case 'light':
                 root.style.setProperty('--primary-start', '#4285f4');
@@ -196,19 +203,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 root.style.setProperty('--text-secondary', '#b3b3b3');
                 root.style.setProperty('--text-light', '#ffffff');
                 break;
-            case 'electric':
-                root.style.setProperty('--primary-start', '#00ff88');
-                root.style.setProperty('--primary-end', '#00b4d8');
-                root.style.setProperty('--secondary-start', '#ff006e');
-                root.style.setProperty('--secondary-end', '#8338ec');
-                root.style.setProperty('--background', 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)');
-                root.style.setProperty('--surface', 'rgba(255, 255, 255, 0.05)');
-                root.style.setProperty('--surface-glass', 'rgba(0, 255, 136, 0.1)');
-                root.style.setProperty('--text-primary', '#00ff88');
-                root.style.setProperty('--text-secondary', '#8bf5da');
+            case 'forest':
+                root.style.setProperty('--primary-start', '#2d5016');
+                root.style.setProperty('--primary-end', '#4a7c59');
+                root.style.setProperty('--secondary-start', '#6a994e');
+                root.style.setProperty('--secondary-end', '#a7c957');
+                root.style.setProperty('--background', 'linear-gradient(135deg, #1b4332 0%, #2d5016 50%, #386641 100%)');
+                root.style.setProperty('--surface', 'rgba(255, 255, 255, 0.95)');
+                root.style.setProperty('--surface-glass', 'rgba(106, 153, 78, 0.1)');
+                root.style.setProperty('--text-primary', '#1b4332');
+                root.style.setProperty('--text-secondary', '#2d5016');
                 root.style.setProperty('--text-light', '#ffffff');
-                root.style.setProperty('--shadow', '0 0 20px rgba(0, 255, 136, 0.3)');
-                root.style.setProperty('--shadow-hover', '0 0 40px rgba(0, 255, 136, 0.5)');
+                root.style.setProperty('--shadow', '0 10px 30px rgba(45, 80, 22, 0.3)');
+                root.style.setProperty('--shadow-hover', '0 20px 60px rgba(45, 80, 22, 0.5)');
                 break;
             case 'royal':
                 root.style.setProperty('--primary-start', '#9d4edd');
