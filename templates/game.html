@@ -32,7 +32,15 @@
             <div class="status-icon">💪</div>
             <div class="status-info">
                 <div class="status-label">Attempts</div>
-                <div class="status-value" id="attempts-left">3</div>
+                <div class="status-value" id="attempts-left">1</div>
+            </div>
+        </div>
+        
+        <div class="status-item-modern" id="timer-display" style="display: none;">
+            <div class="status-icon">⏱️</div>
+            <div class="status-info">
+                <div class="status-label">Time Left</div>
+                <div class="status-value" id="time-remaining">30</div>
             </div>
         </div>
     </div>
@@ -152,6 +160,40 @@
             </div>
         </div>
     </div>
+
+    <!-- Score Submission Modal -->
+    <div id="score-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🏆 Submit Your Score</h3>
+                <button class="close-btn" id="close-score">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="score-summary" id="score-summary">
+                    <!-- Will be populated with game results -->
+                </div>
+                
+                <div class="score-form">
+                    <label for="player-name">Enter your name:</label>
+                    <input type="text" id="player-name" class="score-input" 
+                           placeholder="Your name" maxlength="20">
+                    <div class="score-actions">
+                        <button class="btn btn-primary" id="submit-score-btn">
+                            <span class="material-icons">send</span>
+                            Submit Score
+                        </button>
+                        <button class="btn btn-secondary" id="skip-score-btn">
+                            Skip
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="score-result" id="score-result" style="display: none;">
+                    <!-- Will show submission result -->
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Loading Spinner -->
@@ -160,6 +202,199 @@
     <p>Processing...</p>
 </div>
 
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+.result-timeout {
+    text-align: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+    border-radius: 12px;
+    color: white;
+    margin: 1rem 0;
+}
+
+.result-timeout h3 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.result-timeout p {
+    margin: 0.5rem 0;
+}
+
+.result-error {
+    text-align: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #ff9800, #ffb74d);
+    border-radius: 12px;
+    color: white;
+    margin: 1rem 0;
+}
+
+.result-error h3 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.result-error p {
+    margin: 0.5rem 0;
+}
+
+.result-error em {
+    font-style: italic;
+    opacity: 0.9;
+}
+
+#timer-display {
+    animation: pulse 2s infinite;
+}
+
+#timer-display .status-value {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Score Modal Styles */
+#score-modal {
+    display: flex;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+}
+
+#score-modal .modal-content {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 15px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+#score-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+#score-modal .modal-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.score-summary {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.score-highlight {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin: 1rem 0;
+}
+
+.score-details {
+    display: flex;
+    justify-content: space-around;
+    margin: 1rem 0;
+}
+
+.score-detail {
+    text-align: center;
+}
+
+.score-detail-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.score-detail-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.score-form {
+    margin: 1.5rem 0;
+}
+
+.score-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-weight: bold;
+}
+
+.score-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.score-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.score-result {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.score-result.success {
+    background: rgba(76, 175, 80, 0.1);
+    border: 1px solid #4CAF50;
+    color: #4CAF50;
+}
+
+.score-result.error {
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid #f44336;
+    color: #f44336;
+}
+
+.rank-announcement {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.high-score-badge {
+    display: inline-block;
+    background: linear-gradient(45deg, #ffd700, #ff8c00);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+</style>
 {% endblock %}
 
 {% block extra_scripts %}

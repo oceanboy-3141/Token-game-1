@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboards - Token Quest{% endblock %}
+
+{% block content %}
+<div class="leaderboards-container slide-in">
+    <h1 class="leaderboards-title">🏆 Leaderboards</h1>
+    
+    <div class="leaderboard-tabs">
+        <button class="tab-btn active" data-mode="normal">🤝 Synonym Hunt</button>
+        <button class="tab-btn" data-mode="antonym">⚡ Antonym Challenge</button>
+        <button class="tab-btn" data-mode="speed">⚡ Speed Mode</button>
+    </div>
+    
+    {% for mode, scores in leaderboard_data.items() %}
+    <div class="leaderboard-section" id="leaderboard-{{ mode }}" 
+         style="display: {% if mode == 'normal' %}block{% else %}none{% endif %};">
+        <h2 class="section-title">
+            {% if mode == 'normal' %}🤝 Synonym Hunt{% endif %}
+            {% if mode == 'antonym' %}⚡ Antonym Challenge{% endif %}
+            {% if mode == 'speed' %}⚡ Speed Mode{% endif %}
+        </h2>
+        
+        {% if scores %}
+        <div class="leaderboard-table">
+            <div class="leaderboard-header">
+                <div class="rank-col">Rank</div>
+                <div class="name-col">Player</div>
+                <div class="score-col">Score</div>
+                <div class="accuracy-col">Accuracy</div>
+            </div>
+            
+            {% for score in scores %}
+            <div class="leaderboard-row">
+                <div class="rank-col">
+                    {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}#{{ loop.index }}{% endif %}
+                </div>
+                <div class="name-col">{{ score.player_name }}</div>
+                <div class="score-col">{{ score.total_score }}</div>
+                <div class="accuracy-col">{{ "%.1f"|format(score.accuracy) }}%</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-scores">
+            <div class="no-scores-icon">🎯</div>
+            <p>No scores yet! Be the first to set a record!</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    
+    <div class="leaderboard-actions">
+        <a href="{{ url_for('home') }}" class="btn btn-primary">
+            <span class="material-icons">play_arrow</span>
+            Play Game
+        </a>
+        <a href="{{ url_for('game') }}" class="btn btn-secondary">
+            <span class="material-icons">refresh</span>
+            Quick Play
+        </a>
+    </div>
+</div>
+
+<style>
+.leaderboards-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.leaderboards-title {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+}
+
+.leaderboard-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid var(--primary-color);
+    background: transparent;
+    color: var(--primary-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.tab-btn.active,
+.tab-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.leaderboard-section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    text-align: center;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+}
+
+.leaderboard-table {
+    background: var(--bg-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.leaderboard-header,
+.leaderboard-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1.5fr 1.5fr;
+    gap: 1rem;
+    padding: 1rem;
+    align-items: center;
+}
+
+.leaderboard-header {
+    background: var(--primary-color);
+    color: white;
+    font-weight: bold;
+}
+
+.leaderboard-row {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.leaderboard-row:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-row:nth-child(even) {
+    background: var(--bg-secondary);
+}
+
+.rank-col {
+    text-align: center;
+    font-weight: bold;
+}
+
+.score-col,
+.accuracy-col {
+    text-align: center;
+}
+
+.no-scores {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+
+.no-scores-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.leaderboard-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .leaderboard-header,
+    .leaderboard-row {
+        grid-template-columns: 0.8fr 2fr 1fr 1fr;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .leaderboards-container {
+        padding: 1rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching functionality
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const sections = document.querySelectorAll('.leaderboard-section');
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const mode = this.dataset.mode;
+            
+            // Update active tab
+            tabBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show corresponding section
+            sections.forEach(section => {
+                if (section.id === `leaderboard-${mode}`) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

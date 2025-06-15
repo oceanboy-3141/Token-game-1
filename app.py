@@ -65,11 +65,7 @@ def game_setup(mode):
             'icon': '⚡',
             'description': 'Find words with opposite meanings and see how far apart their tokens are!'
         },
-        'category': {
-            'name': 'Category Focus',
-            'icon': '🎨', 
-            'description': 'Explore specific word categories and their token relationships!'
-        },
+
         'speed': {
             'name': 'Speed Mode',
             'icon': '⚡',
@@ -91,6 +87,25 @@ def settings():
     """Appearance settings page"""
     return render_template('settings.html')
 
+@app.route('/leaderboards')
+def leaderboards():
+    """Leaderboards page"""
+    # Get a game session to access leaderboards (doesn't need to be user-specific)
+    game_session = get_or_create_game_session()
+    leaderboard = game_session['leaderboard']
+    
+    # Get leaderboard data for all game modes
+    leaderboard_data = {}
+    for mode in ['normal', 'synonym', 'antonym', 'speed']:
+        leaderboard_data[mode] = leaderboard.get_top_scores(mode, 10)
+    
+    # Get overall statistics
+    stats = leaderboard.get_statistics()
+    
+    return render_template('leaderboards.html', 
+                         leaderboard_data=leaderboard_data,
+                         stats=stats)
+
 @app.route('/api/start_game', methods=['POST'])
 def start_game():
     """Start a new game round"""
@@ -103,34 +118,57 @@ def start_game():
     if settings:
         game_session['settings'].update(settings)
         # Update game logic with new settings
+        final_game_mode = settings.get('game_mode', 'normal')
+        # If speed mode is enabled, use speed as the game mode
+        if settings.get('is_speed_mode', False):
+            final_game_mode = 'speed'
+        
         game_logic.change_game_settings(
-            game_mode=settings.get('game_mode', 'normal'),
+            game_mode=final_game_mode,
             difficulty=settings.get('difficulty', 'mixed'),
             category=settings.get('category', 'all')
         )
+        
+        # Set time limit for speed mode
+        if settings.get('is_speed_mode', False) and settings.get('time_limit'):
+            game_logic.time_limit = settings.get('time_limit', 30)
     
-    # Start new round using existing logic
-    round_info = game_logic.start_new_round()
-    
-    # Log the round start
-    if round_info.get('current_round') == 1:
-        # Log game start on first round
-        game_config = {
-            'game_mode': settings.get('game_mode', 'normal'),
-            'difficulty': settings.get('difficulty', 'mixed'),
-            'category': settings.get('category', 'all'),
-            'max_rounds': round_info.get('max_rounds', 10)
-        }
-        data_collector.log_game_start(game_config)
-    
-    # Log round start
-    data_collector.log_round_start(round_info)
-    
-    return jsonify({
-        'success': True,
-        'round_info': round_info,
-        'settings': game_session['settings']
-    })
+    try:
+        # Start new round using existing logic
+        round_info = game_logic.start_new_round()
+        
+        # Check if there was an error starting the round
+        if 'error' in round_info:
+            return jsonify({
+                'success': False,
+                'error': round_info['error']
+            })
+        
+        # Log the round start
+        if round_info.get('current_round') == 1:
+            # Log game start on first round
+            game_config = {
+                'game_mode': final_game_mode,
+                'difficulty': settings.get('difficulty', 'mixed'),
+                'category': settings.get('category', 'all'),
+                'max_rounds': round_info.get('max_rounds', 10)
+            }
+            data_collector.log_game_start(game_config)
+        
+        # Log round start
+        data_collector.log_round_start(round_info)
+        
+        return jsonify({
+            'success': True,
+            'round_info': round_info,
+            'settings': game_session['settings']
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Failed to start game: {str(e)}'
+        })
 
 @app.route('/api/submit_guess', methods=['POST'])
 def submit_guess():
@@ -205,6 +243,64 @@ def get_achievements():
     return jsonify({
         'achievements': achievement_manager.get_all_achievements(),
         'unlocked': achievement_manager.get_unlocked_achievements()
+    })
+
+@app.route('/api/submit_score', methods=['POST'])
+def submit_score():
+    """Submit score to leaderboard"""
+    game_session = get_or_create_game_session()
+    game_logic = game_session['game_logic']
+    leaderboard = game_session['leaderboard']
+    
+    data = request.json
+    player_name = data.get('player_name', '').strip()
+    
+    if not player_name:
+        return jsonify({'success': False, 'error': 'Player name is required'})
+    
+    if len(player_name) > 20:
+        return jsonify({'success': False, 'error': 'Player name must be 20 characters or less'})
+    
+    # Check if game is completed
+    if not game_logic.game_completed:
+        return jsonify({'success': False, 'error': 'Game not completed yet'})
+    
+    # Get final results from game logic
+    final_results = game_logic.get_final_results()
+    
+    # Add player name to results
+    final_results['player_name'] = player_name
+    
+    # Submit to leaderboard
+    try:
+        rank = leaderboard.add_score(player_name, final_results)
+        
+        return jsonify({
+            'success': True,
+            'rank': rank,
+            'score': final_results['total_score'],
+            'is_high_score': leaderboard.is_high_score(
+                final_results['total_score'], 
+                final_results.get('game_mode', 'normal')
+            )
+        })
+    
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/get_final_results', methods=['GET'])
+def get_final_results():
+    """Get final game results for score submission"""
+    game_session = get_or_create_game_session()
+    game_logic = game_session['game_logic']
+    
+    if not game_logic.game_completed:
+        return jsonify({'success': False, 'error': 'Game not completed'})
+    
+    final_results = game_logic.get_final_results()
+    return jsonify({
+        'success': True,
+        'results': final_results
     })
 
 @app.route('/api/leaderboard', methods=['GET'])

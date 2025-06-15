@@ -12,7 +12,17 @@
     </p>
     
     <form class="setup-form" id="setup-form">
-        <input type="hidden" name="game_mode" value="{{ mode }}">
+        <input type="hidden" name="base_mode" value="{{ mode }}">
+        
+        {% if mode != 'synonym' and mode != 'antonym' %}
+        <div class="form-group">
+            <label class="form-label">🎮 Game Type</label>
+            <select name="game_mode" class="form-select">
+                <option value="normal" selected>Synonym Hunt - Find similar words</option>
+                <option value="antonym">Antonym Challenge - Find opposite words</option>
+            </select>
+        </div>
+        {% endif %}
         
         <div class="form-group">
             <label class="form-label">🎯 Number of Rounds</label>
@@ -34,7 +44,6 @@
             </select>
         </div>
         
-        {% if mode != 'category' %}
         <div class="form-group">
             <label class="form-label">🎨 Word Category</label>
             <select name="category" class="form-select">
@@ -48,20 +57,6 @@
                 <option value="actions">Actions (run, walk, jump)</option>
             </select>
         </div>
-        {% else %}
-        <div class="form-group">
-            <label class="form-label">🎨 Choose Category</label>
-            <select name="category" class="form-select">
-                <option value="emotions" selected>Emotions (happy, sad, angry)</option>
-                <option value="size">Size (big, small, tiny)</option>
-                <option value="speed">Speed (fast, slow, quick)</option>
-                <option value="quality">Quality (good, bad, great)</option>
-                <option value="temperature">Temperature (hot, cold, warm)</option>
-                <option value="brightness">Brightness (light, dark, bright)</option>
-                <option value="actions">Actions (run, walk, jump)</option>
-            </select>
-        </div>
-        {% endif %}
         
         {% if mode == 'speed' %}
         <div class="form-group">
@@ -93,8 +88,24 @@ document.getElementById('setup-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
+    const baseMode = formData.get('base_mode');
+    
+    // Determine the final game mode
+    let finalGameMode = 'normal';
+    if (baseMode === 'synonym') {
+        finalGameMode = 'normal';
+    } else if (baseMode === 'antonym') {
+        finalGameMode = 'antonym';
+    } else if (baseMode === 'speed') {
+        finalGameMode = 'speed';
+    } else {
+        // For other modes, use the selected game_mode
+        finalGameMode = formData.get('game_mode') || 'normal';
+    }
+    
     const settings = {
-        game_mode: formData.get('game_mode'),
+        game_mode: finalGameMode,
+        is_speed_mode: baseMode === 'speed',
         rounds: parseInt(formData.get('rounds')),
         difficulty: formData.get('difficulty'),
         category: formData.get('category')

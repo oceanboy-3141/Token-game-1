@@ -19,10 +19,10 @@ class GameLogic:
         self.correct_guesses = 0
         self.game_completed = False
         self.current_attempts = 0
-        self.max_attempts = 3
+        self.max_attempts = 1
         
         # Game mode settings
-        self.game_mode = game_mode  # 'normal', 'antonym', 'category', 'speed', 'explorer'
+        self.game_mode = game_mode  # 'normal', 'antonym', 'speed', 'explorer'
         self.difficulty = difficulty  # 'easy', 'medium', 'hard', 'mixed'
         self.category = category  # 'all', 'emotions', 'size', 'speed', etc.
         self.time_limit = None  # For speed mode
@@ -151,7 +151,7 @@ class GameLogic:
         
         # Reset attempts for new round
         self.current_attempts = 0
-        self.max_attempts = 3
+        self.max_attempts = 1
         
         # Set round start time for speed mode
         if self.game_mode == 'speed':
@@ -182,7 +182,7 @@ class GameLogic:
         if self.current_attempts >= self.max_attempts:
             return {
                 'valid_guess': False,
-                'error': 'Maximum attempts (3) reached for this round',
+                'error': 'Maximum attempts (1) reached for this round',
                 'max_attempts_reached': True
             }
         
@@ -247,15 +247,14 @@ class GameLogic:
                 'token_fact': token_fact
             }
         else:
-            # Invalid guess (multi-token or not found) - still counts as attempt
-            self.current_attempts += 1
+            # Invalid guess (multi-token or not found) - does NOT count as attempt
             return {
                 'valid_guess': False,
                 'error': 'Word must be a single token',
                 'guess_info': guess_info,
                 'attempts_used': self.current_attempts,
                 'attempts_left': self.max_attempts - self.current_attempts,
-                'max_attempts_reached': self.current_attempts >= self.max_attempts
+                'max_attempts_reached': False  # Since we didn't count this attempt
             }
     
     def _calculate_points(self, distance: int) -> int:
@@ -593,7 +592,6 @@ class GameLogic:
         return {
             'normal': 'Classic synonym finding',
             'antonym': 'Find words with opposite meanings (maximum distance)',
-            'category': 'Words from specific semantic category',
             'speed': 'Time-limited rounds for extra challenge'
         }
     

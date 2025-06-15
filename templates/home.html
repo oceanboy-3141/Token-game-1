@@ -20,16 +20,16 @@
             <p class="mode-description">Discover words with opposite meanings but distant tokens</p>
         </a>
         
-        <a href="{{ url_for('game_setup', mode='category') }}" class="mode-card category">
-            <span class="mode-icon">🎨</span>
-            <h3 class="mode-title">Category Focus</h3>
-            <p class="mode-description">Explore specific word categories like emotions or colors</p>
-        </a>
-        
         <a href="{{ url_for('game_setup', mode='speed') }}" class="mode-card speed">
             <span class="mode-icon">⚡</span>
             <h3 class="mode-title">Speed Mode</h3>
             <p class="mode-description">Race against time to find similar words quickly</p>
+        </a>
+        
+        <a href="{{ url_for('leaderboards') }}" class="mode-card leaderboards">
+            <span class="mode-icon">🏆</span>
+            <h3 class="mode-title">Leaderboards</h3>
+            <p class="mode-description">View top scores and compete with other players</p>
         </a>
         
         <div class="mode-card tutorial">

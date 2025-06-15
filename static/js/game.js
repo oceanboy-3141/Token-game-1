@@ -5,10 +5,14 @@ let gameState = {
     maxRounds: 10,
     score: 0,
     correctGuesses: 0,
-    attemptsLeft: 3,
+    attemptsLeft: 1,
     gameCompleted: false,
     currentTargetWord: '',
-    currentTargetTokenId: null
+    currentTargetTokenId: null,
+    isSpeedMode: false,
+    timeLimit: 30,
+    timeRemaining: 30,
+    timerInterval: null
 };
 
 // DOM elements
@@ -48,6 +52,10 @@ function initializeGame() {
         resultContent: document.getElementById('result-content'),
         visualizationCard: document.getElementById('visualization-card'),
         tokenCanvas: document.getElementById('token-canvas'),
+        
+        // Timer elements
+        timerDisplay: document.getElementById('timer-display'),
+        timeRemaining: document.getElementById('time-remaining'),
         
         // Modal elements
         hintModal: document.getElementById('hint-modal'),
@@ -125,12 +133,18 @@ async function startNewGame() {
         game_mode: 'normal',
         difficulty: 'mixed',
         category: 'all',
-        rounds: 10
+        rounds: 10,
+        is_speed_mode: false,
+        time_limit: 30
     };
     
     if (savedSettings) {
         gameSettings = {...gameSettings, ...JSON.parse(savedSettings)};
         console.log('📝 Loaded game settings:', gameSettings);
+        
+        // Update game state for speed mode
+        gameState.isSpeedMode = gameSettings.is_speed_mode || false;
+        gameState.timeLimit = gameSettings.time_limit || 30;
     }
     
     try {
@@ -158,6 +172,11 @@ async function startNewGame() {
             // Update UI
             updateGameDisplay();
             enableGameControls();
+            
+            // Start timer if speed mode
+            if (gameState.isSpeedMode) {
+                startRoundTimer();
+            }
             
             // Focus on input
             elements.guessInput.focus();
@@ -201,6 +220,11 @@ async function submitGuess() {
         if (data.success && data.result.valid_guess) {
             console.log('✅ Guess processed:', data.result);
             
+            // Stop timer if speed mode
+            if (gameState.isSpeedMode) {
+                stopTimer();
+            }
+            
             // Update game state
             gameState.score = data.result.total_score || gameState.score;
             gameState.attemptsLeft = data.result.attempts_left;
@@ -219,20 +243,43 @@ async function submitGuess() {
             // Update display
             updateGameDisplay();
             
-            // Check if round ended (either by correct guess or no attempts left)
-            if (data.result.round_ended || gameState.attemptsLeft <= 0) {
-                setTimeout(() => {
-                    if (!data.result.game_ended && gameState.currentRound < gameState.maxRounds) {
-                        startNextRound();
-                    } else {
-                        showGameCompleted();
-                    }
-                }, 3000);
-            }
+            // Auto-advance to next round after 2 seconds (since we only have 1 attempt)
+            setTimeout(() => {
+                if (!data.result.game_ended && gameState.currentRound < gameState.maxRounds) {
+                    startNextRound();
+                } else {
+                    showGameCompleted();
+                }
+            }, 2000);
             
         } else {
             console.warn('⚠️ Invalid guess or error:', data);
-            showError(data.result?.error || data.error || 'Invalid guess');
+            
+            // For invalid guesses (like multi-token words), show a nice error message
+            // but don't advance to next round - let them try again
+            const errorMessage = data.result?.error || data.error || 'Invalid guess';
+            
+            // Show error in the results card instead of alert
+            elements.resultContent.innerHTML = `
+                <div class="result-error">
+                    <h3>⚠️ Invalid Word</h3>
+                    <p><strong>Error:</strong> ${errorMessage}</p>
+                    <p><strong>Your guess:</strong> "${guess}"</p>
+                    <p><em>This doesn't count as an attempt. Try again with a single-token word!</em></p>
+                </div>
+            `;
+            elements.resultsCard.style.display = 'block';
+            elements.visualizationCard.style.display = 'none';
+            
+            // Clear input but keep it enabled for another try
+            elements.guessInput.value = '';
+            elements.submitBtn.disabled = true;
+            elements.guessInput.focus();
+            
+            // Hide the error message after 3 seconds
+            setTimeout(() => {
+                elements.resultsCard.style.display = 'none';
+            }, 3000);
         }
         
     } catch (error) {
@@ -510,6 +557,102 @@ async function startCompletelyNewGame() {
     }
 }
 
+// Timer functions for speed mode
+function startRoundTimer() {
+    if (!gameState.isSpeedMode) return;
+    
+    // Clear any existing timer
+    if (gameState.timerInterval) {
+        clearInterval(gameState.timerInterval);
+    }
+    
+    // Reset timer
+    gameState.timeRemaining = gameState.timeLimit;
+    elements.timerDisplay.style.display = 'block';
+    elements.timeRemaining.textContent = gameState.timeRemaining;
+    
+    // Start countdown
+    gameState.timerInterval = setInterval(() => {
+        gameState.timeRemaining--;
+        elements.timeRemaining.textContent = gameState.timeRemaining;
+        
+        // Change color as time runs low
+        if (gameState.timeRemaining <= 5) {
+            elements.timeRemaining.style.color = '#ff4444';
+            elements.timeRemaining.style.fontWeight = 'bold';
+        } else if (gameState.timeRemaining <= 10) {
+            elements.timeRemaining.style.color = '#ff8800';
+        } else {
+            elements.timeRemaining.style.color = '';
+            elements.timeRemaining.style.fontWeight = '';
+        }
+        
+        // Time's up!
+        if (gameState.timeRemaining <= 0) {
+            clearInterval(gameState.timerInterval);
+            handleTimeOut();
+        }
+    }, 1000);
+}
+
+function stopTimer() {
+    if (gameState.timerInterval) {
+        clearInterval(gameState.timerInterval);
+        gameState.timerInterval = null;
+    }
+}
+
+function handleTimeOut() {
+    console.log('⏰ Time is up!');
+    
+    // Disable input
+    elements.guessInput.disabled = true;
+    elements.submitBtn.disabled = true;
+    
+    // Show timeout message with countdown
+    showTimeoutCountdown();
+}
+
+function showTimeoutCountdown() {
+    let countdown = 3;
+    
+    // Show initial message
+    elements.resultContent.innerHTML = `
+        <div class="result-timeout">
+            <h3>⏰ Oops! You ran out of time!</h3>
+            <p><strong>Target word was:</strong> "${gameState.currentTargetWord}"</p>
+            <p style="font-size: 1.2em; font-weight: bold; color: #ff6600;">
+                Moving to next word in ${countdown}...
+            </p>
+        </div>
+    `;
+    elements.resultsCard.style.display = 'block';
+    elements.resultsCard.scrollIntoView({ behavior: 'smooth' });
+    
+    // Countdown timer
+    const countdownInterval = setInterval(() => {
+        countdown--;
+        const countdownElement = elements.resultContent.querySelector('p:last-child');
+        if (countdownElement) {
+            countdownElement.innerHTML = `Moving to next word in ${countdown}...`;
+        }
+        
+        if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            
+            // Move to next round
+            setTimeout(() => {
+                elements.resultsCard.style.display = 'none';
+                if (gameState.currentRound < gameState.maxRounds) {
+                    startNextRound();
+                } else {
+                    showGameCompleted();
+                }
+            }, 500);
+        }
+    }, 1000);
+}
+
 function updateGameDisplay() {
     // Update status display
     elements.currentRound.textContent = gameState.currentRound || '-';
@@ -517,6 +660,14 @@ function updateGameDisplay() {
     elements.currentScore.textContent = gameState.score;
     elements.correctGuesses.textContent = gameState.correctGuesses;
     elements.attemptsLeft.textContent = gameState.attemptsLeft;
+    
+    // Show/hide timer display based on speed mode
+    if (gameState.isSpeedMode) {
+        elements.timerDisplay.style.display = 'block';
+        elements.timeRemaining.textContent = gameState.timeRemaining;
+    } else {
+        elements.timerDisplay.style.display = 'none';
+    }
     
     // Update progress bar
     const progressPercent = gameState.maxRounds > 0 ? 
@@ -540,6 +691,12 @@ function enableGameControls() {
     // Enable submit if input has value
     const hasValue = elements.guessInput.value.trim().length > 0;
     elements.submitBtn.disabled = !hasValue;
+    
+    // Re-enable input for next round in speed mode
+    if (gameState.isSpeedMode) {
+        elements.guessInput.disabled = false;
+        elements.submitBtn.disabled = !hasValue;
+    }
 }
 
 function resetGameUI() {
@@ -556,6 +713,13 @@ function resetGameUI() {
     
     elements.resultsCard.style.display = 'none';
     elements.visualizationCard.style.display = 'none';
+    elements.timerDisplay.style.display = 'none';
+    
+    // Stop any running timer
+    if (gameState.timerInterval) {
+        clearInterval(gameState.timerInterval);
+        gameState.timerInterval = null;
+    }
 }
 
 function showGameCompleted() {
@@ -579,6 +743,9 @@ function showGameCompleted() {
     
     gameState.gameCompleted = true;
     gameState.gameStarted = false;
+    
+    // Show score submission modal
+    handleGameCompletion();
 }
 
 function showLoading(show) {
@@ -592,4 +759,149 @@ function showError(message) {
 
 // Export functions for global access
 window.initializeGame = initializeGame;
-window.startCompletelyNewGame = startCompletelyNewGame; 
+window.startCompletelyNewGame = startCompletelyNewGame;
+
+// Score Submission Functionality
+function showScoreSubmissionModal(finalResults) {
+    const modal = document.getElementById('score-modal');
+    const summary = document.getElementById('score-summary');
+    const playerNameInput = document.getElementById('player-name');
+    
+    // Load saved player name
+    const savedName = localStorage.getItem('player-name') || '';
+    playerNameInput.value = savedName;
+    
+    // Populate score summary
+    summary.innerHTML = `
+        <h4>🎉 Game Complete!</h4>
+        <div class="score-highlight">${finalResults.total_score} points</div>
+        <div class="score-details">
+            <div class="score-detail">
+                <div class="score-detail-value">${finalResults.accuracy.toFixed(1)}%</div>
+                <div class="score-detail-label">Accuracy</div>
+            </div>
+            <div class="score-detail">
+                <div class="score-detail-value">${finalResults.correct_guesses}/${finalResults.total_rounds}</div>
+                <div class="score-detail-label">Correct</div>
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+    playerNameInput.focus();
+}
+
+// Handle score submission
+document.addEventListener('DOMContentLoaded', function() {
+    // Submit score button
+    const submitScoreBtn = document.getElementById('submit-score-btn');
+    if (submitScoreBtn) {
+        submitScoreBtn.addEventListener('click', async function() {
+            const playerName = document.getElementById('player-name').value.trim();
+            const resultDiv = document.getElementById('score-result');
+            
+            if (!playerName) {
+                resultDiv.innerHTML = '<div class="error">Please enter your name</div>';
+                resultDiv.className = 'score-result error';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            if (playerName.length > 20) {
+                resultDiv.innerHTML = '<div class="error">Name must be 20 characters or less</div>';
+                resultDiv.className = 'score-result error';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                this.disabled = true;
+                this.innerHTML = '<span class="material-icons">hourglass_empty</span> Submitting...';
+                
+                const response = await fetch('/api/submit_score', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        player_name: playerName
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Save player name
+                    localStorage.setItem('player-name', playerName);
+                    
+                    let resultHTML = `
+                        <div class="success">
+                            <div class="rank-announcement">🏆 Rank #${data.rank}</div>
+                            <div>Score: ${data.score} points</div>
+                    `;
+                    
+                    if (data.is_high_score) {
+                        resultHTML += '<span class="high-score-badge">🌟 HIGH SCORE!</span>';
+                    }
+                    
+                    resultHTML += `
+                            <div style="margin-top: 1rem;">
+                                <a href="/leaderboards" class="btn btn-primary">View Leaderboards</a>
+                            </div>
+                        </div>
+                    `;
+                    
+                    resultDiv.innerHTML = resultHTML;
+                    resultDiv.className = 'score-result success';
+                    
+                    // Hide the form
+                    document.querySelector('.score-form').style.display = 'none';
+                    
+                } else {
+                    resultDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                    resultDiv.className = 'score-result error';
+                }
+                
+                resultDiv.style.display = 'block';
+                
+            } catch (error) {
+                resultDiv.innerHTML = '<div class="error">Network error. Please try again.</div>';
+                resultDiv.className = 'score-result error';
+                resultDiv.style.display = 'block';
+            }
+            
+            this.disabled = false;
+            this.innerHTML = '<span class="material-icons">send</span> Submit Score';
+        });
+    }
+
+    // Skip score button
+    const skipScoreBtn = document.getElementById('skip-score-btn');
+    if (skipScoreBtn) {
+        skipScoreBtn.addEventListener('click', function() {
+            document.getElementById('score-modal').style.display = 'none';
+        });
+    }
+
+    // Close score modal
+    const closeScoreBtn = document.getElementById('close-score');
+    if (closeScoreBtn) {
+        closeScoreBtn.addEventListener('click', function() {
+            document.getElementById('score-modal').style.display = 'none';
+        });
+    }
+});
+
+// Function to handle game completion and show score modal
+async function handleGameCompletion() {
+    try {
+        const response = await fetch('/api/get_final_results');
+        const data = await response.json();
+        
+        if (data.success) {
+            showScoreSubmissionModal(data.results);
+        }
+    } catch (error) {
+        console.error('Error getting final results:', error);
+    }
+} 

@@ -346,6 +346,17 @@ body {
     color: white;
 }
 
+.mode-card.leaderboards {
+    background: linear-gradient(135deg, #ffd700, #ffb347);
+    border: 2px solid #ff8c00;
+    color: white;
+}
+
+.mode-card.leaderboards:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(255, 140, 0, 0.3);
+}
+
 .mode-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
@@ -1025,4 +1036,127 @@ body {
     color: var(--text-light);
     font-size: 0.9rem;
     margin-top: auto;
+}
+
+/* Score Submission Modal Styles */
+.score-modal .modal-content {
+    max-width: 500px;
+}
+
+.score-summary {
+    background: var(--bg-tertiary);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.score-highlight {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin: 0.5rem 0;
+}
+
+.score-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.score-detail {
+    text-align: center;
+}
+
+.score-detail-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.score-detail-label {
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.score-form {
+    text-align: center;
+}
+
+.score-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.score-input {
+    width: 100%;
+    padding: 0.75rem;
+    margin: 1rem 0;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    box-sizing: border-box;
+}
+
+.score-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(33, 150, 255, 0.2);
+}
+
+.score-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.score-result {
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.score-result.success {
+    background: rgba(76, 175, 80, 0.1);
+    border: 1px solid #4caf50;
+    color: #4caf50;
+}
+
+.score-result.error {
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid #f44336;
+    color: #f44336;
+}
+
+.rank-announcement {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.high-score-badge {
+    display: inline-block;
+    background: linear-gradient(45deg, #ffd700, #ff8c00);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .score-actions {
+        flex-direction: column;
+    }
+    
+    .score-details {
+        grid-template-columns: 1fr;
+    }
 } 
