@@ -1,5 +1,7 @@
 # Token Quest Refactoring & Enhanced Data Collection
 
+**📢 2024-06-15 UPDATE**: The desktop GUI modules (`main_gui.py`, `material_components.py`, etc.) have been removed. The game now runs as a Flask web app (`app.py`). The refactoring documented below remains a historical reference.
+
 ## 🔧 **Code Refactoring Complete**
 
 The large `gui_interface.py` (2059 lines) has been successfully split into modular components for better maintainability:

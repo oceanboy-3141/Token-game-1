@@ -1,5 +1,7 @@
 # 🎯 MEGA PLAN - Token Quest Master Action Guide
 
+**📢 2024-06-15 UPDATE**: Token Quest has migrated to a **Flask-only** web architecture. All legacy tkinter GUI files have been removed. Any references to `gui_interface.py`, `main.py`, or other tkinter modules in this document are now obsolete and can be skipped.
+
 ## 📋 **Your Current Documentation Overview**
 
 ### **📁 Existing MD Files & Their Purpose**
@@ -99,7 +101,6 @@
 🔧 Files: Split into data/ directory structure
 🎯 Result: Faster data processing and export
 ```
-
 ### **Step 3: Create Web Version** (1-2 weeks)
 ```
 ✅ Action: Build production-ready Flask web interface
@@ -153,7 +154,7 @@
 4. **Read the specific MD file**: For detailed instructions on your chosen path
 
 ### **Development Environment:**
-- **Python**: Ensure 3.7+ with tkinter
+- **Python**: Ensure 3.8+
 - **Dependencies**: `pip install -r requirements.txt`
 - **IDE**: Use VS Code or PyCharm for best experience
 - **Testing**: Test after each small change

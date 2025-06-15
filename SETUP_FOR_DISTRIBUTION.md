@@ -1,5 +1,7 @@
 # 🚀 Token Synonym Game - Distribution Setup
 
+**📢 2024-06-15 UPDATE**: The game is now a Flask web application. End-users access it via their browser. The standalone desktop executable workflow below is retained for historical reference and can be ignored if you plan to deploy the web version.
+
 ## 🎯 Problem: Game Only Works in Terminal
 **Issue**: Double-clicking `main.py` fails because it can't find tiktoken
 **Solution**: Create a standalone executable that works everywhere!

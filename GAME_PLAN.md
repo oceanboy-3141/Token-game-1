@@ -1,5 +1,7 @@
 # Token Synonym Game - Project Plan
 
+**📢 2024-06-15 UPDATE**: Token Quest now runs exclusively as a Flask web application. The previous tkinter desktop interface has been deprecated.
+
 ## Research Objective
 **Primary Goal**: Investigate whether Large Language Models (LLMs) place synonyms similarly in token space by analyzing token IDs.
 

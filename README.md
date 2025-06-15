@@ -36,23 +36,24 @@ This game is designed to investigate **token ID clustering** - do words with sim
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.7+
-- tkinter (usually included with Python)
+- Python 3.8+
+- Flask (listed in `requirements.txt`)
 
 ### Installation
 
-1. **Install tiktoken**:
+1. **Install all dependencies**:
    ```bash
-   pip install tiktoken
+   pip install -r requirements.txt
    ```
 
-2. **Run the game with mode selection**:
+2. **Start the local web server**:
    ```bash
-   python play.py
+   python app.py
    ```
-   OR
+
+3. **(Optional) Share on your LAN**:
    ```bash
-   python main.py
+   python run_network_game.py
    ```
 
 ### 🎮 Game Modes Available
@@ -75,14 +76,15 @@ When you start the game, you'll see a setup screen with options for:
 
 ```
 Token game/
-├── main.py              # Main entry point
-├── gui_interface.py     # GUI using tkinter
-├── game_logic.py        # Core game mechanics
-├── token_handler.py     # tiktoken operations
-├── data_collector.py    # Research data logging
-├── requirements.txt     # Dependencies
-├── GAME_PLAN.md        # Project roadmap
-└── README.md           # This file
+├── app.py                 # Flask web application
+├── run_network_game.py    # Host game for LAN
+├── game_logic.py          # Core game mechanics
+├── token_handler.py       # tiktoken operations
+├── enhanced_data_collector.py # Data logging
+├── templates/             # HTML templates
+├── static/                # CSS/JS assets
+├── requirements.txt       # Dependencies
+└── README.md              # This file
 ```
 
 ## 🧠 Game Mechanics

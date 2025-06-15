@@ -1,5 +1,7 @@
 # Token Quest - Refactoring Plan
 
+**📢 2024-06-15 UPDATE**: The project has removed its tkinter GUI in favor of a Flask-only web interface. Phases referring to `gui_interface.py`, `startup_dialog.py`, or other desktop GUI files are now considered **complete/obsolete**.
+
 ## Current State Analysis
 - **gui_interface.py**: 84KB, 2211 lines - CRITICAL refactoring needed
 - **startup_dialog.py**: 35KB, 905 lines - HIGH priority split

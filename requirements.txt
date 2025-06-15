@@ -1,3 +1,2 @@
 tiktoken>=0.5.0
-pyinstaller>=5.0.0
 flask>=2.3.0 

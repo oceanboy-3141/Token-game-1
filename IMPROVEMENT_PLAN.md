@@ -1,6 +1,8 @@
 # 🚀 Token Quest - Improvement Plan
 *Based on Expert Analysis & Rating (8.2/10)*
 
+**📢 2024-06-15 UPDATE**: Token Quest has migrated to a **Flask-only** web architecture. The legacy tkinter desktop GUI codebase has been pruned. Any tasks referring to `startup_dialog.py`, `gui_interface.py`, or other tkinter modules can be skipped or translated to the web UI instead.
+
 ## 🎯 **Executive Summary**
 Token Quest is an innovative educational research game with excellent technical implementation and unique educational value. This plan addresses the key areas for improvement to elevate it from good to exceptional.
 
@@ -8,13 +10,16 @@ Token Quest is an innovative educational research game with excellent technical 
 
 ## 🏆 **Current Strengths (Keep These!)**
 - ✅ **Unique Educational Concept**: Novel approach to teaching tokenization (9/10)
-- ✅ **Technical Implementation**: Well-structured codebase with dual interfaces (8.5/10)
+- ✅ **Technical Implementation**: Well-structured Flask web interface (8.5/10)
 - ✅ **Educational Value**: Progressive learning with visual feedback (9/10)
 - ✅ **Research Integration**: Comprehensive data collection system (8.5/10)
 
+### **Development Environment:**
+- **Python**: Ensure 3.8+
+
 ---
 
-## 🎯 **Priority Improvements**
+## �� **Priority Improvements**
 
 ### **🚀 Priority 1: User Experience Enhancements**
 
