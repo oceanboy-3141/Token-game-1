@@ -39,7 +39,7 @@ def get_or_create_game_session():
         }
     
     return active_games[game_id]
-
+#home page
 @app.route('/')
 def home():
     """Home page with game mode selection"""
