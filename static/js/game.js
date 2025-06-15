@@ -119,18 +119,27 @@ async function startNewGame() {
     console.log('🚀 Starting new game...');
     showLoading(true);
     
+    // Load game settings from localStorage
+    const savedSettings = localStorage.getItem('game-settings');
+    let gameSettings = {
+        game_mode: 'normal',
+        difficulty: 'mixed',
+        category: 'all',
+        rounds: 10
+    };
+    
+    if (savedSettings) {
+        gameSettings = {...gameSettings, ...JSON.parse(savedSettings)};
+        console.log('📝 Loaded game settings:', gameSettings);
+    }
+    
     try {
         const response = await fetch('/api/start_game', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                game_mode: 'normal',
-                difficulty: 'mixed',
-                category: 'all',
-                rounds: 10
-            })
+            body: JSON.stringify(gameSettings)
         });
         
         const data = await response.json();
@@ -210,10 +219,10 @@ async function submitGuess() {
             // Update display
             updateGameDisplay();
             
-            // Check if round ended
-            if (data.result.round_ended) {
+            // Check if round ended (either by correct guess or no attempts left)
+            if (data.result.round_ended || gameState.attemptsLeft <= 0) {
                 setTimeout(() => {
-                    if (!data.result.game_ended) {
+                    if (!data.result.game_ended && gameState.currentRound < gameState.maxRounds) {
                         startNextRound();
                     } else {
                         showGameCompleted();
@@ -248,6 +257,7 @@ function showGuessResult(result) {
     
     if (result.points >= 80) {
         resultClass = 'result-excellent';
+        if (window.soundManager) window.soundManager.playSound('win');
         resultHTML = `
             <div class="${resultClass}">
                 <h3>🎉 Excellent! (+${result.points} points)</h3>
@@ -259,6 +269,7 @@ function showGuessResult(result) {
         `;
     } else if (result.points >= 40) {
         resultClass = 'result-good';
+        if (window.soundManager) window.soundManager.playSound('success');
         resultHTML = `
             <div class="${resultClass}">
                 <h3>👍 Good job! (+${result.points} points)</h3>
@@ -270,14 +281,22 @@ function showGuessResult(result) {
         `;
     } else {
         resultClass = 'result-needs-work';
+        if (window.soundManager) window.soundManager.playSound('lose');
+        
+        // Check if this was the last attempt
+        const isLastAttempt = gameState.attemptsLeft <= 0;
+        const attemptMessage = isLastAttempt ? 
+            `<p><strong>⏰ Round Over!</strong> Moving to next word...</p>` : 
+            `<p><small>Hint: Try words with similar meanings or closer token IDs</small></p>`;
+            
         resultHTML = `
             <div class="${resultClass}">
-                <h3>🤔 Keep trying! (+${result.points} points)</h3>
+                <h3>🤔 ${isLastAttempt ? 'Round Complete!' : 'Keep trying!'} (+${result.points} points)</h3>
                 <p><strong>Distance:</strong> ${result.distance} tokens away</p>
                 <p><strong>Your guess:</strong> "${result.guess_word}" (Token ID: ${result.guess_token_id})</p>
                 <p><strong>Target:</strong> "${gameState.currentTargetWord}" (Token ID: ${gameState.currentTargetTokenId})</p>
                 ${result.feedback ? `<p><em>${result.feedback}</em></p>` : ''}
-                <p><small>Hint: Try words with similar meanings or closer token IDs</small></p>
+                ${attemptMessage}
             </div>
         `;
     }

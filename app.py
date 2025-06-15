@@ -41,14 +41,54 @@ def get_or_create_game_session():
     return active_games[game_id]
 
 @app.route('/')
-def index():
+def home():
+    """Home page with game mode selection"""
+    return render_template('home.html')
+
+@app.route('/game')
+def game():
     """Main game page"""
     game_session = get_or_create_game_session()
     return render_template('game.html')
 
+@app.route('/setup/<mode>')
+def game_setup(mode):
+    """Game setup page for specific mode"""
+    mode_info = {
+        'synonym': {
+            'name': 'Synonym Hunt',
+            'icon': '🤝',
+            'description': 'Find words with similar meanings and discover if they have close token IDs!'
+        },
+        'antonym': {
+            'name': 'Antonym Challenge', 
+            'icon': '⚡',
+            'description': 'Find words with opposite meanings and see how far apart their tokens are!'
+        },
+        'category': {
+            'name': 'Category Focus',
+            'icon': '🎨', 
+            'description': 'Explore specific word categories and their token relationships!'
+        },
+        'speed': {
+            'name': 'Speed Mode',
+            'icon': '⚡',
+            'description': 'Race against time to find similar words as quickly as possible!'
+        }
+    }
+    
+    if mode not in mode_info:
+        return redirect(url_for('home'))
+    
+    return render_template('game_setup.html', 
+                         mode=mode,
+                         mode_name=mode_info[mode]['name'],
+                         mode_icon=mode_info[mode]['icon'],
+                         mode_description=mode_info[mode]['description'])
+
 @app.route('/settings')
 def settings():
-    """Game settings page"""
+    """Appearance settings page"""
     return render_template('settings.html')
 
 @app.route('/api/start_game', methods=['POST'])

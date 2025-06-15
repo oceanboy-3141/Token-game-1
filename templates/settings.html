@@ -1,91 +1,85 @@
 {% extends "base.html" %}
 
-{% block title %}Settings - Token Quest{% endblock %}
+{% block title %}Appearance Settings - Token Quest{% endblock %}
 
 {% block content %}
-<div class="game-container">
-    <div class="material-card">
-        <div class="card-header">
-            <h2>⚙️ Game Settings</h2>
+<div class="setup-container fade-in">
+    <h1 class="setup-title">🎨 Customize Appearance</h1>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1.1rem;">
+        Choose your favorite theme to personalize your gaming experience
+    </p>
+    
+    <!-- Theme Picker -->
+    <div class="theme-section">
+        <h3 style="text-align: center; margin-bottom: 1rem; color: var(--text-primary);">Choose Your Theme</h3>
+        <div class="theme-picker">
+            <div class="theme-btn ocean active" data-theme="ocean">
+                <div class="theme-name">Ocean Vibes</div>
+            </div>
+            <div class="theme-btn desert" data-theme="desert">
+                <div class="theme-name">Desert Oasis</div>
+            </div>
+            <div class="theme-btn lava" data-theme="lava">
+                <div class="theme-name">Lava Flow</div>
+            </div>
+            <div class="theme-btn light" data-theme="light">
+                <div class="theme-name">Light Mode</div>
+            </div>
+            <div class="theme-btn dark" data-theme="dark">
+                <div class="theme-name">Dark Mode</div>
+            </div>
+            <div class="theme-btn electric" data-theme="electric">
+                <div class="theme-name">Electric Neon</div>
+            </div>
+            <div class="theme-btn royal" data-theme="royal">
+                <div class="theme-name">Royal Purple</div>
+            </div>
         </div>
-        <div class="card-content">
-            <form id="settings-form">
-                <div style="display: grid; gap: 1.5rem;">
-                    
-                    <div class="form-group">
-                        <label for="game-mode"><strong>Game Mode:</strong></label>
-                        <select id="game-mode" name="game_mode" class="form-select">
-                            <option value="normal">Normal</option>
-                            <option value="antonym">Antonym Mode</option>
-                            <option value="category">Category Mode</option>
-                            <option value="speed">Speed Mode</option>
-                        </select>
-                        <small>Normal: Find similar words | Antonym: Find opposite words</small>
-                    </div>
+    </div>
+    
+    <!-- Preview Section -->
+    <div style="background: var(--surface); border-radius: 20px; padding: 2rem; margin: 2rem 0; text-align: center;">
+        <h4 style="margin-bottom: 1rem; color: var(--text-primary);">Preview</h4>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-primary">Primary Button</button>
+            <button class="btn btn-secondary">Secondary</button>
+            <button class="btn btn-success">Success</button>
+            <button class="btn btn-warning">Warning</button>
+        </div>
+    </div>
+    
+    <!-- Sound Controls -->
+    <div class="sound-controls" style="margin-top: 2rem; padding: 2rem; background: var(--surface-glass); border-radius: 20px;">
+        <h3 style="text-align: center; margin-bottom: 1rem; color: var(--text-primary);">🔊 Sound Settings</h3>
+        <div style="display: grid; gap: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label style="color: var(--text-primary); font-weight: 500;">Sound Effects</label>
+                <button id="toggle-sound" class="btn btn-success" style="padding: 0.5rem 1rem;">
+                    🔊 ON
+                </button>
+            </div>
 
-                    <div class="form-group">
-                        <label for="difficulty"><strong>Difficulty:</strong></label>
-                        <select id="difficulty" name="difficulty" class="form-select">
-                            <option value="easy">Easy</option>
-                            <option value="medium">Medium</option>
-                            <option value="hard">Hard</option>
-                            <option value="mixed" selected>Mixed</option>
-                        </select>
-                        <small>Controls the complexity of target words</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="category"><strong>Word Category:</strong></label>
-                        <select id="category" name="category" class="form-select">
-                            <option value="all" selected>All Categories</option>
-                            <option value="emotions">Emotions</option>
-                            <option value="size">Size</option>
-                            <option value="speed">Speed</option>
-                            <option value="quality">Quality</option>
-                            <option value="temperature">Temperature</option>
-                            <option value="brightness">Brightness</option>
-                            <option value="actions">Actions</option>
-                        </select>
-                        <small>Focus on specific types of words</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="rounds"><strong>Number of Rounds:</strong></label>
-                        <select id="rounds" name="rounds" class="form-select">
-                            <option value="5">5 Rounds</option>
-                            <option value="10" selected>10 Rounds</option>
-                            <option value="15">15 Rounds</option>
-                            <option value="20">20 Rounds</option>
-                        </select>
-                        <small>How many rounds to play</small>
-                    </div>
-
-                </div>
-
-                <div class="action-buttons" style="margin-top: 2rem;">
-                    <button type="submit" class="btn btn-primary">
-                        <span class="material-icons">save</span>
-                        Save Settings
-                    </button>
-                    <a href="{{ url_for('index') }}" class="btn btn-secondary">
-                        <span class="material-icons">arrow_back</span>
-                        Back to Game
-                    </a>
-                </div>
-            </form>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label style="color: var(--text-primary); font-weight: 500;">Volume</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.7" 
+                       style="width: 150px; accent-color: var(--primary-start);">
+            </div>
+            <button id="test-sounds" class="btn btn-primary" style="margin-top: 1rem;">
+                🎵 Test Sounds
+            </button>
         </div>
     </div>
 
-    <!-- Current Settings Display -->
-    <div class="material-card">
-        <div class="card-header">
-            <h2>📊 Current Settings</h2>
-        </div>
-        <div class="card-content">
-            <div id="current-settings">
-                <p>Settings will be loaded here...</p>
-            </div>
-        </div>
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+        <a href="{{ url_for('home') }}" class="btn btn-primary btn-large">
+            <span class="material-icons">home</span>
+            Back to Home
+        </a>
+        <button id="reset-themes" class="btn btn-secondary">
+            <span class="material-icons">refresh</span>
+            Reset to Default
+        </button>
     </div>
 </div>
 
@@ -122,44 +116,174 @@
 </style>
 
 <script>
-document.getElementById('settings-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const settings = {
-        game_mode: formData.get('game_mode'),
-        difficulty: formData.get('difficulty'),
-        category: formData.get('category'),
-        rounds: parseInt(formData.get('rounds'))
-    };
-    
-    console.log('Saving settings:', settings);
-    
-    // Save to localStorage for now
-    localStorage.setItem('token-quest-settings', JSON.stringify(settings));
-    
-    alert('Settings saved! They will apply to your next game.');
-});
-
-// Load current settings
+// Theme switching functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const savedSettings = localStorage.getItem('token-quest-settings');
-    if (savedSettings) {
-        const settings = JSON.parse(savedSettings);
+    const themeButtons = document.querySelectorAll('.theme-btn');
+    const body = document.body;
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('selected-theme') || 'ocean';
+    setTheme(savedTheme);
+    
+    // Theme button click handlers
+    themeButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const theme = this.dataset.theme;
+            setTheme(theme);
+            localStorage.setItem('selected-theme', theme);
+        });
+    });
+    
+    // Reset themes button
+    document.getElementById('reset-themes').addEventListener('click', function() {
+        setTheme('ocean');
+        localStorage.setItem('selected-theme', 'ocean');
+    });
+    
+    // Sound control functionality
+    setupSoundControls();
+    
+    function setTheme(themeName) {
+        // Remove active class from all buttons
+        themeButtons.forEach(btn => btn.classList.remove('active'));
         
-        // Update form fields
-        document.getElementById('game-mode').value = settings.game_mode || 'normal';
-        document.getElementById('difficulty').value = settings.difficulty || 'mixed';
-        document.getElementById('category').value = settings.category || 'all';
-        document.getElementById('rounds').value = settings.rounds || 10;
+        // Add active class to selected button
+        const selectedBtn = document.querySelector(`[data-theme="${themeName}"]`);
+        if (selectedBtn) {
+            selectedBtn.classList.add('active');
+        }
         
-        // Update current settings display
-        document.getElementById('current-settings').innerHTML = `
-            <p><strong>Game Mode:</strong> ${settings.game_mode || 'normal'}</p>
-            <p><strong>Difficulty:</strong> ${settings.difficulty || 'mixed'}</p>
-            <p><strong>Category:</strong> ${settings.category || 'all'}</p>
-            <p><strong>Rounds:</strong> ${settings.rounds || 10}</p>
-        `;
+        // Apply theme to body
+        body.setAttribute('data-theme', themeName);
+        
+        // Update CSS custom properties for immediate effect
+        updateThemeProperties(themeName);
+    }
+    
+    function updateThemeProperties(theme) {
+        const root = document.documentElement;
+        
+        switch(theme) {
+            case 'desert':
+                root.style.setProperty('--primary-start', '#ff9a56');
+                root.style.setProperty('--primary-end', '#ffad56');
+                root.style.setProperty('--background', 'linear-gradient(135deg, #ff9a56 0%, #ffad56 50%, #ffeaa7 100%)');
+                root.style.setProperty('--text-primary', '#2d3436');
+                root.style.setProperty('--text-light', '#ffffff');
+                break;
+            case 'lava':
+                root.style.setProperty('--primary-start', '#ff3838');
+                root.style.setProperty('--primary-end', '#ff2d92');
+                root.style.setProperty('--background', 'linear-gradient(135deg, #ff3838 0%, #ff6b35 100%)');
+                root.style.setProperty('--text-primary', '#ffffff');
+                root.style.setProperty('--text-light', '#ffffff');
+                break;
+            case 'light':
+                root.style.setProperty('--primary-start', '#4285f4');
+                root.style.setProperty('--primary-end', '#34a853');
+                root.style.setProperty('--background', 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)');
+                root.style.setProperty('--surface', '#ffffff');
+                root.style.setProperty('--text-primary', '#212529');
+                root.style.setProperty('--text-secondary', '#6c757d');
+                root.style.setProperty('--text-light', '#ffffff');
+                break;
+            case 'dark':
+                root.style.setProperty('--primary-start', '#bb86fc');
+                root.style.setProperty('--primary-end', '#6200ea');
+                root.style.setProperty('--background', 'linear-gradient(135deg, #121212 0%, #1e1e1e 100%)');
+                root.style.setProperty('--surface', '#1e1e1e');
+                root.style.setProperty('--text-primary', '#ffffff');
+                root.style.setProperty('--text-secondary', '#b3b3b3');
+                root.style.setProperty('--text-light', '#ffffff');
+                break;
+            case 'electric':
+                root.style.setProperty('--primary-start', '#00ff88');
+                root.style.setProperty('--primary-end', '#00b4d8');
+                root.style.setProperty('--secondary-start', '#ff006e');
+                root.style.setProperty('--secondary-end', '#8338ec');
+                root.style.setProperty('--background', 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)');
+                root.style.setProperty('--surface', 'rgba(255, 255, 255, 0.05)');
+                root.style.setProperty('--surface-glass', 'rgba(0, 255, 136, 0.1)');
+                root.style.setProperty('--text-primary', '#00ff88');
+                root.style.setProperty('--text-secondary', '#8bf5da');
+                root.style.setProperty('--text-light', '#ffffff');
+                root.style.setProperty('--shadow', '0 0 20px rgba(0, 255, 136, 0.3)');
+                root.style.setProperty('--shadow-hover', '0 0 40px rgba(0, 255, 136, 0.5)');
+                break;
+            case 'royal':
+                root.style.setProperty('--primary-start', '#9d4edd');
+                root.style.setProperty('--primary-end', '#7209b7');
+                root.style.setProperty('--background', 'linear-gradient(135deg, #240046 0%, #3c096c 50%, #5a189a 100%)');
+                root.style.setProperty('--surface', 'rgba(157, 78, 221, 0.1)');
+                root.style.setProperty('--text-primary', '#ffffff');
+                root.style.setProperty('--text-secondary', '#c77dff');
+                root.style.setProperty('--text-light', '#ffffff');
+                break;
+            default: // ocean
+                root.style.setProperty('--primary-start', '#00b4db');
+                root.style.setProperty('--primary-end', '#0083b0');
+                root.style.setProperty('--background', 'linear-gradient(135deg, #00b4db 0%, #0083b0 100%)');
+                root.style.setProperty('--surface', 'rgba(255, 255, 255, 0.95)');
+                root.style.setProperty('--text-primary', '#2d3748');
+                root.style.setProperty('--text-secondary', '#4a5568');
+                root.style.setProperty('--text-light', '#ffffff');
+                break;
+        }
+    }
+    
+    function setupSoundControls() {
+        const toggleSoundBtn = document.getElementById('toggle-sound');
+        const volumeSlider = document.getElementById('volume-slider');
+        const testSoundsBtn = document.getElementById('test-sounds');
+        
+        // Initialize button states from current values
+        let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+        let volume = parseFloat(localStorage.getItem('soundVolume')) || 0.7;
+        
+        function updateSoundButton() {
+            toggleSoundBtn.textContent = soundEnabled ? '🔊 ON' : '🔇 OFF';
+            toggleSoundBtn.className = `btn ${soundEnabled ? 'btn-success' : 'btn-secondary'}`;
+        }
+        
+        updateSoundButton();
+        volumeSlider.value = volume;
+        
+        // Event listeners
+        toggleSoundBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('soundEnabled', soundEnabled);
+            updateSoundButton();
+            
+            // Update sound manager
+            if (window.soundManager) {
+                window.soundManager.updateSettings();
+                if (soundEnabled) {
+                    window.soundManager.playSound('click');
+                }
+            }
+        });
+        
+        volumeSlider.addEventListener('input', (e) => {
+            volume = parseFloat(e.target.value);
+            localStorage.setItem('soundVolume', volume);
+            
+            // Update sound manager
+            if (window.soundManager) {
+                window.soundManager.updateSettings();
+                if (soundEnabled) {
+                    window.soundManager.playSound('click');
+                }
+            }
+        });
+        
+        testSoundsBtn.addEventListener('click', () => {
+            if (window.soundManager && soundEnabled) {
+                window.soundManager.playSound('click');
+                setTimeout(() => window.soundManager.playSound('success'), 300);
+                setTimeout(() => window.soundManager.playSound('win'), 600);
+                setTimeout(() => window.soundManager.playSound('lose'), 1500);
+            }
+        });
     }
 });
 </script>

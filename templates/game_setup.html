@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Setup {{ mode_name }} Game - Token Quest{% endblock %}
+
+{% block content %}
+<div class="setup-container slide-in">
+    <h1 class="setup-title">
+        {{ mode_icon }} {{ mode_name }}
+    </h1>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1.1rem;">
+        {{ mode_description }}
+    </p>
+    
+    <form class="setup-form" id="setup-form">
+        <input type="hidden" name="game_mode" value="{{ mode }}">
+        
+        <div class="form-group">
+            <label class="form-label">🎯 Number of Rounds</label>
+            <select name="rounds" class="form-select">
+                <option value="5">5 Rounds (Quick)</option>
+                <option value="10" selected>10 Rounds (Standard)</option>
+                <option value="15">15 Rounds (Extended)</option>
+                <option value="20">20 Rounds (Marathon)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">⚡ Difficulty Level</label>
+            <select name="difficulty" class="form-select">
+                <option value="easy">Easy - Common words</option>
+                <option value="medium">Medium - Mixed vocabulary</option>
+                <option value="hard">Hard - Complex words</option>
+                <option value="mixed" selected>Mixed - All difficulties</option>
+            </select>
+        </div>
+        
+        {% if mode != 'category' %}
+        <div class="form-group">
+            <label class="form-label">🎨 Word Category</label>
+            <select name="category" class="form-select">
+                <option value="all" selected>All Categories</option>
+                <option value="emotions">Emotions (happy, sad, angry)</option>
+                <option value="size">Size (big, small, tiny)</option>
+                <option value="speed">Speed (fast, slow, quick)</option>
+                <option value="quality">Quality (good, bad, great)</option>
+                <option value="temperature">Temperature (hot, cold, warm)</option>
+                <option value="brightness">Brightness (light, dark, bright)</option>
+                <option value="actions">Actions (run, walk, jump)</option>
+            </select>
+        </div>
+        {% else %}
+        <div class="form-group">
+            <label class="form-label">🎨 Choose Category</label>
+            <select name="category" class="form-select">
+                <option value="emotions" selected>Emotions (happy, sad, angry)</option>
+                <option value="size">Size (big, small, tiny)</option>
+                <option value="speed">Speed (fast, slow, quick)</option>
+                <option value="quality">Quality (good, bad, great)</option>
+                <option value="temperature">Temperature (hot, cold, warm)</option>
+                <option value="brightness">Brightness (light, dark, bright)</option>
+                <option value="actions">Actions (run, walk, jump)</option>
+            </select>
+        </div>
+        {% endif %}
+        
+        {% if mode == 'speed' %}
+        <div class="form-group">
+            <label class="form-label">⏱️ Time Limit</label>
+            <select name="time_limit" class="form-select">
+                <option value="15">15 seconds per round</option>
+                <option value="30" selected>30 seconds per round</option>
+                <option value="45">45 seconds per round</option>
+                <option value="60">60 seconds per round</option>
+            </select>
+        </div>
+        {% endif %}
+        
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button type="submit" class="btn btn-primary btn-large">
+                <span class="material-icons">play_arrow</span>
+                Start Game
+            </button>
+            <a href="{{ url_for('home') }}" class="btn btn-secondary">
+                <span class="material-icons">arrow_back</span>
+                Back to Home
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('setup-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const settings = {
+        game_mode: formData.get('game_mode'),
+        rounds: parseInt(formData.get('rounds')),
+        difficulty: formData.get('difficulty'),
+        category: formData.get('category')
+    };
+    
+    // Add time limit for speed mode
+    if (formData.get('time_limit')) {
+        settings.time_limit = parseInt(formData.get('time_limit'));
+    }
+    
+    // Store settings and redirect to game
+    localStorage.setItem('game-settings', JSON.stringify(settings));
+    window.location.href = '{{ url_for("game") }}';
+});
+</script>
+{% endblock %} 

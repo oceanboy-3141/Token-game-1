@@ -19,8 +19,8 @@
         <header class="app-header">
             <h1>🎯 Token Quest</h1>
             <nav class="header-nav">
-                <a href="{{ url_for('index') }}" class="nav-link">Game</a>
-                <a href="{{ url_for('settings') }}" class="nav-link">Settings</a>
+                <a href="{{ url_for('home') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('settings') }}" class="nav-link">Themes</a>
             </nav>
         </header>
 
@@ -36,6 +36,14 @@
     </div>
 
     <!-- JavaScript -->
+    <script>
+    // Load saved theme on every page
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedTheme = localStorage.getItem('selected-theme') || 'ocean';
+        document.body.setAttribute('data-theme', savedTheme);
+    });
+    </script>
+    <script src="{{ url_for('static', filename='js/sounds.js') }}"></script>
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
     {% block extra_scripts %}{% endblock %}
 </body>

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Token Quest - Choose Your Adventure{% endblock %}
+
+{% block content %}
+<div class="home-container fade-in">
+    <h1 class="home-title">🎯 Token Quest</h1>
+    <p class="home-subtitle">Discover the hidden patterns in language through interactive gameplay</p>
+    
+    <div class="game-modes slide-in">
+        <a href="{{ url_for('game_setup', mode='synonym') }}" class="mode-card synonym">
+            <span class="mode-icon">🤝</span>
+            <h3 class="mode-title">Synonym Hunt</h3>
+            <p class="mode-description">Find words with similar meanings and close token IDs</p>
+        </a>
+        
+        <a href="{{ url_for('game_setup', mode='antonym') }}" class="mode-card antonym">
+            <span class="mode-icon">⚡</span>
+            <h3 class="mode-title">Antonym Challenge</h3>
+            <p class="mode-description">Discover words with opposite meanings but distant tokens</p>
+        </a>
+        
+        <a href="{{ url_for('game_setup', mode='category') }}" class="mode-card category">
+            <span class="mode-icon">🎨</span>
+            <h3 class="mode-title">Category Focus</h3>
+            <p class="mode-description">Explore specific word categories like emotions or colors</p>
+        </a>
+        
+        <a href="{{ url_for('game_setup', mode='speed') }}" class="mode-card speed">
+            <span class="mode-icon">⚡</span>
+            <h3 class="mode-title">Speed Mode</h3>
+            <p class="mode-description">Race against time to find similar words quickly</p>
+        </a>
+        
+        <div class="mode-card tutorial">
+            <span class="mode-icon">📚</span>
+            <h3 class="mode-title">Tutorial</h3>
+            <p class="mode-description">Learn how tokenization works (Coming Soon!)</p>
+        </div>
+    </div>
+    
+    <div class="home-actions" style="margin-top: 2rem;">
+        <a href="{{ url_for('settings') }}" class="btn btn-secondary btn-large">
+            <span class="material-icons">palette</span>
+            Customize Appearance
+        </a>
+    </div>
+</div>
+
+<style>
+.home-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .home-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-large {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+</style>
+{% endblock %} 
