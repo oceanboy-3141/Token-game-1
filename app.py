@@ -25,17 +25,20 @@ def get_or_create_game_session():
     
     if game_id not in active_games:
         # Create new game using your existing logic
+        # Default settings - can be overridden by start_game
+        default_settings = {
+            'game_mode': 'normal',
+            'difficulty': 'mixed',
+            'category': 'all',
+            'rounds': 10
+        }
+        
         active_games[game_id] = {
-            'game_logic': GameLogic(),
+            'game_logic': GameLogic(max_rounds=default_settings['rounds']),
             'data_collector': EnhancedDataCollector('game_data'),
             'achievement_manager': AchievementManager(),
             'leaderboard': Leaderboard(),
-            'settings': {
-                'game_mode': 'normal',
-                'difficulty': 'mixed',
-                'category': 'all',
-                'rounds': 10
-            }
+            'settings': default_settings
         }
     
     return active_games[game_id]
@@ -84,8 +87,27 @@ def game_setup(mode):
 
 @app.route('/tutorial')
 def tutorial():
-    """Interactive tutorial with Tokky"""
-    return render_template('tutorial.html')
+    """Interactive tutorial with Tokky using real tiktoken data"""
+    from token_handler import TokenHandler
+    
+    # Create token handler instance
+    token_handler = TokenHandler()
+    
+    # Get real token IDs for tutorial examples
+    tutorial_examples = {
+        'happy': token_handler.get_single_token_id('happy'),
+        'bright': token_handler.get_single_token_id('bright'),
+        'joyful': token_handler.get_single_token_id('joyful'),
+    }
+    
+    # Calculate real distance between happy and joyful if both are single tokens
+    happy_joyful_distance = None
+    if tutorial_examples['happy'] and tutorial_examples['joyful']:
+        happy_joyful_distance = abs(tutorial_examples['happy'] - tutorial_examples['joyful'])
+    
+    return render_template('tutorial.html', 
+                         tutorial_examples=tutorial_examples,
+                         happy_joyful_distance=happy_joyful_distance)
 
 @app.route('/settings')
 def settings():
@@ -139,6 +161,10 @@ def start_game():
             game_logic.time_limit = settings.get('time_limit', 30)
     
     try:
+        # Update max_rounds in game logic if provided
+        if settings.get('rounds'):
+            game_logic.max_rounds = settings.get('rounds')
+        
         # Start new round using existing logic
         round_info = game_logic.start_new_round()
         
@@ -231,6 +257,7 @@ def game_status():
         'current_round': game_logic.round_number,
         'max_rounds': game_logic.max_rounds,
         'score': game_logic.score,
+        'total_score': game_logic.score,  # Add consistent total_score field
         'correct_guesses': game_logic.correct_guesses,
         'current_target_word': game_logic.current_target_word,
         'current_target_token_id': game_logic.current_target_token_id,
@@ -316,6 +343,63 @@ def get_leaderboard():
     
     return jsonify({
         'leaderboard': leaderboard.get_top_scores(10)
+    })
+
+@app.route('/api/tutorial_guess', methods=['POST'])
+def tutorial_guess():
+    """Handle practice guesses in tutorial with real tiktoken"""
+    from token_handler import TokenHandler
+    
+    data = request.json
+    guess_word = data.get('guess', '').strip().lower()
+    target_word = data.get('target', 'bright').lower()
+    
+    if not guess_word:
+        return jsonify({'success': False, 'error': 'No guess provided'})
+    
+    # Create token handler
+    token_handler = TokenHandler()
+    
+    # Get real token IDs
+    target_token_id = token_handler.get_single_token_id(target_word)
+    guess_token_id = token_handler.get_single_token_id(guess_word)
+    
+    if target_token_id is None:
+        return jsonify({'success': False, 'error': f'Target word "{target_word}" is not a single token'})
+    
+    if guess_token_id is None:
+        return jsonify({'success': False, 'error': f'Guess word "{guess_word}" is not a single token'})
+    
+    # Calculate real distance
+    distance = abs(target_token_id - guess_token_id)
+    
+    # Calculate points based on distance (same scoring as main game)
+    if distance == 0:
+        points = 100
+    elif distance <= 50:
+        points = max(95 - (distance - 1) // 5, 80)
+    elif distance <= 200:
+        points = max(80 - (distance - 51) // 15, 60)
+    elif distance <= 500:
+        points = max(60 - (distance - 201) // 30, 40)
+    elif distance <= 1000:
+        points = max(40 - (distance - 501) // 50, 20)
+    else:
+        points = max(20 - (distance - 1001) // 200, 5)
+    
+    # Get educational explanation
+    explanation = token_handler.get_educational_explanation(target_word, guess_word)
+    
+    return jsonify({
+        'success': True,
+        'target_word': target_word,
+        'target_token_id': target_token_id,
+        'guess_word': guess_word,
+        'guess_token_id': guess_token_id,
+        'distance': distance,
+        'points': points,
+        'explanation': explanation,
+        'is_exact_match': distance == 0
     })
 
 @app.route('/api/new_game', methods=['POST'])

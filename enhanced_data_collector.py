@@ -411,8 +411,12 @@ class EnhancedDataCollector:
         
         return analysis
     
-    def _categorize_accuracy(self, distance: int) -> str:
+    def _categorize_accuracy(self, distance) -> str:
         """Categorize accuracy for research analysis."""
+        # Handle None values (for vocabulary words without token distances)
+        if distance is None:
+            return 'vocabulary_word'
+        
         if distance <= 10:
             return 'excellent'
         elif distance <= 50:
@@ -424,7 +428,7 @@ class EnhancedDataCollector:
     
     def _calculate_accuracy_distribution(self, guesses: List[Dict]) -> Dict:
         """Calculate accuracy distribution for research metrics."""
-        distribution = {'excellent': 0, 'good': 0, 'fair': 0, 'poor': 0}
+        distribution = {'excellent': 0, 'good': 0, 'fair': 0, 'poor': 0, 'vocabulary_word': 0}
         
         for guess in guesses:
             accuracy = guess.get('accuracy_level', 'poor')
@@ -556,12 +560,17 @@ class EnhancedDataCollector:
         }
         
         if self.session_data['guesses']:
-            distances = [g['token_distance'] for g in self.session_data['guesses']]
-            insights['average_token_distance'] = sum(distances) / len(distances)
+            # Filter out None distances for calculations
+            distances = [g['token_distance'] for g in self.session_data['guesses'] if g['token_distance'] is not None]
+            if distances:
+                insights['average_token_distance'] = sum(distances) / len(distances)
             
             # Distance distribution
-            for distance in distances:
-                if distance <= 10:
+            for guess in self.session_data['guesses']:
+                distance = guess['token_distance']
+                if distance is None:
+                    category = 'vocabulary_only'
+                elif distance <= 10:
                     category = 'very_close'
                 elif distance <= 50:
                     category = 'close'

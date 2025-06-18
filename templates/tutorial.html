@@ -327,7 +327,7 @@
             
             <div class="demo-game">
                 <div class="demo-target">Example: HAPPY</div>
-                <div class="demo-token">Token ID: 39,784</div>
+                <div class="demo-token">Token ID: {{ tutorial_examples.happy if tutorial_examples.happy else 'Multi-token word!' }}</div>
                 <p>Your goal: Find words that mean something similar to "HAPPY"!</p>
             </div>
         </div>
@@ -346,16 +346,24 @@
             <div class="token-visualization">
                 <div class="token-box">
                     <strong>HAPPY</strong><br>
-                    Token: 39,784
+                    Token: {{ tutorial_examples.happy if tutorial_examples.happy else 'Multi-token' }}
                 </div>
-                <div class="token-distance">Distance: ?</div>
+                <div class="token-distance">
+                    Distance: {% if happy_joyful_distance %}{{ happy_joyful_distance }}{% else %}?{% endif %}
+                </div>
                 <div class="token-box">
                     <strong>JOYFUL</strong><br>
-                    Token: ?
+                    Token: {{ tutorial_examples.joyful if tutorial_examples.joyful else 'Multi-token' }}
                 </div>
             </div>
             
-            <p><strong>The big question:</strong> ARE words with similar meanings actually close together in token space? Or is it just random? That's what we're going to find out by playing!</p>
+            <p><strong>The big question:</strong> ARE words with similar meanings actually close together in token space? Or is it just random? 
+            {% if happy_joyful_distance %}
+                <em>Interestingly, "happy" and "joyful" are {{ happy_joyful_distance }} tokens apart - is that close or far? Let's find out what this means!</em>
+            {% else %}
+                That's what we're going to find out by playing!
+            {% endif %}
+            </p>
         </div>
 
         <!-- Step 3: Making Your First Guess -->
@@ -371,7 +379,7 @@
             
             <div class="demo-game">
                 <div class="demo-target">TARGET: BRIGHT</div>
-                <div class="demo-token">Token ID: 28,974</div>
+                <div class="demo-token">Token ID: {{ tutorial_examples.bright if tutorial_examples.bright else 'Multi-token word!' }}</div>
                 
                 <div class="demo-input">
                     <input type="text" id="practice-input" placeholder="Type a similar word..." maxlength="20">
@@ -396,30 +404,100 @@
             </div>
             
             <div class="tokky-bubble">
-                "Here's how we measure success in our research! The closer your word's token ID is to the target word's token ID, the more points you get! If you guess the exact same word, you get maximum points. But even close guesses earn you points - this helps us see patterns! 🏆"
+                "Here's how we measure success in our research! The closer your word's token ID is to the target word's token ID, the more points you get! But there's more to it - let me explain the complete scoring system! 🏆"
             </div>
             
-            <div class="token-visualization">
-                <div style="text-align: center; width: 100%;">
-                    <h4>Scoring Examples:</h4>
-                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem;">
-                        <div style="background: #e8f5e8; padding: 1rem; border-radius: 10px; min-width: 150px;">
-                            <strong>Perfect Match!</strong><br>
-                            Distance: 0<br>
-                            <span style="color: #4CAF50;">100 Points! 🎉</span>
-                        </div>
-                        <div style="background: #fff9c4; padding: 1rem; border-radius: 10px; min-width: 150px;">
-                            <strong>Very Close</strong><br>
-                            Distance: 1-100<br>
-                            <span style="color: #FFA000;">80-95 Points! 🌟</span>
-                        </div>
-                        <div style="background: #ffe0b2; padding: 1rem; border-radius: 10px; min-width: 150px;">
-                            <strong>Pretty Good</strong><br>
-                            Distance: 101-500<br>
-                            <span style="color: #FF6F00;">50-79 Points! 👍</span>
-                        </div>
+            <div style="background: #e8f5e8; border: 2px solid #4CAF50; border-radius: 15px; padding: 1.5rem; margin: 1rem 0;">
+                <h4>🎯 Distance-Based Scoring (Normal Mode)</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #4CAF50;">
+                        <strong>🎉 Perfect Match!</strong><br>
+                        Distance: 0-1<br>
+                        <span style="color: #4CAF50; font-size: 1.2em;">10 Points!</span><br>
+                        <small>"🎯 YOU GOT IT!"</small>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #4CAF50;">
+                        <strong>👍 Excellent!</strong><br>
+                        Distance: 2-100<br>
+                        <span style="color: #4CAF50; font-size: 1.2em;">9 Points!</span><br>
+                        <small>"Great synonym sense!"</small>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #8BC34A;">
+                        <strong>😊 Very Good!</strong><br>
+                        Distance: 101-500<br>
+                        <span style="color: #8BC34A; font-size: 1.2em;">8 Points!</span><br>
+                        <small>"Getting warmer..."</small>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #CDDC39;">
+                        <strong>👌 Good!</strong><br>
+                        Distance: 501-1000<br>
+                        <span style="color: #CDDC39; font-size: 1.2em;">7 Points!</span><br>
+                        <small>"On the right track"</small>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #FF9800;">
+                        <strong>😐 Okay</strong><br>
+                        Distance: 1001-5000<br>
+                        <span style="color: #FF9800; font-size: 1.2em;">6 Points!</span><br>
+                        <small>"Getting colder..."</small>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #FF5722;">
+                        <strong>😬 Not Great</strong><br>
+                        Distance: 5001-10000<br>
+                        <span style="color: #FF5722; font-size: 1.2em;">5 Points!</span><br>
+                        <small>"Try different words"</small>
                     </div>
                 </div>
+            </div>
+
+            <div style="background: #fce4ec; border: 2px solid #E91E63; border-radius: 15px; padding: 1.5rem; margin: 1rem 0;">
+                <h4>⚡ Antonym Mode Scoring</h4>
+                <p><strong>In Antonym Mode, everything is reversed!</strong> The farther apart the words are, the better!</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #E91E63;">
+                        <strong>🎯 Perfect Opposite!</strong><br>
+                        Distance: 50000+<br>
+                        <span style="color: #E91E63; font-size: 1.2em;">10 Points!</span><br>
+                        <small>"Maximum distance!"</small>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #E91E63;">
+                        <strong>👍 Great Antonym!</strong><br>
+                        Distance: 30000+<br>
+                        <span style="color: #E91E63; font-size: 1.2em;">9 Points!</span><br>
+                        <small>"Very opposite!"</small>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #F06292;">
+                        <strong>😊 Good Opposite!</strong><br>
+                        Distance: 20000+<br>
+                        <span style="color: #F06292; font-size: 1.2em;">8 Points!</span><br>
+                        <small>"Getting more opposite"</small>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #e3f2fd; border: 2px solid #2196F3; border-radius: 15px; padding: 1.5rem; margin: 1rem 0;">
+                <h4>✅ Participation Points System</h4>
+                <p><strong>New Feature!</strong> Even if your word isn't a single token, you can still earn points!</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #4CAF50;">
+                        <strong>🎯 Single-Token Words</strong><br>
+                        <span style="color: #4CAF50;">Full Distance-Based Scoring</span><br>
+                        <small>0-10 points based on distance</small>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #2196F3;">
+                        <strong>✅ Valid Vocabulary Words</strong><br>
+                        <span style="color: #2196F3;">10 Participation Points!</span><br>
+                        <small>"Valid word! Try single-token words for better scoring!"</small>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #FF5722;">
+                        <strong>❌ Invalid Words</strong><br>
+                        <span style="color: #FF5722;">0 Points</span><br>
+                        <small>Not in vocabulary or not a single token</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tokky-bubble">
+                "Remember: Your <strong>total score</strong> is the sum of all your round scores! We also track your <strong>accuracy</strong> - how many guesses were considered 'correct' (close enough to the target). At the end, you'll get a performance rating based on your accuracy! 📊"
             </div>
         </div>
 
@@ -452,15 +530,81 @@
             </div>
         </div>
 
-        <!-- Step 6: Tips and Tricks -->
+        <!-- Step 6: Scoring Strategy -->
         <div class="tutorial-step" id="step-6">
             <div class="step-header">
                 <div class="step-number">6</div>
+                <h2>Scoring Strategy Guide</h2>
+            </div>
+            
+            <div class="tokky-bubble">
+                "Now that you understand how scoring works, let me share some strategic tips to maximize your points and become a Token Quest champion! 🏆✨"
+            </div>
+            
+            <div style="background: #e8f5e8; border: 2px solid #4CAF50; border-radius: 15px; padding: 1.5rem; margin: 1rem 0;">
+                <h4>🎯 High-Scoring Strategies</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="background: white; border-left: 4px solid #4CAF50; padding: 1rem; border-radius: 10px;">
+                        <h5>💡 Synonym Priority</h5>
+                        <p><strong>Goal:</strong> 9-10 points per round</p>
+                        <p>Target words like "happy" → Try "glad", "joyful", "cheerful"</p>
+                        <small>💰 Best chance for high scores!</small>
+                    </div>
+                    
+                    <div style="background: white; border-left: 4px solid #2196F3; padding: 1rem; border-radius: 10px;">
+                        <h5>🔤 Single-Token Focus</h5>
+                        <p><strong>Goal:</strong> Maximum scoring potential</p>
+                        <p>Stick to simple, common words that are likely single tokens</p>
+                        <small>💰 Avoids the 10-point participation cap!</small>
+                    </div>
+                    
+                    <div style="background: white; border-left: 4px solid #FF9800; padding: 1rem; border-radius: 10px;">
+                        <h5>🎨 Word Category Thinking</h5>
+                        <p><strong>Goal:</strong> 6-8 points per round</p>
+                        <p>If target is "red" → Try other colors: "blue", "green"</p>
+                        <small>💰 Related concepts often cluster together!</small>
+                    </div>
+                    
+                    <div style="background: white; border-left: 4px solid #9C27B0; padding: 1rem; border-radius: 10px;">
+                        <h5>⚡ Antonym Mode Switch</h5>
+                        <p><strong>Goal:</strong> 8-10 points in antonym mode</p>
+                        <p>Target "hot" → Try "cold", "freezing", "icy"</p>
+                        <small>💰 Completely different scoring strategy!</small>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #fff3e0; border: 2px solid #FF9800; border-radius: 15px; padding: 1.5rem; margin: 1rem 0;">
+                <h4>📊 Score Accumulation Tips</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="background: white; padding: 1rem; border-radius: 10px; border: 2px solid #FFA000;">
+                        <h5>🎯 Consistency Over Perfection</h5>
+                        <p>Getting <strong>7-8 points consistently</strong> beats occasional 10s with mostly 0s!</p>
+                        <p><em>Example: 10 rounds × 7 points = 70 total vs 2×10 + 8×0 = 20 total</em></p>
+                    </div>
+                    
+                    <div style="background: white; padding: 1rem; border-radius: 10px; border: 2px solid #FFA000;">
+                        <h5>📈 Accuracy Matters Too!</h5>
+                        <p>Your <strong>performance rating</strong> depends on accuracy, not just total score!</p>
+                        <p>80%+ accuracy = "Outstanding!" 🏆<br>60%+ accuracy = "Great Job!" 🥇</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tokky-bubble">
+                "Pro tip: Don't worry if you don't know the 'perfect' answer! Every guess teaches us something about token relationships. The real goal is discovering patterns, not getting perfect scores! 🔬"
+            </div>
+        </div>
+
+        <!-- Step 7: Pro Tips and Tricks -->
+        <div class="tutorial-step" id="step-7">
+            <div class="step-header">
+                <div class="step-number">7</div>
                 <h2>Pro Tips from Tokky!</h2>
             </div>
             
             <div class="tokky-bubble">
-                "Here are my favorite strategies to become a Token Quest researcher! These tips will help you make better guesses and discover patterns in how computers process language! 🧠✨"
+                "Here are my favorite advanced strategies to become a Token Quest researcher! These tips will help you make better guesses and discover patterns in how computers process language! 🧠✨"
             </div>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin: 1rem 0;">
@@ -486,10 +630,10 @@
             </div>
         </div>
 
-        <!-- Step 7: Ready to Play -->
-        <div class="tutorial-step" id="step-7">
+        <!-- Step 8: Ready to Play -->
+        <div class="tutorial-step" id="step-8">
             <div class="step-header">
-                <div class="step-number">7</div>
+                <div class="step-number">8</div>
                 <h2>You're Ready to Play!</h2>
             </div>
             
@@ -531,20 +675,7 @@
 {% block extra_scripts %}
 <script>
 let currentStep = 1;
-const totalSteps = 7;
-
-// Practice guess responses (pre-written, no API needed!)
-const practiceResponses = {
-    'bright': { distance: 0, points: 100, message: "Perfect! 'Bright' is the exact target word!" },
-    'shiny': { distance: 127, points: 95, message: "Excellent! 'Shiny' is very close to 'bright'!" },
-    'brilliant': { distance: 203, points: 88, message: "Great guess! 'Brilliant' shares the brightness concept!" },
-    'luminous': { distance: 445, points: 75, message: "Good thinking! 'Luminous' relates to light and brightness!" },
-    'glowing': { distance: 312, points: 82, message: "Nice! 'Glowing' captures the light-emitting aspect!" },
-    'radiant': { distance: 189, points: 90, message: "Wonderful! 'Radiant' is very similar to 'bright'!" },
-    'dark': { distance: 2847, points: 15, message: "Interesting! 'Dark' is actually the opposite of 'bright'!" },
-    'dim': { distance: 1923, points: 25, message: "That's more of an opposite! 'Dim' means not bright." },
-    'default': { distance: 1200, points: 40, message: "Good try! This word has some connection to 'bright'." }
-};
+const totalSteps = 8;
 
 function updateProgress() {
     const progress = (currentStep / totalSteps) * 100;
@@ -621,48 +752,90 @@ function makePracticeGuess() {
         return;
     }
     
-    // Get response from our pre-written responses
-    const response = practiceResponses[guess] || practiceResponses['default'];
-    
-    // Show result
+    // Show loading state
     resultDiv.innerHTML = `
-        <div style="background: #e8f5e8; border: 2px solid #4CAF50; border-radius: 15px; padding: 1.5rem; margin-top: 1rem; text-align: center;">
-            <h3>Result for "${guess.toUpperCase()}"</h3>
-            <div class="token-visualization">
-                <div class="token-box">
-                    <strong>BRIGHT</strong><br>
-                    Token: 28,974
-                </div>
-                <div class="token-distance">Distance: ${response.distance}</div>
-                <div class="token-box">
-                    <strong>${guess.toUpperCase()}</strong><br>
-                    Token: ${28974 + response.distance}
-                </div>
-            </div>
-            <div style="background: #4CAF50; color: white; padding: 1rem; border-radius: 10px; margin-top: 1rem;">
-                <strong>+${response.points} Points!</strong><br>
-                ${response.message}
-            </div>
+        <div style="background: #f0f0f0; border: 2px solid #ccc; border-radius: 15px; padding: 1.5rem; margin-top: 1rem; text-align: center;">
+            <h3>Analyzing "${guess.toUpperCase()}" with real tiktoken...</h3>
+            <p>🤖 Computing actual token IDs and distances...</p>
         </div>
     `;
-    
     resultDiv.classList.remove('hidden');
     
-    // Show hint if it's a less optimal guess
-    if (response.points < 70) {
-        hintDiv.classList.remove('hidden');
-    }
+    // Make real API call
+    fetch('/api/tutorial_guess', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            guess: guess,
+            target: 'bright'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show real result
+            resultDiv.innerHTML = `
+                <div style="background: #e8f5e8; border: 2px solid #4CAF50; border-radius: 15px; padding: 1.5rem; margin-top: 1rem; text-align: center;">
+                    <h3>REAL Result for "${data.guess_word.toUpperCase()}"</h3>
+                    <div class="token-visualization">
+                        <div class="token-box">
+                            <strong>BRIGHT</strong><br>
+                            Token: ${data.target_token_id}
+                        </div>
+                        <div class="token-distance">Distance: ${data.distance}</div>
+                        <div class="token-box">
+                            <strong>${data.guess_word.toUpperCase()}</strong><br>
+                            Token: ${data.guess_token_id}
+                        </div>
+                    </div>
+                    <div style="background: #4CAF50; color: white; padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                        <strong>+${data.points} Points!</strong><br>
+                        ${data.is_exact_match ? "Perfect match!" : "Real distance calculated!"}
+                    </div>
+                    <div style="background: #e3f2fd; border: 2px solid #2196F3; border-radius: 10px; padding: 1rem; margin-top: 1rem;">
+                        <strong>🧠 Real Analysis:</strong><br>
+                        ${data.explanation}
+                    </div>
+                </div>
+            `;
+            
+            // Show hint if it's a less optimal guess
+            if (data.points < 70) {
+                hintDiv.classList.remove('hidden');
+            }
+            
+            // Add some encouraging Tokky dialogue
+            setTimeout(() => {
+                const encouragement = document.createElement('div');
+                encouragement.className = 'tokky-bubble';
+                encouragement.innerHTML = `"${getTokkyEncouragement(data.points)}"`;
+                resultDiv.appendChild(encouragement);
+            }, 1000);
+        } else {
+            // Show error
+            resultDiv.innerHTML = `
+                <div style="background: #ffebee; border: 2px solid #f44336; border-radius: 15px; padding: 1.5rem; margin-top: 1rem; text-align: center;">
+                    <h3>Oops!</h3>
+                    <p>${data.error}</p>
+                    <p><em>Try a different word - some words might be split into multiple tokens!</em></p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        resultDiv.innerHTML = `
+            <div style="background: #ffebee; border: 2px solid #f44336; border-radius: 15px; padding: 1.5rem; margin-top: 1rem; text-align: center;">
+                <h3>Network Error</h3>
+                <p>Could not connect to analyze the word. Please try again!</p>
+            </div>
+        `;
+    });
     
     // Clear input
     input.value = '';
-    
-    // Add some encouraging Tokky dialogue
-    setTimeout(() => {
-        const encouragement = document.createElement('div');
-        encouragement.className = 'tokky-bubble';
-        encouragement.innerHTML = `"${getTokkyEncouragement(response.points)}"`;
-        resultDiv.appendChild(encouragement);
-    }, 1000);
 }
 
 function getTokkyEncouragement(points) {

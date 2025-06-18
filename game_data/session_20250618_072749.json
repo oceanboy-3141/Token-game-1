@@ -1,0 +1,47 @@
+{
+  "session_info": {
+    "session_id": "20250618_072749",
+    "start_time": "2025-06-18T07:27:49.238129",
+    "end_time": "2025-06-18T07:27:49.254676",
+    "total_games": 0,
+    "total_rounds": 0,
+    "total_guesses": 1
+  },
+  "games": [],
+  "rounds": [],
+  "guesses": [
+    {
+      "timestamp": "2025-06-18T07:27:49.251454",
+      "session_id": "20250618_072749",
+      "game_id": "unknown",
+      "round_id": "unknown",
+      "guess_number": 1,
+      "target_word": "",
+      "target_token_id": 0,
+      "guess_word": "drink",
+      "guess_token_id": null,
+      "token_distance": null,
+      "points_earned": 0,
+      "total_score": 0,
+      "response_time_ms": 0,
+      "hint_used": false,
+      "game_mode": "normal",
+      "difficulty": "mixed",
+      "category": "all",
+      "educational_context": "",
+      "accuracy_level": "vocabulary_word",
+      "semantic_analysis": {
+        "relationship_type": "unknown",
+        "perceived_similarity": "medium",
+        "similarity_score": 0.5,
+        "frequency_difference": 0,
+        "alphabetical_closeness": 0,
+        "guess_category": "unknown"
+      }
+    }
+  ],
+  "hint_usage": [],
+  "educational_interactions": [],
+  "token_analysis": [],
+  "performance_metrics": []
+}

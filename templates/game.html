@@ -2,6 +2,34 @@
 
 {% block content %}
 <div class="beautiful-game-container">
+    <!-- Game Mode Display -->
+    <div class="game-mode-display" id="game-mode-display">
+        <div class="mode-indicator">
+            <div class="mode-icon" id="mode-icon">🎮</div>
+            <div class="mode-info">
+                <div class="mode-name" id="mode-name">Normal Mode</div>
+                <div class="mode-description" id="mode-description">Classic token hunting experience</div>
+            </div>
+        </div>
+        <div class="mode-details" id="mode-details">
+            <div class="mode-detail" id="difficulty-detail">
+                <span class="detail-label">Difficulty:</span>
+                <span class="detail-value" id="difficulty-value">Mixed</span>
+            </div>
+            <div class="mode-detail" id="category-detail">
+                <span class="detail-label">Category:</span>
+                <span class="detail-value" id="category-value">All</span>
+            </div>
+            <div class="mode-detail" id="time-limit-detail" style="display: none;">
+                <span class="detail-label">Time Limit:</span>
+                <span class="detail-value" id="time-limit-value">30s</span>
+            </div>
+        </div>
+        <button class="mode-help-btn" id="mode-help-btn" title="Learn about current mode">
+            <span class="material-icons">help</span>
+        </button>
+    </div>
+
     <!-- Top Status Bar -->
     <div class="game-status-bar">
         <div class="status-item-modern">
@@ -156,6 +184,24 @@
                     <div id="hint-content-area">
                         Select a hint type above
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode Help Modal -->
+    <div id="mode-help-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="mode-help-title">🎮 Game Mode Guide</h3>
+                <button class="close-btn" id="close-mode-help">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="mode-help-content" id="mode-help-content">
+                    <!-- Will be populated with mode-specific information -->
+                </div>
+                <div class="mode-help-tips" id="mode-help-tips">
+                    <!-- Will show mode-specific tips -->
                 </div>
             </div>
         </div>

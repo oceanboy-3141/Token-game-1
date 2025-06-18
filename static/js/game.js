@@ -18,12 +18,79 @@ let gameState = {
 // DOM elements
 let elements = {};
 
+// Game mode information
+const GAME_MODE_INFO = {
+    normal: {
+        name: 'Normal Mode',
+        icon: '🎯',
+        description: 'Classic token hunting experience',
+        color: 'normal',
+        rules: [
+            'Find words with similar meanings to the target word',
+            'Closer token IDs give higher scores',
+            'You have one guess per round',
+            'Perfect matches (distance 0) give maximum points'
+        ],
+        tips: 'Think about synonyms, related concepts, and words that might appear in similar contexts!'
+    },
+    synonym: {
+        name: 'Synonym Hunt',
+        icon: '🤝',
+        description: 'Find words with similar meanings',
+        color: 'synonym', 
+        rules: [
+            'Look for words that mean the same thing as the target',
+            'Exact synonyms often have close token IDs',
+            'Consider different word forms (big/large, happy/glad)',
+            'Bonus points for perfect semantic matches'
+        ],
+        tips: 'Use a thesaurus mindset - what other words could replace the target word in a sentence?'
+    },
+    antonym: {
+        name: 'Antonym Challenge',
+        icon: '⚡',
+        description: 'Find words with opposite meanings',
+        color: 'antonym',
+        rules: [
+            'Find words that mean the opposite of the target',
+            'Larger distances between tokens can give higher scores',
+            'Think about semantic opposites, not just negatives',
+            'Consider context - what would be the opposite in this situation?'
+        ],
+        tips: 'Opposite meanings often have distant token IDs - embrace the challenge of finding true opposites!'
+    },
+    speed: {
+        name: 'Speed Mode',
+        icon: '⚡',
+        description: 'Race against time',
+        color: 'speed',
+        rules: [
+            'Same rules as Normal Mode, but with time pressure',
+            'Each round has a strict time limit',
+            'Bonus points for quick, accurate answers',
+            'Time out = 0 points for that round'
+        ],
+        tips: 'Trust your instincts! The first synonym that comes to mind is often correct.'
+    }
+};
+
 // Initialize the game
 function initializeGame() {
     console.log('🎮 Initializing Token Quest Web Version');
     
     // Get DOM elements
     elements = {
+        // Mode display elements
+        gameModeDisplay: document.getElementById('game-mode-display'),
+        modeIcon: document.getElementById('mode-icon'),
+        modeName: document.getElementById('mode-name'),
+        modeDescription: document.getElementById('mode-description'),
+        difficultyValue: document.getElementById('difficulty-value'),
+        categoryValue: document.getElementById('category-value'),
+        timeLimitDetail: document.getElementById('time-limit-detail'),
+        timeLimitValue: document.getElementById('time-limit-value'),
+        modeHelpBtn: document.getElementById('mode-help-btn'),
+        
         // Status elements
         currentRound: document.getElementById('current-round'),
         maxRounds: document.getElementById('max-rounds'),
@@ -61,6 +128,11 @@ function initializeGame() {
         hintModal: document.getElementById('hint-modal'),
         closeHint: document.getElementById('close-hint'),
         hintContentArea: document.getElementById('hint-content-area'),
+        modeHelpModal: document.getElementById('mode-help-modal'),
+        closeModeHelp: document.getElementById('close-mode-help'),
+        modeHelpTitle: document.getElementById('mode-help-title'),
+        modeHelpContent: document.getElementById('mode-help-content'),
+        modeHelpTips: document.getElementById('mode-help-tips'),
         
         // Loading
         loading: document.getElementById('loading')
@@ -102,6 +174,15 @@ function setupEventListeners() {
     elements.hintModal.addEventListener('click', function(e) {
         if (e.target === elements.hintModal) {
             closeHintModal();
+        }
+    });
+    
+    // Mode help modal handlers
+    elements.modeHelpBtn.addEventListener('click', showModeHelpModal);
+    elements.closeModeHelp.addEventListener('click', closeModeHelpModal);
+    elements.modeHelpModal.addEventListener('click', function(e) {
+        if (e.target === elements.modeHelpModal) {
+            closeModeHelpModal();
         }
     });
     
@@ -168,6 +249,9 @@ async function startNewGame() {
             gameState.currentTargetWord = data.round_info.target_word;
             gameState.currentTargetTokenId = data.round_info.target_token_id;
             gameState.attemptsLeft = data.round_info.attempts_left;
+            
+            // Update mode display with current settings
+            updateModeDisplay(data.settings || gameSettings);
             
             // Update UI
             updateGameDisplay();
@@ -857,7 +941,7 @@ function showScoreSubmissionModal(finalResults) {
 }
 
 // Handle score submission
-document.addEventListener('DOMContentLoaded', function() {
+function initializeScoreHandlers() {
     // Submit score button
     const submitScoreBtn = document.getElementById('submit-score-btn');
     if (submitScoreBtn) {
@@ -955,7 +1039,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('score-modal').style.display = 'none';
         });
     }
-});
+}
 
 // Function to handle game completion and show score modal
 async function handleGameCompletion() {
@@ -977,4 +1061,127 @@ async function handleGameCompletion() {
         console.error('❌ Error getting final results:', error);
         alert('Network error getting final results. You can still play again!');
     }
-} 
+}
+
+// ===== MODE DISPLAY FUNCTIONS =====
+
+// Update the mode display with current settings
+function updateModeDisplay(settings) {
+    const gameMode = settings.game_mode || 'normal';
+    const isSpeedMode = settings.is_speed_mode || false;
+    const actualMode = isSpeedMode ? 'speed' : gameMode;
+    
+    const modeInfo = GAME_MODE_INFO[actualMode] || GAME_MODE_INFO.normal;
+    
+    // Update mode display elements
+    elements.modeIcon.textContent = modeInfo.icon;
+    elements.modeName.textContent = modeInfo.name;
+    elements.modeDescription.textContent = modeInfo.description;
+    
+    // Update difficulty and category
+    elements.difficultyValue.textContent = capitalizeFirst(settings.difficulty || 'mixed');
+    elements.categoryValue.textContent = capitalizeFirst(settings.category || 'all');
+    
+    // Show/hide time limit for speed mode
+    if (isSpeedMode && settings.time_limit) {
+        elements.timeLimitDetail.style.display = 'flex';
+        elements.timeLimitValue.textContent = settings.time_limit + 's';
+    } else {
+        elements.timeLimitDetail.style.display = 'none';
+    }
+    
+    // Update mode-specific styling
+    elements.gameModeDisplay.className = `game-mode-display mode-${modeInfo.color}`;
+    
+    console.log('🎮 Mode display updated:', modeInfo.name);
+}
+
+// Show the mode help modal
+function showModeHelpModal() {
+    const savedSettings = localStorage.getItem('game-settings');
+    let gameSettings = {
+        game_mode: 'normal',
+        is_speed_mode: false
+    };
+    
+    if (savedSettings) {
+        gameSettings = {...gameSettings, ...JSON.parse(savedSettings)};
+    }
+    
+    const gameMode = gameSettings.game_mode || 'normal';
+    const isSpeedMode = gameSettings.is_speed_mode || false;
+    const actualMode = isSpeedMode ? 'speed' : gameMode;
+    
+    const modeInfo = GAME_MODE_INFO[actualMode] || GAME_MODE_INFO.normal;
+    
+    // Update modal title
+    elements.modeHelpTitle.innerHTML = `${modeInfo.icon} ${modeInfo.name} Guide`;
+    
+    // Create help content
+    const helpContent = `
+        <div class="mode-help-section">
+            <h4>📋 How to Play</h4>
+            <p>${modeInfo.description}</p>
+            <ul class="mode-help-list">
+                ${modeInfo.rules.map(rule => `<li>${rule}</li>`).join('')}
+            </ul>
+        </div>
+        
+        <div class="mode-help-section">
+            <h4>🎯 Current Settings</h4>
+            <p><strong>Difficulty:</strong> ${capitalizeFirst(gameSettings.difficulty || 'mixed')}</p>
+            <p><strong>Category:</strong> ${capitalizeFirst(gameSettings.category || 'all')}</p>
+            ${isSpeedMode && gameSettings.time_limit ? 
+                `<p><strong>Time Limit:</strong> ${gameSettings.time_limit} seconds per round</p>` : ''
+            }
+        </div>
+    `;
+    
+    const tipsContent = `
+        <h4>💡 Pro Tips</h4>
+        <p>${modeInfo.tips}</p>
+    `;
+    
+    elements.modeHelpContent.innerHTML = helpContent;
+    elements.modeHelpTips.innerHTML = tipsContent;
+    
+    // Show modal
+    elements.modeHelpModal.style.display = 'flex';
+    
+    console.log('📖 Mode help modal shown for:', modeInfo.name);
+}
+
+// Close the mode help modal
+function closeModeHelpModal() {
+    elements.modeHelpModal.style.display = 'none';
+}
+
+// Helper function to capitalize first letter
+function capitalizeFirst(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// Initialize mode display on page load
+function initializeModeDisplay() {
+    const savedSettings = localStorage.getItem('game-settings');
+    let gameSettings = {
+        game_mode: 'normal',
+        difficulty: 'mixed',
+        category: 'all',
+        is_speed_mode: false,
+        time_limit: 30
+    };
+    
+    if (savedSettings) {
+        gameSettings = {...gameSettings, ...JSON.parse(savedSettings)};
+    }
+    
+    updateModeDisplay(gameSettings);
+}
+
+// Update the DOM ready event listener to include all initialization functions
+document.addEventListener('DOMContentLoaded', function() {
+    initializeGame();
+    initializeModeDisplay();
+    initializeScoreHandlers();
+});
