@@ -40,6 +40,19 @@
       "timestamp": "2025-06-11T20:25:08.862867"
     },
     {
+      "player_name": "benny boy",
+      "score": 25,
+      "accuracy": 40.0,
+      "correct_guesses": 2,
+      "total_rounds": 5,
+      "average_distance": 12825.6,
+      "best_distance": 0,
+      "difficulty": "easy",
+      "category": "all",
+      "date": "2025-06-18 20:25:36",
+      "timestamp": "2025-06-18T20:25:36.686985"
+    },
+    {
       "player_name": "dude 2",
       "score": 15,
       "accuracy": 20.0,
@@ -70,8 +83,8 @@
   "category": [],
   "speed": [],
   "all_time_stats": {
-    "total_games": 5,
-    "total_score": 177,
+    "total_games": 6,
+    "total_score": 202,
     "best_accuracy": 85.71428571428571
   }
 }

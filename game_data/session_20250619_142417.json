@@ -1,0 +1,86 @@
+{
+  "session_info": {
+    "session_id": "20250619_142417",
+    "start_time": "2025-06-19T14:24:17.542201",
+    "end_time": "2025-06-19T14:26:19.068988",
+    "total_games": 2,
+    "total_rounds": 0,
+    "total_guesses": 1
+  },
+  "games": [
+    {
+      "game_id": "20250619_142417_game_1",
+      "session_id": "20250619_142417",
+      "start_time": "2025-06-19T14:26:06.967892",
+      "end_time": null,
+      "configuration": {
+        "game_mode": "normal",
+        "difficulty": "easy",
+        "category": "all",
+        "max_rounds": 5
+      },
+      "rounds": [],
+      "total_score": 0,
+      "total_rounds": 0,
+      "correct_guesses": 0,
+      "hints_used": 0,
+      "average_response_time": 0,
+      "educational_interactions": 0
+    },
+    {
+      "game_id": "20250619_142417_game_2",
+      "session_id": "20250619_142417",
+      "start_time": "2025-06-19T14:26:19.068988",
+      "end_time": null,
+      "configuration": {
+        "game_mode": "normal",
+        "difficulty": "easy",
+        "category": "all",
+        "max_rounds": 5
+      },
+      "rounds": [],
+      "total_score": 0,
+      "total_rounds": 0,
+      "correct_guesses": 0,
+      "hints_used": 0,
+      "average_response_time": 0,
+      "educational_interactions": 0
+    }
+  ],
+  "rounds": [],
+  "guesses": [
+    {
+      "timestamp": "2025-06-19T14:26:16.639207",
+      "session_id": "20250619_142417",
+      "game_id": "20250619_142417_game_1",
+      "round_id": "unknown",
+      "guess_number": 1,
+      "target_word": "",
+      "target_token_id": 0,
+      "guess_word": "move",
+      "guess_token_id": 16366,
+      "token_distance": 88950,
+      "points_earned": 0,
+      "total_score": 0,
+      "response_time_ms": 0,
+      "hint_used": false,
+      "game_mode": "normal",
+      "difficulty": "mixed",
+      "category": "all",
+      "educational_context": "",
+      "accuracy_level": "poor",
+      "semantic_analysis": {
+        "relationship_type": "unknown",
+        "perceived_similarity": "medium",
+        "similarity_score": 0.5,
+        "frequency_difference": 0,
+        "alphabetical_closeness": 0,
+        "guess_category": "unknown"
+      }
+    }
+  ],
+  "hint_usage": [],
+  "educational_interactions": [],
+  "token_analysis": [],
+  "performance_metrics": []
+}
