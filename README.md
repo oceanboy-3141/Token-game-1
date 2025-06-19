@@ -1,26 +1,28 @@
 # 🎯 Token Quest
 
-A research-driven educational game that explores whether Large Language Models place semantically similar words similarly in token space. **Now exclusively running as a Flask web application** with advanced educational features.
+A research-driven educational game that explores whether Large Language Models place semantically similar words similarly in token space. **Flask web application** with advanced educational features and comprehensive research data collection.
 
-## 🆕 Latest Updates - v2.0 Educational Enhancement
+## 🆕 Latest Updates - v3.0 Flask Platform
 
-**📢 MAJOR UPDATE**: Token Quest has been transformed from a simple word-guessing game into a comprehensive **educational research tool** that teaches players about tokenization while collecting valuable linguistic data.
+**📢 MAJOR UPDATE**: Token Quest is now a fully-featured **Flask web application** with enhanced educational research capabilities, achievement system, and social features.
 
 ### 🎓 Educational Features
-- **📊 Interactive Token Space Visualization**: See exactly where words exist in the tokenizer's numerical space
-- **🧠 Contextual Learning System**: Every interaction teaches tokenization concepts
-- **💡 Progressive Discovery**: Journey from semantic understanding to token mechanics
-- **📚 Built-in Tokenization Education**: 10+ rotating facts about how AI processes language
-- **🔍 Pattern Recognition**: Learn why certain words have similar token IDs
+- **📊 Interactive Token Space Visualization**: Real-time visual representation of where words exist in tokenizer space
+- **🧠 Progressive Learning System**: Contextual education about tokenization concepts through gameplay
+- **💡 Three-Tier Discovery**: Journey from semantic understanding to token mechanics to AI internals
+- **📚 Built-in Tokenization Education**: 15+ rotating facts about how AI processes language
+- **🔍 Pattern Recognition Engine**: Learn why certain words have similar token IDs
+- **🎓 Achievement-Based Learning**: 25+ educational achievements across 7 categories
 
-### 🎮 Enhanced Gameplay
-- **Three-Tab Hint System**: 
-  - 🧠 **Semantic Hints**: Words with similar meanings
-  - 🔢 **Token Space Hints**: Words with nearby token IDs from the actual tokenizer
-  - 📚 **Educational Tab**: Interactive lessons about tokenization
+### 🎮 Enhanced Web Gameplay
+- **Advanced Hint System**: 
+  - 🧠 **Semantic Hints**: Words with similar meanings and contextual relationships
+  - 🔢 **Token Space Hints**: Words with nearby token IDs from actual tokenizer analysis
+  - 📚 **Educational Tab**: Interactive lessons about tokenization and AI language processing
 - **Visual Token Timeline**: Real-time positioning with color-coded distance indicators
-- **Smart Feedback**: "Why this happened" explanations for every guess
-- **Multiple Game Modes**: Classic, Antonym, Category-focused, and Random modes
+- **Smart Educational Feedback**: "Why this happened" explanations for every guess with AI insights
+- **Multiple Game Modes**: Classic Synonym Hunt, Antonym Challenge, Speed Mode, Category Focus, and Mixed Mode
+- **Social Features**: Leaderboards, achievements, and session sharing
 
 ## 🔬 Research Purpose
 
@@ -34,11 +36,11 @@ Token Quest investigates **semantic clustering in tokenization space** - a funda
 
 ### Prerequisites
 - Python 3.8+
-- Virtual environment (recommended)
+- Modern web browser (Chrome, Firefox, Safari, Edge)
 
 ### Installation & Launch
 
-#### Option 1: Standard Setup
+#### Option 1: Standard Web Setup (Recommended)
 1. **Clone and setup**:
    ```bash
    git clone [your-repo-url]
@@ -52,7 +54,7 @@ Token Quest investigates **semantic clustering in tokenization space** - a funda
    ```
    Open your browser to `http://localhost:5000`
 
-#### Option 2: Virtual Environment (Recommended)
+#### Option 2: Virtual Environment (Best Practice)
 1. **Create virtual environment**:
    ```bash
    python -m venv .venv
@@ -121,21 +123,22 @@ Share the displayed URL with friends on your network for multiplayer sessions!
 
 ```
 Token game/
-├── app.py                          # 🌐 Main Flask web application (333 lines)
+├── app.py                          # 🌐 Main Flask web application (491 lines)
 ├── run_network_game.py             # 🌐 Network/LAN hosting setup
-├── game_logic.py                   # 🎮 Core game mechanics & scoring (623 lines)
+├── game_logic.py                   # 🎮 Core game mechanics & scoring (703 lines)
 ├── token_handler.py                # 🔤 tiktoken integration & operations
-├── enhanced_data_collector.py      # 📊 Advanced research data logging (637 lines)
-├── achievements.py                 # 🏆 Achievement tracking system (327 lines)  
+├── enhanced_data_collector.py      # 📊 Advanced research data logging (646 lines)
+├── achievements.py                 # 🏆 Achievement tracking system (350 lines)  
 ├── leaderboard.py                  # 🏅 Leaderboard & social features (162 lines)
 ├── data_collector.py               # 📈 Basic data collection utilities
 ├── templates/                      # 🎨 HTML templates for web interface
 │   ├── home.html                   # 🏠 Landing page with mode selection
-│   ├── game.html                   # 🎮 Main game interface (515 lines)
+│   ├── game.html                   # 🎮 Main game interface
 │   ├── game_setup.html             # ⚙️ Game configuration screen
-│   ├── tutorial.html               # 🎓 Interactive tutorial (693 lines)
-│   ├── leaderboards.html           # 🏆 Leaderboard display (219 lines)
-│   ├── settings.html               # 🎨 Appearance & preferences (297 lines)
+│   ├── tutorial.html               # 🎓 Interactive tutorial
+│   ├── leaderboards.html           # 🏆 Leaderboard display
+│   ├── settings.html               # 🎨 Appearance & preferences
+│   ├── achievements.html           # 🏅 Achievement display
 │   └── base.html                   # 📄 Template foundation
 ├── static/                         # 💎 Web assets & styling
 │   ├── css/style.css              # 🎨 Advanced game styling
@@ -143,16 +146,10 @@ Token game/
 │   └── sounds/                    # 🔊 Audio feedback system
 ├── game_data/                      # 📁 Research data storage
 │   ├── session_*.json             # 📝 Individual game sessions
-│   ├── daily_log_*.json           # 📊 Daily aggregated analytics  
 │   ├── comprehensive_research_data_*.json  # 🔬 Research summaries
 │   ├── achievements.json          # 🏆 Player achievement progress
 │   └── leaderboard.json           # 🏅 High score rankings
-├── .venv/                          # 🐍 Virtual environment (recommended)
-├── requirements.txt                # 📦 Python dependencies
-└── [Planning Documents]/          # 📋 Development roadmaps & plans
-    ├── GAME_PLAN.md               # 🎯 Main project roadmap
-    ├── IMPROVEMENT_PLAN.md        # 🚀 Enhancement priorities
-    └── MEGA_PLAN.md               # 🌟 Long-term vision
+└── requirements.txt                # 📦 Python dependencies (Flask, tiktoken)
 ```
 
 ## 🧠 Game Mechanics & Scoring
@@ -194,11 +191,16 @@ Token Quest automatically logs comprehensive research data:
 - `game_data/session_[timestamp].json` - Individual session records
 - `game_data/achievements.json` - Player achievement progress
 - `game_data/leaderboard.json` - High score rankings across modes
-- `game_data/daily_log_[date].json` - Daily aggregated analytics
 - `game_data/comprehensive_research_data_[date].json` - Research summaries
 - **Export Functions**: CSV, JSON, and formatted text exports for analysis
 
 ## 🔧 Technical Implementation
+
+### Flask Web Framework
+- **Modern Web Interface**: Responsive design with mobile support
+- **Real-time Updates**: AJAX-powered gameplay without page refreshes
+- **Session Management**: Persistent player progress and achievements
+- **Multi-user Support**: Concurrent players with individual sessions
 
 ### Tokenization Engine
 - **Primary Encoding**: `o200k_base` (OpenAI's latest tokenizer)
@@ -213,9 +215,9 @@ Token Quest automatically logs comprehensive research data:
 - **Synonym/Antonym Pairs**: Structured for research analysis
 
 ### Educational Engine
-- **10+ Tokenization Facts**: Rotating educational content
+- **15+ Tokenization Facts**: Rotating educational content
 - **Pattern Recognition**: Automatic identification of word relationship patterns
-- **Contextual Explanations**: AI generates explanations for token similarities
+- **Contextual Explanations**: Dynamic explanations for token similarities
 - **Progressive Learning**: Adaptive educational content based on player progress
 
 ## 📈 Research Applications & Academic Value
@@ -236,16 +238,16 @@ Token Quest addresses several key research questions:
 
 ## 🚀 Development Roadmap & Upcoming Features
 
-### 🎯 Current Status: Phase 2.0 - Professional Platform
-Token Quest has successfully evolved from a simple prototype into a comprehensive educational research platform with:
-- ✅ **Complete Web Interface**: Fully functional Flask application
+### 🎯 Current Status: Phase 3.0 - Advanced Platform
+Token Quest has evolved into a comprehensive educational research platform with:
+- ✅ **Complete Flask Web Interface**: Professional web application
 - ✅ **Advanced Achievement System**: 25+ achievements across 7 categories  
 - ✅ **Social Features**: Leaderboards, player profiles, score tracking
 - ✅ **Educational Tools**: Interactive tutorial, progressive hint system
 - ✅ **Data Analytics**: Comprehensive research data collection
 - ✅ **Multi-Mode Gameplay**: 5 distinct game modes with difficulty scaling
 
-### 🚀 Phase 2.5: AI Research Acceleration (Next Priority)
+### 🚀 Phase 3.5: AI Research Acceleration (Next Priority)
 - **🤖 AI Player System**: Automated gameplay for large-scale data generation
   - Multiple AI strategies (random, semantic, token-based, hybrid)
   - Batch processing: Generate 1000+ game sessions overnight
@@ -254,9 +256,9 @@ Token Quest has successfully evolved from a simple prototype into a comprehensiv
 - **🔬 Pattern Discovery**: Automated semantic cluster identification
 - **📈 Research Export Tools**: Academic-ready data formatting
 
-### 🌟 Phase 3: Platform Evolution (6-12 Months)
-- **🎨 Material Design Overhaul**: Modern, responsive UI/UX
-- **📱 Mobile Application**: Native iOS/Android versions
+### 🌟 Phase 4: Platform Evolution (6-12 Months)
+- **🎨 Enhanced UI/UX**: Modern, responsive design improvements
+- **📱 Mobile Optimization**: Native mobile experience
 - **🌐 Multi-Language Support**: Tokenization across different languages
 - **🏫 Institutional Integration**: University/research partnerships
 - **🔗 API Development**: External research access and integration
@@ -294,11 +296,12 @@ Token Quest serves multiple educational purposes:
 ## 🎮 Getting Started Tips
 
 ### First-Time Players
-1. **Start with the Tutorial**: Meet Tokky the Token and learn the basics
-2. **Try Synonym Hunt**: Begin with the classic mode to understand token relationships
-3. **Explore Categories**: Pick your favorite semantic category (emotions work great!)
-4. **Use Hints Wisely**: The three-tab hint system teaches as you play
-5. **Track Progress**: Check your achievements and leaderboard position
+1. **Visit the Web Interface**: Open `http://localhost:5000` after running `python app.py`
+2. **Try the Tutorial**: Complete the interactive tutorial to understand the game mechanics
+3. **Start with Synonym Hunt**: Begin with the classic mode to understand token relationships
+4. **Explore Categories**: Pick your favorite semantic category (emotions work great!)
+5. **Use Hints Wisely**: The three-tab hint system teaches as you play
+6. **Track Progress**: Check your achievements and leaderboard position
 
 ### For Educators
 - **Demo Mode**: Use Speed Mode for quick classroom demonstrations
@@ -318,4 +321,4 @@ Token Quest serves multiple educational purposes:
 
 **Where Research Meets Gaming** - Token Quest proves that complex AI concepts can be both educational and entertaining. Every game you play contributes to advancing our understanding of how language models organize human language.
 
-*🎯 Ready to start your token adventure? Launch the game and discover how AI sees the world of words!* 
+*🎯 Ready to start your token adventure? Launch the Flask app and discover how AI sees the world of words!* 

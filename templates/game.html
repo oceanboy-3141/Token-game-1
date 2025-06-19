@@ -73,6 +73,11 @@
         </div>
     </div>
 
+    <!-- Achievement Notifications -->
+    <div id="achievement-notifications" class="achievement-notifications">
+        <!-- Achievement notifications will appear here -->
+    </div>
+
     <!-- Beautiful Progress Bar -->
     <div class="modern-progress-container">
         <div class="progress-bar-modern">
@@ -547,11 +552,197 @@
         justify-content: center;
     }
 }
+
+/* Achievement Notification Styles */
+.achievement-notifications {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.achievement-notification {
+    background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 8px 32px rgba(255, 215, 0, 0.3);
+    transform: translateX(400px);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: auto;
+    border: 2px solid #ffed4e;
+    min-width: 300px;
+    position: relative;
+    overflow: hidden;
+}
+
+.achievement-notification::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.achievement-notification.show {
+    transform: translateX(0);
+}
+
+.achievement-notification.hide {
+    transform: translateX(400px);
+    opacity: 0;
+}
+
+.achievement-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.achievement-icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.achievement-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.achievement-description {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-left: 2.75rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.achievement-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.achievement-close:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+@media (max-width: 768px) {
+    .achievement-notifications {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+    }
+    
+    .achievement-notification {
+        transform: translateY(-200px);
+        min-width: auto;
+    }
+    
+    .achievement-notification.show {
+        transform: translateY(0);
+    }
+    
+    .achievement-notification.hide {
+        transform: translateY(-200px);
+    }
+}
 </style>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+// Achievement notification system
+function showAchievementNotifications(achievements) {
+    if (!achievements || achievements.length === 0) return;
+    
+    achievements.forEach((achievement, index) => {
+        setTimeout(() => {
+            showAchievementNotification(achievement);
+        }, index * 500); // Stagger notifications
+    });
+}
+
+function showAchievementNotification(achievement) {
+    const container = document.getElementById('achievement-notifications');
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'achievement-notification';
+    notification.innerHTML = `
+        <button class="achievement-close" onclick="hideAchievementNotification(this.parentNode)">&times;</button>
+        <div class="achievement-header">
+            <div class="achievement-icon">${achievement.icon}</div>
+            <div class="achievement-title">🏆 Achievement Unlocked!</div>
+        </div>
+        <div class="achievement-description">
+            <strong>${achievement.name}</strong><br>
+            ${achievement.description}
+        </div>
+    `;
+    
+    // Add to container
+    container.appendChild(notification);
+    
+    // Trigger show animation
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        hideAchievementNotification(notification);
+    }, 5000);
+    
+    // Play achievement sound if available
+    playAchievementSound();
+}
+
+function hideAchievementNotification(notification) {
+    notification.classList.add('hide');
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 500);
+}
+
+function playAchievementSound() {
+    // Try to play achievement sound
+    try {
+        const audio = new Audio('/static/sounds/achievement.mp3');
+        audio.volume = 0.3;
+        audio.play().catch(() => {
+            // Ignore if sound fails to play
+        });
+    } catch (e) {
+        // Ignore if sound not available
+    }
+}
+
 // Initialize the game when page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🎮 Token Quest Web Version Loaded!');

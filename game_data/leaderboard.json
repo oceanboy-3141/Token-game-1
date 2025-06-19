@@ -40,6 +40,19 @@
       "timestamp": "2025-06-11T20:25:08.862867"
     },
     {
+      "player_name": "dude 2",
+      "score": 15,
+      "accuracy": 20.0,
+      "correct_guesses": 1,
+      "total_rounds": 5,
+      "average_distance": 41952.4,
+      "best_distance": 0,
+      "difficulty": "easy",
+      "category": "all",
+      "date": "2025-06-18 17:08:56",
+      "timestamp": "2025-06-18T17:08:56.698598"
+    },
+    {
       "player_name": "OceanBoy",
       "score": 9,
       "accuracy": 16.666666666666664,
@@ -57,8 +70,8 @@
   "category": [],
   "speed": [],
   "all_time_stats": {
-    "total_games": 4,
-    "total_score": 162,
+    "total_games": 5,
+    "total_score": 177,
     "best_accuracy": 85.71428571428571
   }
 }

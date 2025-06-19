@@ -133,39 +133,38 @@ def leaderboards():
                          leaderboard_data=leaderboard_data,
                          stats=stats)
 
+@app.route('/achievements')
+def achievements():
+    return render_template('achievements.html')
+
 @app.route('/api/start_game', methods=['POST'])
 def start_game():
-    """Start a new game round"""
+    """Start a new game"""
     game_session = get_or_create_game_session()
     game_logic = game_session['game_logic']
     data_collector = game_session['data_collector']
+    achievement_manager = game_session['achievement_manager']
     
-    # Apply any settings from the request
-    settings = request.json or {}
-    if settings:
-        game_session['settings'].update(settings)
-        # Update game logic with new settings
-        final_game_mode = settings.get('game_mode', 'normal')
-        # If speed mode is enabled, use speed as the game mode
-        if settings.get('is_speed_mode', False):
-            final_game_mode = 'speed'
-        
-        game_logic.change_game_settings(
-            game_mode=final_game_mode,
-            difficulty=settings.get('difficulty', 'mixed'),
-            category=settings.get('category', 'all')
-        )
-        
-        # Set time limit for speed mode
-        if settings.get('is_speed_mode', False) and settings.get('time_limit'):
-            game_logic.time_limit = settings.get('time_limit', 30)
+    data = request.json or {}
+    game_mode = data.get('game_mode', 'normal')
+    difficulty = data.get('difficulty', 'mixed')
+    category = data.get('category', 'all')
+    rounds = data.get('rounds', 10)
+    
+    # Update game settings including max_rounds
+    game_logic.change_game_settings(game_mode, difficulty, category)
+    game_logic.max_rounds = rounds  # Update max_rounds
+    
+    # Update session settings
+    game_session['settings'] = {
+        'game_mode': game_mode,
+        'difficulty': difficulty,
+        'category': category,
+        'rounds': rounds
+    }
     
     try:
-        # Update max_rounds in game logic if provided
-        if settings.get('rounds'):
-            game_logic.max_rounds = settings.get('rounds')
-        
-        # Start new round using existing logic
+        # Start new round
         round_info = game_logic.start_new_round()
         
         # Check if there was an error starting the round
@@ -175,25 +174,39 @@ def start_game():
                 'error': round_info['error']
             })
         
-        # Log the round start
-        if round_info.get('current_round') == 1:
-            # Log game start on first round
-            game_config = {
-                'game_mode': final_game_mode,
-                'difficulty': settings.get('difficulty', 'mixed'),
-                'category': settings.get('category', 'all'),
-                'max_rounds': round_info.get('max_rounds', 10)
-            }
-            data_collector.log_game_start(game_config)
+        # Track achievement events
+        newly_unlocked = []
+        newly_unlocked.extend(achievement_manager.track_game_event("game_started"))
+        if category != 'all':
+            newly_unlocked.extend(achievement_manager.track_game_event("category_played", category=category))
         
-        # Log round start
-        data_collector.log_round_start(round_info)
+        # Log game start in data collector
+        game_config = {
+            'game_mode': game_mode,
+            'difficulty': difficulty,
+            'category': category,
+            'max_rounds': rounds
+        }
+        data_collector.log_game_start(game_config)
         
-        return jsonify({
+        # Prepare response
+        response = {
             'success': True,
             'round_info': round_info,
-            'settings': game_session['settings']
-        })
+            'settings': game_session['settings'],
+            'newly_unlocked_achievements': [
+                {
+                    'id': ach.id,
+                    'name': ach.name,
+                    'description': ach.description,
+                    'icon': ach.icon,
+                    'category': ach.category
+                }
+                for ach in newly_unlocked
+            ]
+        }
+        
+        return jsonify(response)
         
     except Exception as e:
         return jsonify({
@@ -203,18 +216,55 @@ def start_game():
 
 @app.route('/api/submit_guess', methods=['POST'])
 def submit_guess():
-    """Submit a guess"""
+    """Submit a guess and get results"""
     game_session = get_or_create_game_session()
     game_logic = game_session['game_logic']
     data_collector = game_session['data_collector']
+    achievement_manager = game_session['achievement_manager']
     
-    guess_word = request.json.get('guess', '').strip()
+    guess_word = request.json.get('guess', '').strip().lower()
     
     if not guess_word:
-        return jsonify({'success': False, 'error': 'No guess provided'})
+        return jsonify({
+            'success': False,
+            'error': 'No guess provided',
+            'result': {}
+        })
     
-    # Use existing game logic
+    # Submit guess to game logic
     result = game_logic.submit_guess(guess_word)
+    
+    # Track achievement events
+    newly_unlocked = []
+    
+    if result.get('valid_guess'):
+        # Track word tried
+        newly_unlocked.extend(achievement_manager.track_game_event("word_tried", word=guess_word))
+        
+        # Track guess quality
+        feedback = result.get('feedback', '')
+        distance = result.get('distance', float('inf'))
+        first_guess = game_logic.current_attempts == 1
+        
+        if feedback == 'Perfect!' or distance <= 1:
+            newly_unlocked.extend(achievement_manager.track_game_event("perfect_guess", first_guess_of_round=first_guess))
+        elif feedback == 'Excellent!' or distance <= 10:
+            newly_unlocked.extend(achievement_manager.track_game_event("excellent_guess"))
+        else:
+            newly_unlocked.extend(achievement_manager.track_game_event("incorrect_guess"))
+        
+        # Check for game completion
+        if result.get('game_ended'):
+            game_stats = game_logic.get_final_results()
+            score = game_stats.get('total_score', 0)
+            mode = game_logic.game_mode
+            
+            newly_unlocked.extend(achievement_manager.track_game_event(
+                "game_won", 
+                mode=mode, 
+                score=score,
+                comeback=False  # TODO: Add comeback detection logic
+            ))
     
     # Log data using existing system
     if result.get('valid_guess'):
@@ -235,7 +285,17 @@ def submit_guess():
     
     return jsonify({
         'success': True,
-        'result': result
+        'result': result,
+        'newly_unlocked_achievements': [
+            {
+                'id': ach.id,
+                'name': ach.name,
+                'description': ach.description,
+                'icon': ach.icon,
+                'category': ach.category
+            }
+            for ach in newly_unlocked
+        ]
     })
 
 @app.route('/api/get_hint', methods=['GET'])
@@ -243,8 +303,24 @@ def get_hint():
     """Get hint for current round"""
     game_session = get_or_create_game_session()
     game_logic = game_session['game_logic']
+    achievement_manager = game_session['achievement_manager']
     
     hint_info = game_logic.get_hint()
+    
+    # Track hint viewed achievement
+    newly_unlocked = achievement_manager.track_game_event("hint_viewed")
+    
+    hint_info['newly_unlocked_achievements'] = [
+        {
+            'id': ach.id,
+            'name': ach.name,
+            'description': ach.description,
+            'icon': ach.icon,
+            'category': ach.category
+        }
+        for ach in newly_unlocked
+    ]
+    
     return jsonify(hint_info)
 
 @app.route('/api/game_status', methods=['GET'])
@@ -272,9 +348,24 @@ def get_achievements():
     game_session = get_or_create_game_session()
     achievement_manager = game_session['achievement_manager']
     
+    # Get unlocked achievements as dictionaries
+    unlocked_achievements = [
+        {
+            'id': ach.id,
+            'name': ach.name,
+            'description': ach.description,
+            'icon': ach.icon,
+            'category': ach.category,
+            'unlocked': ach.unlocked,
+            'unlock_date': ach.unlock_date
+        }
+        for ach in achievement_manager.get_unlocked_achievements()
+    ]
+    
     return jsonify({
         'achievements': achievement_manager.get_all_achievements(),
-        'unlocked': achievement_manager.get_unlocked_achievements()
+        'unlocked': unlocked_achievements,
+        'stats': achievement_manager.get_stats_summary()
     })
 
 @app.route('/api/submit_score', methods=['POST'])
@@ -283,6 +374,7 @@ def submit_score():
     game_session = get_or_create_game_session()
     game_logic = game_session['game_logic']
     leaderboard = game_session['leaderboard']
+    achievement_manager = game_session['achievement_manager']
     
     data = request.json
     player_name = data.get('player_name', '').strip()
@@ -307,6 +399,9 @@ def submit_score():
     try:
         rank = leaderboard.add_score(player_name, final_results)
         
+        # Track leaderboard submission achievement
+        newly_unlocked = achievement_manager.track_game_event("leaderboard_submission")
+        
         return jsonify({
             'success': True,
             'rank': rank,
@@ -314,7 +409,17 @@ def submit_score():
             'is_high_score': leaderboard.is_high_score(
                 final_results['total_score'], 
                 final_results.get('game_mode', 'normal')
-            )
+            ),
+            'newly_unlocked_achievements': [
+                {
+                    'id': ach.id,
+                    'name': ach.name,
+                    'description': ach.description,
+                    'icon': ach.icon,
+                    'category': ach.category
+                }
+                for ach in newly_unlocked
+            ]
         })
     
     except Exception as e:

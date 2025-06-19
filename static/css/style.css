@@ -339,6 +339,16 @@ body {
 .mode-card.speed {
     background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
     color: white;
+    animation: speedPulse 3s ease-in-out infinite;
+}
+
+@keyframes speedPulse {
+    0%, 100% { 
+        box-shadow: var(--shadow), 0 0 0 0 rgba(91, 134, 229, 0.4);
+    }
+    50% { 
+        box-shadow: var(--shadow), 0 0 0 10px rgba(91, 134, 229, 0);
+    }
 }
 
 .mode-card.tutorial {
@@ -357,10 +367,50 @@ body {
     box-shadow: 0 12px 30px rgba(255, 140, 0, 0.3);
 }
 
+.mode-card.achievements {
+    background: linear-gradient(135deg, #9d4edd, #7209b7);
+    border: 2px solid #5a189a;
+    color: white;
+    position: relative;
+}
+
+.mode-card.achievements::after {
+    content: '✨';
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    opacity: 0.7;
+    animation: sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+    0%, 100% { 
+        opacity: 0.7; 
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 1; 
+        transform: scale(1.2);
+    }
+}
+
+.mode-card.achievements:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(157, 78, 221, 0.4);
+}
+
 .mode-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
     display: block;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.mode-card:hover .mode-icon {
+    transform: scale(1.1) rotate(5deg);
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
 }
 
 .mode-title {
@@ -1420,4 +1470,7 @@ body {
     .score-details {
         grid-template-columns: 1fr;
     }
-} 
+}
+
+/* ===== ACHIEVEMENTS GRID LAYOUT ===== */
+/* Achievement cards are now handled in the template CSS for better organization */ 

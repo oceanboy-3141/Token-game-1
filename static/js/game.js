@@ -249,6 +249,12 @@ async function startNewGame() {
             gameState.currentTargetWord = data.round_info.target_word;
             gameState.currentTargetTokenId = data.round_info.target_token_id;
             gameState.attemptsLeft = data.round_info.attempts_left;
+            gameState.gameCompleted = false;
+            
+            // Show achievement notifications if any
+            if (data.newly_unlocked_achievements && data.newly_unlocked_achievements.length > 0) {
+                showAchievementNotifications(data.newly_unlocked_achievements);
+            }
             
             // Update mode display with current settings
             updateModeDisplay(data.settings || gameSettings);
@@ -294,9 +300,7 @@ async function submitGuess() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                guess: guess
-            })
+            body: JSON.stringify({ guess: guess })
         });
         
         const data = await response.json();
@@ -310,11 +314,16 @@ async function submitGuess() {
             }
             
             // Update game state
+            gameState.attemptsLeft = data.result.attempts_left || 0;
             gameState.score = data.result.total_score || gameState.score;
-            gameState.attemptsLeft = data.result.attempts_left;
             
             if (data.result.correct) {
                 gameState.correctGuesses++;
+            }
+            
+            // Show achievement notifications if any
+            if (data.newly_unlocked_achievements && data.newly_unlocked_achievements.length > 0) {
+                showAchievementNotifications(data.newly_unlocked_achievements);
             }
             
             // Show result
@@ -539,6 +548,11 @@ async function showHintModal() {
         
         if (data) {
             console.log('💡 Hint data received:', data);
+            
+            // Show achievement notifications if any
+            if (data.newly_unlocked_achievements && data.newly_unlocked_achievements.length > 0) {
+                showAchievementNotifications(data.newly_unlocked_achievements);
+            }
             
             // Show modal
             elements.hintModal.style.display = 'flex';
@@ -982,6 +996,11 @@ function initializeScoreHandlers() {
                 if (data.success) {
                     // Save player name
                     localStorage.setItem('player-name', playerName);
+                    
+                    // Show achievement notifications if any
+                    if (data.newly_unlocked_achievements && data.newly_unlocked_achievements.length > 0) {
+                        showAchievementNotifications(data.newly_unlocked_achievements);
+                    }
                     
                     let resultHTML = `
                         <div class="success">

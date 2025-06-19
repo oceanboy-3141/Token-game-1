@@ -87,10 +87,11 @@ class AchievementManager:
         self._add_achievement("comeback_kid", "Comeback Kid", "Win a game after being behind at halftime", "💪", "special", 1)
         self._add_achievement("night_owl", "Night Owl", "Play 10 games after 10 PM", "🦉", "special", 10)
         self._add_achievement("early_bird", "Early Bird", "Play 10 games before 6 AM", "🐦", "special", 10)
+        self._add_achievement("speed_demon", "Speed Demon", "Complete a game in under 2 minutes", "⚡", "special", 1)
         
         # Score Achievements
         self._add_achievement("high_scorer", "High Scorer", "Score 8000+ points in a single game", "💯", "score", 8000)
-        self._add_achievement("point_collector", "Point Collector", "Accumulate 50,000 total points", "💰", "score", 50000)
+        self._add_achievement("point_collector", "Point Collector", "Accumulate 50,000 total points", "��", "score", 50000)
         
         # Social Achievements
         self._add_achievement("leaderboard_climber", "Leaderboard Climber", "Submit 5 scores to leaderboard", "🏔️", "social", 5)
@@ -172,7 +173,7 @@ class AchievementManager:
             self.stats['max_correct_streak'] = max(self.stats['max_correct_streak'], self.stats['correct_streak'])
             
             if kwargs.get('first_guess_of_round', False):
-                newly_unlocked.extend(self._check_achievement_unlock('lucky_shot'))
+                newly_unlocked.extend(self._check_achievement_unlock('lucky_shot', 1))
         
         elif event_type == "excellent_guess":
             self.stats['excellents'] += 1
@@ -208,6 +209,10 @@ class AchievementManager:
             
             score = kwargs.get('score', 0)
             self.stats['total_score'] += score
+            
+            # Check for high scorer achievement (8000+ in single game)
+            if score >= 8000:
+                newly_unlocked.extend(self._check_achievement_unlock('high_scorer', 1))
             
             if kwargs.get('comeback', False):
                 self.stats['comeback_wins'] += 1
@@ -295,6 +300,24 @@ class AchievementManager:
     
     def get_unlocked_achievements(self) -> List[Achievement]:
         return [ach for ach in self.achievements.values() if ach.unlocked]
+    
+    def get_all_achievements(self) -> List[Dict]:
+        """Get all achievements with their data"""
+        return [
+            {
+                'id': ach.id,
+                'name': ach.name,
+                'description': ach.description,
+                'icon': ach.icon,
+                'category': ach.category,
+                'progress': ach.progress,
+                'target': ach.target_value,
+                'unlocked': ach.unlocked,
+                'unlock_date': ach.unlock_date,
+                'percentage': min(100, (ach.progress / ach.target_value) * 100)
+            }
+            for ach in self.achievements.values()
+        ]
     
     def get_achievement_progress(self, achievement_id: str) -> Dict:
         if achievement_id not in self.achievements:

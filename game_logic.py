@@ -207,6 +207,8 @@ class GameLogic:
             
             # Check if game should end after this round
             game_ended = self.round_number >= self.max_rounds
+            if game_ended:
+                self.game_completed = True
             
             # Record this guess
             guess_record = {
@@ -280,6 +282,11 @@ class GameLogic:
                 
                 self.game_history.append(guess_record)
                 
+                # Check if game should end after this round  
+                game_ended = self.round_number >= self.max_rounds
+                if game_ended:
+                    self.game_completed = True
+                
                 return {
                     'valid_guess': True,
                     'guess_word': guess_word,
@@ -306,7 +313,7 @@ class GameLogic:
                     'attempts_used': self.current_attempts,
                     'attempts_left': self.max_attempts - self.current_attempts,
                     'max_attempts_reached': self.current_attempts >= self.max_attempts,
-                    'game_ended': self.round_number >= self.max_rounds,
+                    'game_ended': game_ended,
                     'educational_explanation': f"'{guess_word}' is a valid word in our game vocabulary!",
                     'token_fact': self.token_handler.get_random_token_fact()
                 }
@@ -597,13 +604,14 @@ class GameLogic:
                 'total_score': self.score
             }
         
-        distances = [record['distance'] for record in self.game_history]
+        # Filter out None distances
+        distances = [record['distance'] for record in self.game_history if record['distance'] is not None]
         
         return {
             'total_rounds': len(self.game_history),
-            'average_distance': sum(distances) / len(distances),
-            'best_distance': min(distances),
-            'worst_distance': max(distances),
+            'average_distance': sum(distances) / len(distances) if distances else 0,
+            'best_distance': min(distances) if distances else 0,
+            'worst_distance': max(distances) if distances else 0,
             'total_score': self.score,
             'current_round': self.round_number
         }
@@ -620,18 +628,26 @@ class GameLogic:
     
     def get_final_results(self) -> Dict:
         """Get final game results summary."""
+        # Check if game is completed either by flag or by reaching max rounds
         if not self.game_completed and self.round_number < self.max_rounds:
             return {'error': 'Game not completed yet'}
         
+        # Force completion if we've reached max rounds but flag isn't set
+        if self.round_number >= self.max_rounds and not self.game_completed:
+            self.game_completed = True
+        
         accuracy = (self.correct_guesses / max(1, len(self.game_history))) * 100
+        
+        # Calculate distance metrics, filtering out None values
+        distances = [r['distance'] for r in self.game_history if r['distance'] is not None]
         
         return {
             'total_score': self.score,
             'correct_guesses': self.correct_guesses,
             'total_rounds': len(self.game_history),
             'accuracy': accuracy,
-            'average_distance': sum(r['distance'] for r in self.game_history) / max(1, len(self.game_history)),
-            'best_distance': min(r['distance'] for r in self.game_history) if self.game_history else 0,
+            'average_distance': sum(distances) / max(1, len(distances)) if distances else 0,
+            'best_distance': min(distances) if distances else 0,
             'game_completed': self.game_completed,
             'game_mode': self.game_mode,
             'difficulty': self.difficulty,
