@@ -15,6 +15,7 @@ from enhanced_data_collector import EnhancedDataCollector
 from achievements import AchievementManager
 from leaderboard import Leaderboard
 from token_handler import TokenHandler
+from config import SecurityConfig, CloudRunConfig
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # SECURITY FIX: Use environment variable or generate secure random key
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
+app.secret_key = SecurityConfig.SECRET_KEY if SecurityConfig.SECRET_KEY != 'dev-key-change-in-production' else secrets.token_hex(32)
 
 # Global storage for active games (in production, use Redis or database)
 active_games = {}
@@ -168,6 +169,12 @@ def sanitize_file_path(path):
     # Ensure it's a safe filename
     path = re.sub(r'[<>:"|?*]', '', path)
     return path
+
+# Health check endpoint for Cloud Run
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Cloud Run"""
+    return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()}), 200
 
 #home page
 @app.route('/')
@@ -669,4 +676,8 @@ def new_game():
     return jsonify({'success': True})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    # For Cloud Run, we need to listen on the port provided by the PORT environment variable
+    port = CloudRunConfig.PORT
+    # Use debug=False for production
+    debug = not CloudRunConfig.IS_PRODUCTION
+    app.run(debug=debug, host='0.0.0.0', port=port) 

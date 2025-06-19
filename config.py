@@ -2,6 +2,7 @@
 Configuration Module for Token Quest
 Centralized configuration settings to avoid hardcoded values throughout the codebase
 """
+import os
 
 class GameConfig:
     """Game-related configuration settings"""
@@ -72,6 +73,9 @@ class SecurityConfig:
     # Rate limiting (if implemented)
     MAX_REQUESTS_PER_MINUTE = 60
     
+    # Flask secret key (use environment variable in production)
+    SECRET_KEY = os.environ.get('FLASK_SECRET_KEY', 'dev-key-change-in-production')
+
 class LoggingConfig:
     """Logging configuration"""
     DEFAULT_LEVEL = 'INFO'
@@ -79,4 +83,24 @@ class LoggingConfig:
     
     # Log file settings
     MAX_LOG_FILE_SIZE_MB = 10
-    MAX_LOG_FILES = 5 
+    MAX_LOG_FILES = 5
+
+class CloudRunConfig:
+    """Cloud Run specific configuration"""
+    # Port configuration
+    PORT = int(os.environ.get('PORT', 8080))
+    
+    # Environment detection
+    IS_PRODUCTION = os.environ.get('FLASK_ENV') == 'production'
+    
+    # Resource limits
+    MEMORY_LIMIT = '1Gi'
+    CPU_LIMIT = '1'
+    MAX_INSTANCES = 10
+    CONCURRENCY = 80
+    
+    # Timeout settings
+    REQUEST_TIMEOUT = 300  # 5 minutes
+    
+    # Health check settings
+    HEALTH_CHECK_PATH = '/health' 
