@@ -4,7 +4,7 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV FLASK_APP=app.py
+ENV FLASK_APP=main.py
 ENV FLASK_ENV=production
 
 # Set work directory
@@ -36,4 +36,4 @@ RUN chmod 755 game_data
 EXPOSE 8080
 
 # Use gunicorn to serve the application
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 app:app 
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app 
