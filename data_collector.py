@@ -1,177 +1,176 @@
 """
-Data Collector Module
-Handles data logging and export for research analysis
+Data Collection Module for Token Quest
+Basic data collection and logging functionality
 """
-import json
 import csv
+import json
+import logging
 import os
 from datetime import datetime
 from typing import List, Dict
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
 
 class DataCollector:
-    def __init__(self, data_dir: str = "game_data"):
+    def __init__(self, data_dir: str):
         self.data_dir = data_dir
-        self.session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.session_data = []
-        
-        # Create data directory if it doesn't exist
+        self.daily_log_file = os.path.join(data_dir, f"daily_log_{datetime.now().strftime('%Y%m%d')}.json")
         os.makedirs(data_dir, exist_ok=True)
+        
+        # Initialize daily log structure
+        self.daily_data = self._load_daily_log()
     
-    def log_guess(self, guess_data: Dict):
-        """Log a single guess with timestamp."""
-        log_entry = {
-            'session_id': self.session_id,
-            'timestamp': datetime.now().isoformat(),
-            **guess_data
-        }
-        
-        self.session_data.append(log_entry)
-        
-        # Also append to daily log file
-        daily_file = os.path.join(
-            self.data_dir, 
-            f"daily_log_{datetime.now().strftime('%Y%m%d')}.json"
-        )
-        
-        # Read existing data
-        existing_data = []
-        if os.path.exists(daily_file):
+    def _load_daily_log(self) -> Dict:
+        """Load existing daily log or create new one."""
+        if os.path.exists(self.daily_log_file):
             try:
-                with open(daily_file, 'r') as f:
-                    existing_data = json.load(f)
-            except:
-                existing_data = []
-        
-        # Append new entry
-        existing_data.append(log_entry)
-        
-        # Write back
-        with open(daily_file, 'w') as f:
-            json.dump(existing_data, f, indent=2)
+                with open(self.daily_log_file, 'r') as f:
+                    return json.load(f)
+            except json.JSONDecodeError as e:
+                logger.error(f"Error reading daily log file {self.daily_log_file}: {e}")
+                return self._create_empty_log()
+            except Exception as e:
+                logger.error(f"Unexpected error reading daily log file {self.daily_log_file}: {e}")
+                return self._create_empty_log()
+        else:
+            return self._create_empty_log()
     
-    def save_session(self):
-        """Save current session data to a dedicated file."""
-        session_file = os.path.join(
-            self.data_dir, 
-            f"session_{self.session_id}.json"
-        )
+    def _create_empty_log(self) -> Dict:
+        """Create empty daily log structure."""
+        return {
+            'date': datetime.now().strftime('%Y-%m-%d'),
+            'games': [],
+            'total_games': 0,
+            'total_score': 0,
+            'total_guesses': 0,
+            'perfect_guesses': 0
+        }
+    
+    def _save_daily_log(self):
+        """Save daily log to file."""
+        try:
+            with open(self.daily_log_file, 'w') as f:
+                json.dump(self.daily_data, f, indent=2)
+        except Exception as e:
+            logger.error(f"Error saving daily log: {e}")
+    
+    def log_game_start(self, game_config: Dict):
+        """Log the start of a new game."""
+        game_id = f"game_{len(self.daily_data['games']) + 1}_{datetime.now().strftime('%H%M%S')}"
         
-        session_summary = {
-            'session_id': self.session_id,
-            'start_time': self.session_data[0]['timestamp'] if self.session_data else None,
-            'end_time': datetime.now().isoformat(),
-            'total_guesses': len(self.session_data),
-            'guesses': self.session_data
+        game_entry = {
+            'game_id': game_id,
+            'start_time': datetime.now().isoformat(),
+            'config': game_config,
+            'rounds': [],
+            'completed': False
         }
         
-        with open(session_file, 'w') as f:
-            json.dump(session_summary, f, indent=2)
+        self.daily_data['games'].append(game_entry)
+        self._save_daily_log()
         
-        return session_file
+        return game_id
     
-    def export_to_csv(self, filename: str = None):
-        """Export session data to CSV for analysis."""
+    def log_round(self, game_id: str, round_data: Dict):
+        """Log a round result."""
+        # Find the game
+        game = next((g for g in self.daily_data['games'] if g['game_id'] == game_id), None)
+        if not game:
+            return
+        
+        round_entry = {
+            'round_number': len(game['rounds']) + 1,
+            'target_word': round_data.get('target_word', ''),
+            'guess': round_data.get('guess', ''),
+            'distance': round_data.get('distance', 0),
+            'points': round_data.get('points', 0),
+            'correct': round_data.get('correct', False),
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        game['rounds'].append(round_entry)
+        
+        # Update daily stats
+        self.daily_data['total_guesses'] += 1
+        if round_entry['correct']:
+            self.daily_data['perfect_guesses'] += 1
+        
+        self._save_daily_log()
+    
+    def log_game_completion(self, game_id: str, final_results: Dict):
+        """Log game completion."""
+        # Find the game
+        game = next((g for g in self.daily_data['games'] if g['game_id'] == game_id), None)
+        if not game:
+            return
+        
+        game['completed'] = True
+        game['end_time'] = datetime.now().isoformat()
+        game['final_results'] = final_results
+        
+        # Update daily totals
+        self.daily_data['total_games'] += 1
+        self.daily_data['total_score'] += final_results.get('total_score', 0)
+        
+        self._save_daily_log()
+    
+    def export_to_csv(self, filename: str = None) -> str:
+        """Export collected data to CSV."""
         if not filename:
-            filename = f"token_game_data_{self.session_id}.csv"
+            filename = f"token_quest_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         
-        csv_file = os.path.join(self.data_dir, filename)
+        filepath = os.path.join(self.data_dir, filename)
         
-        if not self.session_data:
-            return None
-        
-        # Define CSV headers
-        headers = [
-            'session_id', 'timestamp', 'round', 'target_word', 'target_token_id',
-            'guess_word', 'guess_token_id', 'distance', 'round_score', 'total_score'
-        ]
-        
-        with open(csv_file, 'w', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=headers)
-            writer.writeheader()
+        with open(filepath, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
             
-            for entry in self.session_data:
-                # Flatten the data for CSV
-                csv_row = {
-                    'session_id': entry['session_id'],
-                    'timestamp': entry['timestamp'],
-                    'round': entry['round'],
-                    'target_word': entry['target_word'],
-                    'target_token_id': entry['target_token_id'],
-                    'guess_word': entry['guess_word'],
-                    'guess_token_id': entry['guess_token_id'],
-                    'distance': entry['distance'],
-                    'round_score': entry['round_score'],
-                    'total_score': entry['total_score']
-                }
-                writer.writerow(csv_row)
+            # Write header
+            writer.writerow([
+                'game_id', 'round_number', 'target_word', 'guess',
+                'distance', 'points', 'correct', 'timestamp'
+            ])
+            
+            # Write data
+            for game in self.daily_data['games']:
+                for round_data in game.get('rounds', []):
+                    writer.writerow([
+                        game['game_id'],
+                        round_data['round_number'],
+                        round_data['target_word'],
+                        round_data['guess'],
+                        round_data['distance'],
+                        round_data['points'],
+                        round_data['correct'],
+                        round_data['timestamp']
+                    ])
         
-        return csv_file
+        return filepath
     
-    def get_research_summary(self) -> Dict:
-        """Generate a summary for research analysis."""
-        if not self.session_data:
-            return {'error': 'No data collected'}
+    def get_daily_summary(self) -> Dict:
+        """Get summary of today's data."""
+        completed_games = [g for g in self.daily_data['games'] if g.get('completed', False)]
         
-        # Calculate research metrics
-        distances = [entry['distance'] for entry in self.session_data]
+        if not completed_games:
+            return {
+                'date': self.daily_data['date'],
+                'total_games': 0,
+                'average_score': 0,
+                'accuracy_rate': 0,
+                'total_rounds': 0
+            }
         
-        # Analyze synonym patterns
-        word_pairs = []
-        for entry in self.session_data:
-            word_pairs.append({
-                'target': entry['target_word'],
-                'guess': entry['guess_word'],
-                'distance': entry['distance'],
-                'semantic_closeness': self._estimate_semantic_closeness(entry['distance'])
-            })
+        total_score = sum(g['final_results'].get('total_score', 0) for g in completed_games)
+        total_rounds = sum(len(g.get('rounds', [])) for g in completed_games)
+        correct_guesses = sum(1 for g in completed_games for r in g.get('rounds', []) if r.get('correct', False))
         
         return {
-            'session_summary': {
-                'total_guesses': len(self.session_data),
-                'unique_targets': len(set(entry['target_word'] for entry in self.session_data)),
-                'average_distance': sum(distances) / len(distances),
-                'min_distance': min(distances),
-                'max_distance': max(distances),
-                'median_distance': sorted(distances)[len(distances)//2]
-            },
-            'word_pairs': word_pairs,
-            'distance_distribution': self._get_distance_distribution(distances)
-        }
-    
-    def _estimate_semantic_closeness(self, distance: int) -> str:
-        """Estimate semantic closeness based on token distance."""
-        if distance <= 10:
-            return "very_close"
-        elif distance <= 50:
-            return "close"
-        elif distance <= 100:
-            return "moderate"
-        elif distance <= 500:
-            return "distant"
-        else:
-            return "very_distant"
-    
-    def _get_distance_distribution(self, distances: List[int]) -> Dict:
-        """Get distribution of distances for analysis."""
-        distribution = {
-            'very_close': 0,    # 0-10
-            'close': 0,         # 11-50
-            'moderate': 0,      # 51-100
-            'distant': 0,       # 101-500
-            'very_distant': 0   # 500+
-        }
-        
-        for distance in distances:
-            if distance <= 10:
-                distribution['very_close'] += 1
-            elif distance <= 50:
-                distribution['close'] += 1
-            elif distance <= 100:
-                distribution['moderate'] += 1
-            elif distance <= 500:
-                distribution['distant'] += 1
-            else:
-                distribution['very_distant'] += 1
-        
-        return distribution 
+            'date': self.daily_data['date'],
+            'total_games': len(completed_games),
+            'average_score': total_score / len(completed_games) if completed_games else 0,
+            'accuracy_rate': (correct_guesses / total_rounds * 100) if total_rounds > 0 else 0,
+            'total_rounds': total_rounds,
+            'total_guesses': self.daily_data['total_guesses'],
+            'perfect_guesses': self.daily_data['perfect_guesses']
+        } 

@@ -1,162 +1,234 @@
 """
-Leaderboard Module
-Tracks high scores and statistics across different game modes
+Leaderboard System for Token Quest
+Manages high scores, player rankings, and competitive features
 """
 import json
+import logging
 import os
 from datetime import datetime
 from typing import List, Dict
 
+from file_lock_utils import safe_json_write, safe_json_read
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 
 class Leaderboard:
-    def __init__(self, data_dir: str = "game_data"):
-        self.data_dir = data_dir
-        self.leaderboard_file = os.path.join(data_dir, "leaderboard.json")
+    def __init__(self, leaderboard_file='game_data/leaderboard.json'):
+        self.leaderboard_file = leaderboard_file
         self.leaderboard_data = self._load_leaderboard()
-        
-        # Ensure data directory exists
-        os.makedirs(data_dir, exist_ok=True)
     
     def _load_leaderboard(self) -> Dict:
-        """Load leaderboard data from file."""
-        if os.path.exists(self.leaderboard_file):
-            try:
-                with open(self.leaderboard_file, 'r') as f:
-                    return json.load(f)
-            except:
-                pass
-        
-        # Default structure for new leaderboard
-        return {
-            'normal': [],
-            'antonym': [],
-            'category': [],
-            'speed': [],
-            'all_time_stats': {
-                'total_games': 0,
-                'total_score': 0,
-                'best_accuracy': 0
+        """Load leaderboard data from file with race condition protection."""
+        # RACE CONDITION FIX: Use safe file reading with locking
+        data = safe_json_read(self.leaderboard_file, {
+            'high_scores': [],
+            'all_time_records': {
+                'highest_score': {'score': 0, 'player': '', 'date': ''},
+                'most_correct': {'correct': 0, 'player': '', 'date': ''},
+                'perfect_games': {'count': 0, 'player': '', 'date': ''},
+                'fastest_completion': {'time': float('inf'), 'player': '', 'date': ''}
+            },
+            'daily_leaders': {},
+            'statistics': {
+                'total_games_played': 0,
+                'total_players': 0,
+                'average_score': 0.0
             }
-        }
+        })
+        
+        return data
     
     def _save_leaderboard(self):
-        """Save leaderboard data to file."""
-        with open(self.leaderboard_file, 'w') as f:
-            json.dump(self.leaderboard_data, f, indent=2)
-    
-    def add_score(self, player_name: str, final_results: Dict):
-        """Add a new score to the leaderboard."""
-        game_mode = final_results.get('game_mode', 'normal')
+        """Save leaderboard data to file with race condition protection."""
+        os.makedirs(os.path.dirname(self.leaderboard_file), exist_ok=True)
         
+        # RACE CONDITION FIX: Use safe file writing with locking
+        success = safe_json_write(self.leaderboard_file, self.leaderboard_data, indent=2)
+        if not success:
+            logger.warning(f"Failed to save leaderboard data to {self.leaderboard_file}")
+    
+    def submit_score(self, player_name: str, score: int, game_data: Dict) -> Dict:
+        """Submit a score to the leaderboard."""
+        if not player_name or score < 0:
+            return {'success': False, 'error': 'Invalid player name or score'}
+        
+        # Create score entry
         score_entry = {
-            'player_name': player_name,
-            'score': final_results['total_score'],
-            'accuracy': final_results['accuracy'],
-            'correct_guesses': final_results['correct_guesses'],
-            'total_rounds': final_results['total_rounds'],
-            'average_distance': final_results['average_distance'],
-            'best_distance': final_results['best_distance'],
-            'difficulty': final_results.get('difficulty', 'mixed'),
-            'category': final_results.get('category', 'all'),
-            'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'timestamp': datetime.now().isoformat()
+            'player': player_name,
+            'score': score,
+            'date': datetime.now().isoformat(),
+            'correct_guesses': game_data.get('correct_guesses', 0),
+            'total_rounds': game_data.get('total_rounds', 0),
+            'game_mode': game_data.get('game_mode', 'normal'),
+            'difficulty': game_data.get('difficulty', 'mixed'),
+            'category': game_data.get('category', 'all'),
+            'completion_time': game_data.get('completion_time', 0),
+            'hints_used': game_data.get('hints_used', 0),
+            'accuracy_percentage': (game_data.get('correct_guesses', 0) / max(game_data.get('total_rounds', 1), 1)) * 100
         }
         
-        # Add to appropriate game mode leaderboard
-        if game_mode not in self.leaderboard_data:
-            self.leaderboard_data[game_mode] = []
+        # Add to high scores
+        self.leaderboard_data['high_scores'].append(score_entry)
         
-        self.leaderboard_data[game_mode].append(score_entry)
+        # Sort by score (descending) and keep top 100
+        self.leaderboard_data['high_scores'].sort(key=lambda x: x['score'], reverse=True)
+        self.leaderboard_data['high_scores'] = self.leaderboard_data['high_scores'][:100]
         
-        # Sort by score (descending)
-        self.leaderboard_data[game_mode].sort(key=lambda x: x['score'], reverse=True)
+        # Update all-time records
+        self._update_records(score_entry)
         
-        # Keep only top 50 scores per mode
-        self.leaderboard_data[game_mode] = self.leaderboard_data[game_mode][:50]
+        # Update daily leaders
+        self._update_daily_leaders(score_entry)
         
-        # Update all-time stats
-        self.leaderboard_data['all_time_stats']['total_games'] += 1
-        self.leaderboard_data['all_time_stats']['total_score'] += score_entry['score']
-        if score_entry['accuracy'] > self.leaderboard_data['all_time_stats']['best_accuracy']:
-            self.leaderboard_data['all_time_stats']['best_accuracy'] = score_entry['accuracy']
+        # Update statistics
+        self._update_statistics()
         
+        # Save to file
         self._save_leaderboard()
         
-        return self._get_rank(game_mode, score_entry['score'])
-    
-    def _get_rank(self, game_mode: str, score: int) -> int:
-        """Get the rank of a score in the leaderboard."""
-        scores = [entry['score'] for entry in self.leaderboard_data.get(game_mode, [])]
-        scores.sort(reverse=True)
-        return scores.index(score) + 1 if score in scores else len(scores) + 1
-    
-    def get_top_scores(self, game_mode: str = 'normal', limit: int = 10) -> List[Dict]:
-        """Get top scores for a specific game mode."""
-        return self.leaderboard_data.get(game_mode, [])[:limit]
-    
-    def get_player_best(self, player_name: str, game_mode: str = 'normal') -> Dict:
-        """Get a player's best score in a specific mode."""
-        mode_scores = self.leaderboard_data.get(game_mode, [])
-        player_scores = [entry for entry in mode_scores if entry['player_name'] == player_name]
+        # Determine ranking
+        ranking = next((i + 1 for i, entry in enumerate(self.leaderboard_data['high_scores']) 
+                       if entry['player'] == player_name and entry['score'] == score), None)
         
-        if player_scores:
-            return max(player_scores, key=lambda x: x['score'])
-        return None
+        return {
+            'success': True,
+            'ranking': ranking,
+            'total_entries': len(self.leaderboard_data['high_scores']),
+            'is_new_record': self._check_new_records(score_entry)
+        }
     
-    def get_statistics(self) -> Dict:
-        """Get overall leaderboard statistics."""
-        stats = self.leaderboard_data['all_time_stats'].copy()
+    def _update_records(self, score_entry: Dict):
+        """Update all-time records if applicable."""
+        records = self.leaderboard_data['all_time_records']
         
-        # Calculate mode-specific stats
-        mode_stats = {}
-        for mode, scores in self.leaderboard_data.items():
-            if mode != 'all_time_stats' and scores:
-                mode_stats[mode] = {
-                    'total_games': len(scores),
-                    'highest_score': max(entry['score'] for entry in scores),
-                    'average_score': sum(entry['score'] for entry in scores) / len(scores),
-                    'best_accuracy': max(entry['accuracy'] for entry in scores)
-                }
+        # Highest score
+        if score_entry['score'] > records['highest_score']['score']:
+            records['highest_score'] = {
+                'score': score_entry['score'],
+                'player': score_entry['player'],
+                'date': score_entry['date']
+            }
         
-        stats['mode_statistics'] = mode_stats
-        return stats
+        # Most correct guesses
+        if score_entry['correct_guesses'] > records['most_correct']['correct']:
+            records['most_correct'] = {
+                'correct': score_entry['correct_guesses'],
+                'player': score_entry['player'],
+                'date': score_entry['date']
+            }
+        
+        # Perfect games (all correct)
+        if score_entry['accuracy_percentage'] == 100.0:
+            if score_entry['player'] not in [r.get('player', '') for r in records.get('perfect_games', [])]:
+                if 'perfect_games' not in records or not isinstance(records['perfect_games'], list):
+                    records['perfect_games'] = []
+                records['perfect_games'].append({
+                    'player': score_entry['player'],
+                    'score': score_entry['score'],
+                    'date': score_entry['date']
+                })
+        
+        # Fastest completion (if completion time is tracked)
+        completion_time = score_entry.get('completion_time', 0)
+        if completion_time > 0 and completion_time < records['fastest_completion']['time']:
+            records['fastest_completion'] = {
+                'time': completion_time,
+                'player': score_entry['player'],
+                'date': score_entry['date']
+            }
     
-    def is_high_score(self, score: int, game_mode: str = 'normal') -> bool:
-        """Check if a score qualifies for the leaderboard."""
-        mode_scores = self.leaderboard_data.get(game_mode, [])
-        if len(mode_scores) < 10:  # Top 10 leaderboard
-            return True
-        return score > min(entry['score'] for entry in mode_scores[:10])
+    def _update_daily_leaders(self, score_entry: Dict):
+        """Update daily leaderboard."""
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        if today not in self.leaderboard_data['daily_leaders']:
+            self.leaderboard_data['daily_leaders'][today] = []
+        
+        self.leaderboard_data['daily_leaders'][today].append(score_entry)
+        
+        # Sort daily scores and keep top 10
+        self.leaderboard_data['daily_leaders'][today].sort(key=lambda x: x['score'], reverse=True)
+        self.leaderboard_data['daily_leaders'][today] = self.leaderboard_data['daily_leaders'][today][:10]
+        
+        # Clean up old daily data (keep last 30 days)
+        cutoff_date = datetime.now()
+        cutoff_date = cutoff_date.replace(day=cutoff_date.day - 30)
+        cutoff_str = cutoff_date.strftime('%Y-%m-%d')
+        
+        dates_to_remove = [date for date in self.leaderboard_data['daily_leaders'].keys() if date < cutoff_str]
+        for date in dates_to_remove:
+            del self.leaderboard_data['daily_leaders'][date]
     
-    def export_leaderboard(self, filename: str = None) -> str:
-        """Export leaderboard to a formatted text file."""
-        if not filename:
-            filename = f"leaderboard_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    def _update_statistics(self):
+        """Update general statistics."""
+        stats = self.leaderboard_data['statistics']
+        high_scores = self.leaderboard_data['high_scores']
         
-        filepath = os.path.join(self.data_dir, filename)
+        stats['total_games_played'] = len(high_scores)
+        stats['total_players'] = len(set(entry['player'] for entry in high_scores))
         
-        with open(filepath, 'w') as f:
-            f.write("🏆 TOKEN QUEST LEADERBOARD 🏆\n")
-            f.write("=" * 50 + "\n\n")
-            
-            for mode in ['normal', 'antonym', 'category', 'speed']:
-                if mode in self.leaderboard_data and self.leaderboard_data[mode]:
-                    f.write(f"🎮 {mode.upper()} MODE\n")
-                    f.write("-" * 30 + "\n")
-                    
-                    for i, entry in enumerate(self.leaderboard_data[mode][:10], 1):
-                        f.write(f"{i:2d}. {entry['player_name']:<15} | "
-                               f"Score: {entry['score']:4d} | "
-                               f"Accuracy: {entry['accuracy']:5.1f}% | "
-                               f"Date: {entry['date']}\n")
-                    f.write("\n")
-            
-            # Add statistics
-            stats = self.get_statistics()
-            f.write("📊 OVERALL STATISTICS\n")
-            f.write("-" * 30 + "\n")
-            f.write(f"Total Games Played: {stats['total_games']}\n")
-            f.write(f"Average Score: {stats['total_score'] / max(1, stats['total_games']):.1f}\n")
-            f.write(f"Best Accuracy Ever: {stats['best_accuracy']:.1f}%\n")
+        if high_scores:
+            stats['average_score'] = sum(entry['score'] for entry in high_scores) / len(high_scores)
+        else:
+            stats['average_score'] = 0.0
+    
+    def _check_new_records(self, score_entry: Dict) -> Dict:
+        """Check if this score set any new records."""
+        records = self.leaderboard_data['all_time_records']
+        new_records = {}
         
-        return filepath 
+        if score_entry['score'] == records['highest_score']['score']:
+            new_records['highest_score'] = True
+        
+        if score_entry['correct_guesses'] == records['most_correct']['correct']:
+            new_records['most_correct'] = True
+        
+        if score_entry['accuracy_percentage'] == 100.0:
+            new_records['perfect_game'] = True
+        
+        completion_time = score_entry.get('completion_time', 0)
+        if completion_time > 0 and completion_time == records['fastest_completion']['time']:
+            new_records['fastest_completion'] = True
+        
+        return new_records
+    
+    def get_leaderboard(self, category: str = 'all', limit: int = 50) -> Dict:
+        """Get leaderboard data."""
+        if category == 'all':
+            scores = self.leaderboard_data['high_scores'][:limit]
+        elif category == 'daily':
+            today = datetime.now().strftime('%Y-%m-%d')
+            scores = self.leaderboard_data['daily_leaders'].get(today, [])[:limit]
+        else:
+            # Filter by game mode, difficulty, or category
+            scores = [entry for entry in self.leaderboard_data['high_scores'] 
+                     if entry.get('game_mode') == category or 
+                        entry.get('difficulty') == category or 
+                        entry.get('category') == category][:limit]
+        
+        return {
+            'scores': scores,
+            'records': self.leaderboard_data['all_time_records'],
+            'statistics': self.leaderboard_data['statistics']
+        }
+    
+    def get_player_stats(self, player_name: str) -> Dict:
+        """Get statistics for a specific player."""
+        player_scores = [entry for entry in self.leaderboard_data['high_scores'] 
+                        if entry['player'] == player_name]
+        
+        if not player_scores:
+            return {'found': False}
+        
+        return {
+            'found': True,
+            'total_games': len(player_scores),
+            'best_score': max(score['score'] for score in player_scores),
+            'average_score': sum(score['score'] for score in player_scores) / len(player_scores),
+            'best_ranking': min(i + 1 for i, entry in enumerate(self.leaderboard_data['high_scores']) 
+                              if entry['player'] == player_name),
+            'perfect_games': sum(1 for score in player_scores if score['accuracy_percentage'] == 100.0),
+            'recent_games': sorted(player_scores, key=lambda x: x['date'], reverse=True)[:5]
+        } 

@@ -2,9 +2,15 @@
 Game Logic Module
 Handles scoring, word selection, and game state for Token Quest
 """
+import logging
 import random
+import time
 from typing import List, Dict, Optional, Tuple
+
 from token_handler import TokenHandler
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class GameLogic:
@@ -155,7 +161,6 @@ class GameLogic:
         
         # Set round start time for speed mode
         if self.game_mode == 'speed':
-            import time
             self.round_start_time = time.time()
             if not self.time_limit:
                 self.time_limit = 30  # 30 seconds default
@@ -205,8 +210,10 @@ class GameLogic:
             if is_correct:
                 self.correct_guesses += 1
             
-            # Check if game should end after this round
-            game_ended = self.round_number >= self.max_rounds
+            # GAME LOGIC BUG FIX: Game should only end after completing all max_rounds
+            # Changed from >= to > to match start_new_round() logic
+            # This ensures players get exactly max_rounds rounds to play
+            game_ended = self.round_number > self.max_rounds
             if game_ended:
                 self.game_completed = True
             
@@ -282,8 +289,9 @@ class GameLogic:
                 
                 self.game_history.append(guess_record)
                 
-                # Check if game should end after this round  
-                game_ended = self.round_number >= self.max_rounds
+                # GAME LOGIC BUG FIX: Check if game should end after this round  
+                # Changed from >= to > to match start_new_round() logic
+                game_ended = self.round_number > self.max_rounds
                 if game_ended:
                     self.game_completed = True
                 

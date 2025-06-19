@@ -2,12 +2,18 @@
 Enhanced Data Collector for Token Quest
 Comprehensive research data collection and automatic saving for AI researchers
 """
-import json
 import csv
+import json
+import logging
 import os
+import time
 from datetime import datetime
 from typing import List, Dict, Any
-import time
+
+from file_lock_utils import safe_json_write, safe_json_read, safe_csv_append, SafeFileManager
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class EnhancedDataCollector:
@@ -17,11 +23,15 @@ class EnhancedDataCollector:
     """
     
     def __init__(self, research_data_dir: str):
-        self.research_data_dir = research_data_dir
+        # SECURITY FIX: Sanitize directory path to prevent directory traversal
+        self.research_data_dir = self._sanitize_directory_path(research_data_dir)
         self.session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
         
         # Ensure directory exists
-        os.makedirs(research_data_dir, exist_ok=True)
+        os.makedirs(self.research_data_dir, exist_ok=True)
+        
+        # RACE CONDITION FIX: Initialize safe file manager for coordinated file operations
+        self.file_manager = SafeFileManager(self.research_data_dir)
         
         # Comprehensive data storage
         self.session_data = {
@@ -42,13 +52,39 @@ class EnhancedDataCollector:
             'performance_metrics': []
         }
         
+        # Initialize file manager for safe operations
+        self.file_manager = SafeFileManager(self.research_data_dir)
+        
         # Real-time auto-save files
         self.setup_auto_save_files()
         
-        print(f"📊 Research data collector ready: {research_data_dir}")
-        print(f"🔍 DEBUG: Data collector will save to: {os.path.abspath(research_data_dir)}")
-        print(f"🔍 DEBUG: Session ID: {self.session_id}")
-        print(f"🔍 DEBUG: Files will be created: {list(self.files.keys())}")
+        logger.info(f"Research data collector ready: {research_data_dir}")
+        logger.debug(f"Data collector will save to: {os.path.abspath(research_data_dir)}")
+        logger.debug(f"Session ID: {self.session_id}")
+        logger.debug(f"Files will be created: {list(self.files.keys())}")
+    
+    def _sanitize_directory_path(self, path: str) -> str:
+        """Sanitize directory path to prevent directory traversal attacks"""
+        import re
+        
+        # Remove any path traversal attempts
+        path = path.replace('..', '').replace('~', '')
+        
+        # Remove dangerous characters
+        path = re.sub(r'[<>:"|?*]', '', path)
+        
+        # Ensure it's a relative path within the project
+        path = os.path.normpath(path)
+        
+        # If it's an absolute path, convert to relative
+        if os.path.isabs(path):
+            path = os.path.basename(path)
+        
+        # Default to 'game_data' if path is empty or invalid
+        if not path or path in ['.', '..', '']:
+            path = 'game_data'
+        
+        return path
     
     def setup_auto_save_files(self):
         """Setup auto-save files for continuous data collection."""
@@ -130,8 +166,8 @@ class EnhancedDataCollector:
         # Auto-save immediately
         self._auto_save_session()
         
-        print(f"🎮 Game started: {game_id}")
-        print(f"🔍 DEBUG: Game data saved to session file")
+        logger.info(f"Game started: {game_id}")
+        logger.debug("Game data saved to session file")
     
     def log_round_start(self, round_info: Dict):
         """Log the start of a new round with detailed context."""
@@ -204,8 +240,8 @@ class EnhancedDataCollector:
         if current_round:
             current_round['guesses'].append(comprehensive_guess)
         
-        print(f"🔍 DEBUG: Guess logged - Target: {comprehensive_guess['target_word']}, Guess: {comprehensive_guess['guess_word']}")
-        print(f"🔍 DEBUG: Saving to: {self.research_data_dir}")
+        logger.debug(f"Guess logged - Target: {comprehensive_guess['target_word']}, Guess: {comprehensive_guess['guess_word']}")
+        logger.debug(f"Saving to: {self.research_data_dir}")
         
         self.session_data['session_info']['total_guesses'] += 1
         
@@ -267,48 +303,53 @@ class EnhancedDataCollector:
         # Auto-save
         self._auto_save_session()
         
-        print(f"🏁 Game completed: {current_game['game_id']}")
+        logger.info(f"Game completed: {current_game['game_id']}")
     
     def _append_to_csv_immediately(self, guess_data: Dict):
-        """Immediately append guess data to CSV for real-time research analysis."""
+        """Immediately append guess data to CSV for real-time research analysis with file locking."""
         try:
-            with open(self.files['guesses_detailed'], 'a', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
+            # Calculate additional research metrics
+            target_word = guess_data.get('target_word', '')
+            guess_word = guess_data.get('guess_word', '')
+            
+            # Prepare CSV row data as dictionary
+            csv_row = {
+                'timestamp': guess_data.get('timestamp', ''),
+                'session_id': guess_data.get('session_id', ''),
+                'game_id': guess_data.get('game_id', ''),
+                'round_id': guess_data.get('round_id', ''),
+                'guess_number': guess_data.get('guess_number', 0),
+                'target_word': target_word,
+                'target_token_id': guess_data.get('target_token_id', 0),
+                'guess_word': guess_word,
+                'guess_token_id': guess_data.get('guess_token_id', 0),
+                'token_distance': guess_data.get('token_distance', 0),
+                'semantic_category': guess_data.get('category', ''),
+                'points_earned': guess_data.get('points_earned', 0),
+                'total_score': guess_data.get('total_score', 0),
+                'time_to_guess_ms': guess_data.get('response_time_ms', 0),
+                'hint_used': guess_data.get('hint_used', False),
+                'game_mode': guess_data.get('game_mode', ''),
+                'difficulty': guess_data.get('difficulty', ''),
+                'category': guess_data.get('category', ''),
+                'target_word_length': len(target_word),
+                'guess_word_length': len(guess_word),
+                'alphabetical_distance': abs(ord(target_word[0].lower()) - ord(guess_word[0].lower())) if target_word and guess_word else 0,
+                'is_correct': guess_data.get('token_distance', 0) <= 50,  # is_correct threshold
+                'accuracy_level': guess_data.get('accuracy_level', ''),
+                'educational_context': guess_data.get('educational_context', '')
+            }
+            
+            # RACE CONDITION FIX: Use safe CSV append with file locking
+            fieldnames = list(csv_row.keys())
+            filename = os.path.basename(self.files['guesses_detailed'])
+            success = self.file_manager.append_csv(filename, csv_row, fieldnames)
+            
+            if not success:
+                logger.warning("Warning: Failed to append guess data to CSV")
                 
-                # Calculate additional research metrics
-                target_word = guess_data.get('target_word', '')
-                guess_word = guess_data.get('guess_word', '')
-                
-                row = [
-                    guess_data.get('timestamp', ''),
-                    guess_data.get('session_id', ''),
-                    guess_data.get('game_id', ''),
-                    guess_data.get('round_id', ''),
-                    guess_data.get('guess_number', 0),
-                    target_word,
-                    guess_data.get('target_token_id', 0),
-                    guess_word,
-                    guess_data.get('guess_token_id', 0),
-                    guess_data.get('token_distance', 0),
-                    guess_data.get('category', ''),
-                    guess_data.get('points_earned', 0),
-                    guess_data.get('total_score', 0),
-                    guess_data.get('response_time_ms', 0),
-                    guess_data.get('hint_used', False),
-                    guess_data.get('game_mode', ''),
-                    guess_data.get('difficulty', ''),
-                    guess_data.get('category', ''),
-                    len(target_word),
-                    len(guess_word),
-                    abs(ord(target_word[0].lower()) - ord(guess_word[0].lower())) if target_word and guess_word else 0,
-                    guess_data.get('token_distance', 0) <= 50,  # is_correct threshold
-                    guess_data.get('accuracy_level', ''),
-                    guess_data.get('educational_context', '')
-                ]
-                
-                writer.writerow(row)
         except Exception as e:
-            print(f"❌ Error writing to CSV: {e}")
+            logger.error(f"Error in _append_to_csv_immediately: {e}")
     
     def _log_token_relationship(self, guess_data: Dict):
         """Log token relationship data for semantic similarity research."""
@@ -346,7 +387,7 @@ class EnhancedDataCollector:
                 
                 writer.writerow(row)
         except Exception as e:
-            print(f"❌ Error logging token relationship: {e}")
+            logger.error(f"Error logging token relationship: {e}")
     
     def _log_performance_metric(self, metric_type: str, metric_name: str, value: Any, context: Dict):
         """Log performance metrics for research analysis."""
@@ -371,7 +412,7 @@ class EnhancedDataCollector:
                 
                 writer.writerow(row)
         except Exception as e:
-            print(f"❌ Error logging performance metric: {e}")
+            logger.error(f"Error logging performance metric: {e}")
     
     def _analyze_semantic_relationship(self, target_word: str, guess_word: str, distance: int) -> Dict:
         """Analyze semantic relationship between target and guess for research."""
@@ -437,39 +478,37 @@ class EnhancedDataCollector:
         return distribution
     
     def _auto_save_session(self):
-        """Automatically save session data."""
+        """Automatically save session data with file locking."""
         try:
             # Update session info
             self.session_data['session_info']['end_time'] = datetime.now().isoformat()
             
+            # RACE CONDITION FIX: Use safe file operations with locking
             # Save comprehensive session data
-            with open(self.files['session_summary'], 'w', encoding='utf-8') as f:
-                json.dump(self.session_data, f, indent=2, default=str)
+            session_summary_filename = os.path.basename(self.files['session_summary'])
+            success1 = self.file_manager.write_json(session_summary_filename, self.session_data)
             
             # Save to daily comprehensive file
             daily_data = self._load_daily_data()
             daily_data[self.session_id] = self.session_data
-            
-            with open(self.files['daily_comprehensive'], 'w', encoding='utf-8') as f:
-                json.dump(daily_data, f, indent=2, default=str)
+            daily_comprehensive_filename = os.path.basename(self.files['daily_comprehensive'])
+            success2 = self.file_manager.write_json(daily_comprehensive_filename, daily_data)
             
             # Save session data
-            with open(self.files['session'], 'w') as f:
-                json.dump(self.session_data, f, indent=2)
+            session_filename = os.path.basename(self.files['session'])
+            success3 = self.file_manager.write_json(session_filename, self.session_data)
+            
+            if not all([success1, success2, success3]):
+                logger.warning("Warning: Some session data files failed to save")
                 
         except Exception as e:
-            print(f"❌ Error auto-saving session: {e}")
+            logger.error(f"Error auto-saving session: {e}")
     
     def _load_daily_data(self) -> Dict:
-        """Load existing daily data."""
-        try:
-            if os.path.exists(self.files['daily_comprehensive']):
-                with open(self.files['daily_comprehensive'], 'r', encoding='utf-8') as f:
-                    return json.load(f)
-        except Exception as e:
-            print(f"❌ Error loading daily data: {e}")
-        
-        return {}
+        """Load existing daily data with file locking."""
+        # RACE CONDITION FIX: Use safe file reading with locking
+        daily_comprehensive_filename = os.path.basename(self.files['daily_comprehensive'])
+        return self.file_manager.read_json(daily_comprehensive_filename, {})
     
     def export_comprehensive_data(self, options: Dict = None) -> List[str]:
         """Export comprehensive research data in multiple formats."""
@@ -500,11 +539,11 @@ class EnhancedDataCollector:
                 self._export_consolidated_csv(csv_file)
                 exported_files.append(csv_file)
             
-            print(f"📊 Comprehensive data exported: {len(exported_files)} files")
+            logger.info(f"Comprehensive data exported: {len(exported_files)} files")
             return exported_files
             
         except Exception as e:
-            print(f"❌ Error exporting comprehensive data: {e}")
+            logger.error(f"Error exporting comprehensive data: {e}")
             return []
     
     def _export_to_excel(self, filename: str):
@@ -519,10 +558,10 @@ class EnhancedDataCollector:
                 import shutil
                 shutil.copy2(self.files['guesses_detailed'], f"{base_name}_guesses.csv")
             
-            print(f"✅ Data exported as CSV files (Excel export requires pandas installation)")
+            logger.info(f"Data exported as CSV files (Excel export requires pandas installation)")
                 
         except Exception as e:
-            print(f"❌ Error creating export: {e}")
+            logger.error(f"Error creating export: {e}")
     
     def _generate_research_summary(self) -> Dict:
         """Generate comprehensive research summary."""
@@ -630,17 +669,17 @@ class EnhancedDataCollector:
                     ])
                 
         except Exception as e:
-            print(f"❌ Error creating consolidated CSV: {e}")
+            logger.error(f"Error creating consolidated CSV: {e}")
     
     def save_session(self):
         """Save final session data."""
         self._auto_save_session()
         
-        print(f"💾 Session data saved to: {self.research_data_dir}")
-        print(f"📊 Total data points collected:")
-        print(f"   • Games: {len(self.session_data['games'])}")
-        print(f"   • Rounds: {len(self.session_data['rounds'])}")
-        print(f"   • Guesses: {len(self.session_data['guesses'])}")
-        print(f"   • Hints: {len(self.session_data['hint_usage'])}")
+        logger.info(f"Session data saved to: {self.research_data_dir}")
+        logger.info(f"Total data points collected:")
+        logger.info(f"   • Games: {len(self.session_data['games'])}")
+        logger.info(f"   • Rounds: {len(self.session_data['rounds'])}")
+        logger.info(f"   • Guesses: {len(self.session_data['guesses'])}")
+        logger.info(f"   • Hints: {len(self.session_data['hint_usage'])}")
         
         return self.files['session'] 

@@ -1,20 +1,53 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
-import os
 import json
-from datetime import datetime
+import logging
+import os
+import re
+import secrets
+import time
 import uuid
+from datetime import datetime
+
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 
 # Import your existing modules (no changes needed!)
 from game_logic import GameLogic
 from enhanced_data_collector import EnhancedDataCollector
 from achievements import AchievementManager
 from leaderboard import Leaderboard
+from token_handler import TokenHandler
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-this'  # Change this in production
+
+# SECURITY FIX: Use environment variable or generate secure random key
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 
 # Global storage for active games (in production, use Redis or database)
 active_games = {}
+
+# MEMORY LEAK FIX: Track session creation time for cleanup
+session_timestamps = {}
+
+def cleanup_old_sessions():
+    """Clean up old sessions to prevent memory leaks"""
+    current_time = time.time()
+    sessions_to_remove = []
+    
+    # Remove sessions older than 24 hours (86400 seconds)
+    for session_id, timestamp in session_timestamps.items():
+        if current_time - timestamp > 86400:  # 24 hours
+            sessions_to_remove.append(session_id)
+    
+    for session_id in sessions_to_remove:
+        if session_id in active_games:
+            del active_games[session_id]
+        if session_id in session_timestamps:
+            del session_timestamps[session_id]
+    
+    logger.info(f"Cleaned up {len(sessions_to_remove)} old sessions")
 
 def get_or_create_game_session():
     """Get existing game session or create new one"""
@@ -22,6 +55,10 @@ def get_or_create_game_session():
         session['game_id'] = str(uuid.uuid4())
     
     game_id = session['game_id']
+    
+    # Clean up old sessions periodically (every 100 requests)
+    if len(active_games) % 100 == 0:
+        cleanup_old_sessions()
     
     if game_id not in active_games:
         # Create new game using your existing logic
@@ -40,8 +77,98 @@ def get_or_create_game_session():
             'leaderboard': Leaderboard(),
             'settings': default_settings
         }
+        
+        # Track session creation time
+        session_timestamps[game_id] = time.time()
     
     return active_games[game_id]
+
+# INPUT VALIDATION FUNCTIONS
+def validate_guess_input(guess):
+    """Validate user guess input"""
+    if not isinstance(guess, str):
+        return False, "Guess must be a string"
+    
+    guess = guess.strip()
+    
+    if not guess:
+        return False, "Guess cannot be empty"
+    
+    if len(guess) > 50:
+        return False, "Guess too long (max 50 characters)"
+    
+    if len(guess) < 1:
+        return False, "Guess too short (min 1 character)"
+    
+    # Allow only letters, numbers, and basic punctuation
+    if not re.match(r'^[a-zA-Z0-9\s\-\'\.]+$', guess):
+        return False, "Guess contains invalid characters"
+    
+    return True, "Valid"
+
+def validate_player_name(name):
+    """Validate player name for leaderboard"""
+    if not isinstance(name, str):
+        return False, "Name must be a string"
+    
+    name = name.strip()
+    
+    if not name:
+        return False, "Name cannot be empty"
+    
+    if len(name) > 20:
+        return False, "Name too long (max 20 characters)"
+    
+    if len(name) < 1:
+        return False, "Name too short (min 1 character)"
+    
+    # Allow letters, numbers, spaces, and basic punctuation
+    if not re.match(r'^[a-zA-Z0-9\s\-\'\.]+$', name):
+        return False, "Name contains invalid characters"
+    
+    return True, "Valid"
+
+def validate_game_settings(data):
+    """Validate game configuration settings"""
+    errors = []
+    
+    # Validate game mode
+    valid_modes = ['normal', 'synonym', 'antonym', 'speed']
+    game_mode = data.get('game_mode', 'normal')
+    if game_mode not in valid_modes:
+        errors.append(f"Invalid game mode. Must be one of: {valid_modes}")
+    
+    # Validate difficulty
+    valid_difficulties = ['easy', 'medium', 'hard', 'mixed']
+    difficulty = data.get('difficulty', 'mixed')
+    if difficulty not in valid_difficulties:
+        errors.append(f"Invalid difficulty. Must be one of: {valid_difficulties}")
+    
+    # Validate category
+    valid_categories = ['all', 'emotions', 'size', 'speed', 'quality', 'temperature', 'brightness', 'actions', 'difficulty']
+    category = data.get('category', 'all')
+    if category not in valid_categories:
+        errors.append(f"Invalid category. Must be one of: {valid_categories}")
+    
+    # Validate rounds
+    rounds = data.get('rounds', 10)
+    try:
+        rounds = int(rounds)
+        if rounds < 1 or rounds > 50:
+            errors.append("Rounds must be between 1 and 50")
+    except (ValueError, TypeError):
+        errors.append("Rounds must be a valid integer")
+    
+    return len(errors) == 0, errors
+
+def sanitize_file_path(path):
+    """Sanitize file paths to prevent directory traversal"""
+    # Remove any path traversal attempts
+    path = path.replace('..', '').replace('/', '').replace('\\', '')
+    # Ensure it's a safe filename
+    path = re.sub(r'[<>:"|?*]', '', path)
+    return path
+
 #home page
 @app.route('/')
 def home():
@@ -88,8 +215,6 @@ def game_setup(mode):
 @app.route('/tutorial')
 def tutorial():
     """Interactive tutorial with Tokky using real tiktoken data"""
-    from token_handler import TokenHandler
-    
     # Create token handler instance
     token_handler = TokenHandler()
     
@@ -146,6 +271,16 @@ def start_game():
     achievement_manager = game_session['achievement_manager']
     
     data = request.json or {}
+    
+    # INPUT VALIDATION: Validate game settings
+    is_valid, validation_errors = validate_game_settings(data)
+    if not is_valid:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid game settings',
+            'details': validation_errors
+        })
+    
     game_mode = data.get('game_mode', 'normal')
     difficulty = data.get('difficulty', 'mixed')
     category = data.get('category', 'all')
@@ -222,14 +357,26 @@ def submit_guess():
     data_collector = game_session['data_collector']
     achievement_manager = game_session['achievement_manager']
     
-    guess_word = request.json.get('guess', '').strip().lower()
-    
-    if not guess_word:
+    # INPUT VALIDATION: Check if request has JSON data
+    if not request.json:
         return jsonify({
             'success': False,
-            'error': 'No guess provided',
+            'error': 'Invalid request format',
             'result': {}
         })
+    
+    guess_word = request.json.get('guess', '')
+    
+    # INPUT VALIDATION: Validate guess input
+    is_valid, validation_message = validate_guess_input(guess_word)
+    if not is_valid:
+        return jsonify({
+            'success': False,
+            'error': validation_message,
+            'result': {}
+        })
+    
+    guess_word = guess_word.strip().lower()
     
     # Submit guess to game logic
     result = game_logic.submit_guess(guess_word)
@@ -376,14 +523,19 @@ def submit_score():
     leaderboard = game_session['leaderboard']
     achievement_manager = game_session['achievement_manager']
     
+    # INPUT VALIDATION: Check if request has JSON data
+    if not request.json:
+        return jsonify({'success': False, 'error': 'Invalid request format'})
+    
     data = request.json
-    player_name = data.get('player_name', '').strip()
+    player_name = data.get('player_name', '')
     
-    if not player_name:
-        return jsonify({'success': False, 'error': 'Player name is required'})
+    # INPUT VALIDATION: Validate player name
+    is_valid, validation_message = validate_player_name(player_name)
+    if not is_valid:
+        return jsonify({'success': False, 'error': validation_message})
     
-    if len(player_name) > 20:
-        return jsonify({'success': False, 'error': 'Player name must be 20 characters or less'})
+    player_name = player_name.strip()
     
     # Check if game is completed
     if not game_logic.game_completed:
@@ -453,8 +605,6 @@ def get_leaderboard():
 @app.route('/api/tutorial_guess', methods=['POST'])
 def tutorial_guess():
     """Handle practice guesses in tutorial with real tiktoken"""
-    from token_handler import TokenHandler
-    
     data = request.json
     guess_word = data.get('guess', '').strip().lower()
     target_word = data.get('target', 'bright').lower()

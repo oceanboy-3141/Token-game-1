@@ -1,18 +1,26 @@
 """
-Token Handler Module
-Manages all tiktoken operations for Token Quest
+Token Handler Module for Token Quest
+Handles tiktoken encoding/decoding and token analysis
 """
-
-import tiktoken
+import logging
 import random
 from typing import List, Tuple, Optional, Dict
 
+import tiktoken
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 
 class TokenHandler:
-    def __init__(self, encoding_name: str = "o200k_base"):
-        """Initialize the token handler with specified encoding."""
-        self.encoding_name = encoding_name
-        self.encoder = tiktoken.get_encoding(encoding_name)
+    def __init__(self, encoding_name: str = "cl100k_base"):
+        """Initialize with tiktoken encoder."""
+        try:
+            self.encoder = tiktoken.get_encoding(encoding_name)
+            self.encoding_name = encoding_name
+        except Exception as e:
+            logger.error(f"Failed to initialize tiktoken encoder: {e}")
+            raise
         
         # Educational facts about tokenization
         self.token_facts = [
@@ -27,119 +35,196 @@ class TokenHandler:
             "🎨 Creative spellings and internet slang can create surprising token patterns.",
             "📈 Token IDs can reveal biases in training data frequency."
         ]
-        
-    def get_token_ids(self, text: str) -> List[int]:
-        """Get token IDs for a given text."""
-        return self.encoder.encode(text)
+    
+    def encode_text(self, text: str) -> List[int]:
+        """Encode text to token IDs."""
+        try:
+            return self.encoder.encode(text)
+        except Exception as e:
+            logger.error(f"Error encoding text '{text}': {e}")
+            return []
+    
+    def decode_tokens(self, tokens: List[int]) -> str:
+        """Decode token IDs back to text."""
+        try:
+            return self.encoder.decode(tokens)
+        except Exception as e:
+            logger.error(f"Error decoding tokens {tokens}: {e}")
+            return ""
     
     def get_single_token_id(self, word: str) -> Optional[int]:
-        """Get token ID for a word if it's a single token, None otherwise."""
-        token_ids = self.get_token_ids(word)
-        if len(token_ids) == 1:
-            return token_ids[0]
-        return None
-    
-    def decode_tokens(self, token_ids: List[int]) -> str:
-        """Decode token IDs back to text."""
-        return self.encoder.decode(token_ids)
+        """Get the token ID for a word if it's encoded as a single token."""
+        try:
+            tokens = self.encode_text(word.strip())
+            return tokens[0] if len(tokens) == 1 else None
+        except Exception as e:
+            logger.error(f"Error getting single token ID for '{word}': {e}")
+            return None
     
     def is_single_token(self, word: str) -> bool:
-        """Check if a word is encoded as a single token."""
-        return len(self.get_token_ids(word)) == 1
+        """Check if a word is encoded as exactly one token."""
+        try:
+            tokens = self.encode_text(word.strip())
+            return len(tokens) == 1
+        except Exception as e:
+            logger.error(f"Error checking if '{word}' is single token: {e}")
+            return False
+    
+    def get_token_string(self, token_id: int) -> str:
+        """Get the string representation of a token ID."""
+        try:
+            return self.encoder.decode([token_id])
+        except Exception as e:
+            logger.error(f"Error decoding token {token_id}: {e}")
+            return f"[TOKEN_{token_id}]"
+    
+    def get_word_info(self, word: str) -> Dict:
+        """Get comprehensive information about how a word is tokenized."""
+        try:
+            tokens = self.encode_text(word)
+            
+            info = {
+                'word': word,
+                'token_count': len(tokens),
+                'tokens': tokens,
+                'is_single_token': len(tokens) == 1,
+                'token_strings': []
+            }
+            
+            # Get string representation of each token
+            for token in tokens:
+                try:
+                    token_str = self.encoder.decode([token])
+                    info['token_strings'].append({
+                        'token_id': token,
+                        'token_string': token_str
+                    })
+                except Exception as e:
+                    logger.error(f"Error decoding individual token {token}: {e}")
+                    info['token_strings'].append({
+                        'token_id': token,
+                        'token_string': f"[ERROR_TOKEN_{token}]"
+                    })
+            
+            return info
+        
+        except Exception as e:
+            logger.error(f"Error getting word info for '{word}': {e}")
+            return {
+                'word': word,
+                'token_count': 0,
+                'tokens': [],
+                'is_single_token': False,
+                'token_strings': [],
+                'error': str(e)
+            }
+    
+    def get_nearby_tokens(self, token_id: int, range_size: int = 10) -> List[Dict]:
+        """Get tokens near the given token ID for hints."""
+        try:
+            nearby_tokens = []
+            
+            # Get tokens in range around the target
+            start_id = max(0, token_id - range_size)
+            end_id = min(100000, token_id + range_size + 1)  # Reasonable upper bound
+            
+            for tid in range(start_id, end_id):
+                if tid != token_id:
+                    try:
+                        token_str = self.encoder.decode([tid])
+                        # Filter out non-word tokens (special characters, etc.)
+                        if len(token_str.strip()) > 0 and token_str.strip().isalpha():
+                            nearby_tokens.append({
+                                'token_id': tid,
+                                'token_string': token_str.strip(),
+                                'distance': abs(tid - token_id)
+                            })
+                    except Exception:
+                        continue
+            
+            # Sort by distance and return closest ones
+            nearby_tokens.sort(key=lambda x: x['distance'])
+            return nearby_tokens[:10]  # Return top 10 closest
+            
+        except Exception as e:
+            logger.error(f"Error in get_nearby_tokens for token {token_id}: {e}")
+            return []
     
     def calculate_token_distance(self, word1: str, word2: str) -> Optional[int]:
-        """Calculate the absolute distance between token IDs of two words."""
-        id1 = self.get_single_token_id(word1)
-        id2 = self.get_single_token_id(word2)
+        """Calculate distance between single-token words."""
+        token1 = self.get_single_token_id(word1)
+        token2 = self.get_single_token_id(word2)
         
-        if id1 is None or id2 is None:
+        if token1 is None or token2 is None:
             return None
         
-        return abs(id1 - id2)
+        return abs(token1 - token2)
     
-    def get_word_info(self, word: str) -> dict:
-        """Get comprehensive token information for a word."""
-        token_ids = self.get_token_ids(word)
-        return {
-            'word': word,
-            'token_ids': token_ids,
-            'token_count': len(token_ids),
-            'is_single_token': len(token_ids) == 1,
-            'primary_token_id': token_ids[0] if token_ids else None
-        }
-    
-    def find_words_in_range(self, center_token_id: int, range_size: int = 100) -> List[str]:
-        """Find valid words within a token ID range (useful for hints/suggestions)."""
-        words = []
-        start_id = max(0, center_token_id - range_size)
-        end_id = center_token_id + range_size
+    def find_words_in_range(self, center_token_id: int, max_distance: int = 50) -> List[Dict]:
+        """Find valid words within a certain token distance."""
+        words_found = []
         
-        for token_id in range(start_id, end_id + 1):
+        start_id = max(0, center_token_id - max_distance)
+        end_id = min(100000, center_token_id + max_distance + 1)
+        
+        for token_id in range(start_id, end_id):
             try:
-                decoded = self.encoder.decode([token_id])
-                # Filter for actual words (basic filtering)
-                if decoded.strip() and decoded.isalpha() and len(decoded.strip()) > 1:
-                    words.append(decoded.strip())
-            except:
-                continue
-                
-        return words[:20]  # Limit results
-    
-    def get_token_visualization_data(self, target_id: int, guess_id: int, range_size: int = 50) -> Dict:
-        """Get data for visualizing token space around target and guess."""
-        distance = abs(target_id - guess_id)
-        
-        # Create visualization range centered on target
-        vis_start = max(0, target_id - range_size)
-        vis_end = target_id + range_size
-        
-        # Find words in the visualization range
-        nearby_words = []
-        for token_id in range(vis_start, vis_end + 1, 5):  # Sample every 5th token
-            try:
-                decoded = self.encoder.decode([token_id])
-                if decoded.strip() and decoded.isalpha() and len(decoded.strip()) > 1:
-                    nearby_words.append({
-                        'word': decoded.strip(),
+                word = self.encoder.decode([token_id])
+                if (word.strip().isalpha() and 
+                    2 <= len(word.strip()) <= 15 and 
+                    self.is_single_token(word.strip())):
+                    words_found.append({
+                        'word': word.strip(),
                         'token_id': token_id,
-                        'distance_from_target': abs(token_id - target_id)
+                        'distance': abs(token_id - center_token_id)
                     })
-            except:
+            except Exception:
                 continue
         
-        return {
-            'target_id': target_id,
-            'guess_id': guess_id,
-            'distance': distance,
-            'visualization_range': (vis_start, vis_end),
-            'nearby_words': nearby_words[:15],  # Limit for visualization
-            'relative_position': self._get_relative_position(target_id, guess_id),
-            'distance_category': self._categorize_distance(distance)
-        }
+        # Sort by distance
+        words_found.sort(key=lambda x: x['distance'])
+        return words_found
     
-    def _get_relative_position(self, target_id: int, guess_id: int) -> str:
-        """Determine relative position of guess compared to target."""
-        if guess_id < target_id:
-            return "before"
-        elif guess_id > target_id:
-            return "after"
-        else:
-            return "exact"
-    
-    def _categorize_distance(self, distance: int) -> str:
-        """Categorize the distance for educational feedback."""
-        if distance == 0:
-            return "perfect"
-        elif distance <= 50:
-            return "excellent"
-        elif distance <= 200:
-            return "good"
-        elif distance <= 500:
-            return "moderate"
-        elif distance <= 1000:
-            return "far"
-        else:
-            return "very_far"
+    def get_random_single_token_word(self) -> Tuple[str, int]:
+        """Get a random word that encodes to a single token."""
+        max_attempts = 1000
+        attempts = 0
+        
+        # Common single-token words to try first
+        common_words = [
+            "the", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with",
+            "by", "from", "up", "about", "into", "through", "during", "before",
+            "after", "above", "below", "between", "among", "cat", "dog", "house",
+            "tree", "car", "book", "water", "fire", "earth", "air", "light",
+            "dark", "good", "bad", "big", "small", "hot", "cold", "fast", "slow"
+        ]
+        
+        # Try common words first
+        for word in common_words:
+            if self.is_single_token(word):
+                token_id = self.get_single_token_id(word)
+                if token_id is not None:
+                    return word, token_id
+        
+        # If no common words work, try random approach
+        while attempts < max_attempts:
+            # Generate random token ID in reasonable range
+            token_id = random.randint(1000, 50000)
+            
+            try:
+                word = self.encoder.decode([token_id])
+                # Check if it's a valid word (alphabetic and reasonable length)
+                if (word.strip().isalpha() and 
+                    2 <= len(word.strip()) <= 15 and 
+                    self.is_single_token(word.strip())):
+                    return word.strip(), token_id
+            except Exception:
+                pass
+            
+            attempts += 1
+        
+        # Fallback - return a guaranteed working word
+        return "token", self.get_single_token_id("token") or 1000
     
     def get_educational_explanation(self, target_word: str, guess_word: str) -> str:
         """Generate educational explanation for why tokens are close/far."""
@@ -178,29 +263,4 @@ class TokenHandler:
     
     def get_random_token_fact(self) -> str:
         """Get a random educational fact about tokenization."""
-        return random.choice(self.token_facts)
-    
-    def get_advanced_nearby_words(self, target_id: int, num_words: int = 10) -> List[Dict]:
-        """Get nearby words with detailed information for advanced hints."""
-        nearby_words = []
-        
-        # Search in expanding ranges
-        for range_size in [25, 50, 100, 200]:
-            words_found = self.find_words_in_range(target_id, range_size)
-            
-            for word in words_found:
-                word_id = self.get_single_token_id(word)
-                if word_id and word_id != target_id:
-                    nearby_words.append({
-                        'word': word,
-                        'token_id': word_id,
-                        'distance': abs(word_id - target_id),
-                        'direction': 'before' if word_id < target_id else 'after'
-                    })
-            
-            if len(nearby_words) >= num_words:
-                break
-        
-        # Sort by distance and return top results
-        nearby_words.sort(key=lambda x: x['distance'])
-        return nearby_words[:num_words] 
+        return random.choice(self.token_facts) 
