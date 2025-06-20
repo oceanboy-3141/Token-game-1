@@ -4,7 +4,7 @@ Network version of Token Quest Flask App
 Allows other devices on your WiFi to play the game
 """
 import socket
-from app import app
+from main import app
 
 def get_local_ip():
     """Get the local IP address of this machine"""

@@ -1,0 +1,28 @@
+{
+    "name": "Token Quest",
+    "short_name": "TokenQuest",
+    "description": "Educational Token ID guessing game - Find words with similar token IDs!",
+    "icons": [
+        {
+            "src": "/static/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#DAA520",
+    "background_color": "#FFF8DC",
+    "display": "standalone",
+    "start_url": "/",
+    "scope": "/",
+    "orientation": "portrait-primary"
+} 
