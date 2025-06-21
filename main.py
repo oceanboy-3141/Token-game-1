@@ -249,21 +249,33 @@ def settings():
 @app.route('/leaderboards')
 def leaderboards():
     """Leaderboards page"""
-    # Get a game session to access leaderboards (doesn't need to be user-specific)
-    game_session = get_or_create_game_session()
-    leaderboard = game_session['leaderboard']
-    
-    # Get leaderboard data for all game modes
-    leaderboard_data = {}
-    for mode in ['normal', 'synonym', 'antonym', 'speed']:
-        leaderboard_data[mode] = leaderboard.get_top_scores(mode, 10)
-    
-    # Get overall statistics
-    stats = leaderboard.get_statistics()
-    
-    return render_template('leaderboards.html', 
-                         leaderboard_data=leaderboard_data,
-                         stats=stats)
+    try:
+        # Get a game session to access leaderboards (doesn't need to be user-specific)
+        game_session = get_or_create_game_session()
+        leaderboard = game_session['leaderboard']
+        
+        # Get leaderboard data for all game modes
+        leaderboard_data = {}
+        for mode in ['normal', 'synonym', 'antonym', 'speed']:
+            mode_data = leaderboard.get_leaderboard(category=mode, limit=10)
+            leaderboard_data[mode] = mode_data.get('scores', [])
+        
+        # Get overall leaderboard data which includes statistics
+        overall_data = leaderboard.get_leaderboard(category='all', limit=50)
+        stats = overall_data.get('statistics', {})
+        records = overall_data.get('records', {})
+        
+        return render_template('leaderboards.html', 
+                             leaderboard_data=leaderboard_data,
+                             stats=stats,
+                             records=records)
+    except Exception as e:
+        logger.error(f"Error loading leaderboards: {str(e)}")
+        return render_template('leaderboards.html', 
+                             leaderboard_data={},
+                             stats={},
+                             records={},
+                             error="Unable to load leaderboard data")
 
 @app.route('/achievements')
 def achievements():
@@ -580,19 +592,28 @@ def submit_score():
     
     # Submit to leaderboard
     try:
-        rank = leaderboard.add_score(player_name, final_results)
+        # Use the correct method name and parameters
+        score = final_results.get('total_score', 0)
+        submission_result = leaderboard.submit_score(player_name, score, final_results)
+        
+        if not submission_result.get('success', False):
+            return jsonify({
+                'success': False, 
+                'error': submission_result.get('error', 'Failed to submit score')
+            })
         
         # Track leaderboard submission achievement
         newly_unlocked = achievement_manager.track_event("leaderboard_submission")
         
+        # Check if this is a high score (top 10)
+        is_high_score = submission_result.get('ranking', 999) <= 10
+        
         return jsonify({
             'success': True,
-            'rank': rank,
-            'score': final_results['total_score'],
-            'is_high_score': leaderboard.is_high_score(
-                final_results['total_score'], 
-                final_results.get('game_mode', 'normal')
-            ),
+            'rank': submission_result.get('ranking'),
+            'score': score,
+            'is_high_score': is_high_score,
+            'is_new_record': submission_result.get('is_new_record', {}),
             'newly_unlocked_achievements': [
                 {
                     'id': ach.id,
@@ -606,6 +627,7 @@ def submit_score():
         })
     
     except Exception as e:
+        logger.error(f"Error submitting score: {str(e)}")
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/get_final_results', methods=['GET'])
@@ -626,12 +648,31 @@ def get_final_results():
 @app.route('/api/leaderboard', methods=['GET'])
 def get_leaderboard():
     """Get leaderboard data"""
-    game_session = get_or_create_game_session()
-    leaderboard = game_session['leaderboard']
-    
-    return jsonify({
-        'leaderboard': leaderboard.get_top_scores(10)
-    })
+    try:
+        game_session = get_or_create_game_session()
+        leaderboard = game_session['leaderboard']
+        
+        # Get category from query parameter, default to 'all'
+        category = request.args.get('category', 'all')
+        limit = int(request.args.get('limit', 10))
+        
+        leaderboard_data = leaderboard.get_leaderboard(category=category, limit=limit)
+        
+        return jsonify({
+            'success': True,
+            'leaderboard': leaderboard_data.get('scores', []),
+            'statistics': leaderboard_data.get('statistics', {}),
+            'records': leaderboard_data.get('records', {})
+        })
+    except Exception as e:
+        logger.error(f"Error getting leaderboard: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'leaderboard': [],
+            'statistics': {},
+            'records': {}
+        })
 
 @app.route('/api/tutorial_guess', methods=['POST'])
 def tutorial_guess():

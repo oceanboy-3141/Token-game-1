@@ -35,9 +35,9 @@
                 <div class="rank-col">
                     {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}#{{ loop.index }}{% endif %}
                 </div>
-                <div class="name-col">{{ score.player_name }}</div>
-                <div class="score-col">{{ score.total_score }}</div>
-                <div class="accuracy-col">{{ "%.1f"|format(score.accuracy) }}%</div>
+                <div class="name-col">{{ score.player }}</div>
+                <div class="score-col">{{ score.score }}</div>
+                <div class="accuracy-col">{{ "%.1f"|format(score.accuracy_percentage) }}%</div>
             </div>
             {% endfor %}
         </div>
