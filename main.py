@@ -318,9 +318,9 @@ def start_game():
         
         # Track achievement events
         newly_unlocked = []
-        newly_unlocked.extend(achievement_manager.track_game_event("game_started"))
+        newly_unlocked.extend(achievement_manager.track_event("game_started"))
         if category != 'all':
-            newly_unlocked.extend(achievement_manager.track_game_event("category_played", category=category))
+            newly_unlocked.extend(achievement_manager.track_event("category_played", category=category))
         
         # Log game start in data collector
         game_config = {
@@ -393,7 +393,7 @@ def submit_guess():
     
     if result.get('valid_guess'):
         # Track word tried
-        newly_unlocked.extend(achievement_manager.track_game_event("word_tried", word=guess_word))
+        newly_unlocked.extend(achievement_manager.track_event("word_tried", word=guess_word))
         
         # Track guess quality
         feedback = result.get('feedback', '')
@@ -401,11 +401,11 @@ def submit_guess():
         first_guess = game_logic.current_attempts == 1
         
         if feedback == 'Perfect!' or distance <= 1:
-            newly_unlocked.extend(achievement_manager.track_game_event("perfect_guess", first_guess_of_round=first_guess))
+            newly_unlocked.extend(achievement_manager.track_event("perfect_guess", first_guess_of_round=first_guess))
         elif feedback == 'Excellent!' or distance <= 10:
-            newly_unlocked.extend(achievement_manager.track_game_event("excellent_guess"))
+            newly_unlocked.extend(achievement_manager.track_event("excellent_guess"))
         else:
-            newly_unlocked.extend(achievement_manager.track_game_event("incorrect_guess"))
+            newly_unlocked.extend(achievement_manager.track_event("incorrect_guess"))
         
         # Check for game completion
         if result.get('game_ended'):
@@ -413,7 +413,7 @@ def submit_guess():
             score = game_stats.get('total_score', 0)
             mode = game_logic.game_mode
             
-            newly_unlocked.extend(achievement_manager.track_game_event(
+            newly_unlocked.extend(achievement_manager.track_event(
                 "game_won", 
                 mode=mode, 
                 score=score,
@@ -462,7 +462,7 @@ def get_hint():
     hint_info = game_logic.get_hint()
     
     # Track hint viewed achievement
-    newly_unlocked = achievement_manager.track_game_event("hint_viewed")
+    newly_unlocked = achievement_manager.track_event("hint_viewed")
     
     hint_info['newly_unlocked_achievements'] = [
         {
@@ -502,24 +502,48 @@ def get_achievements():
     game_session = get_or_create_game_session()
     achievement_manager = game_session['achievement_manager']
     
-    # Get unlocked achievements as dictionaries
-    unlocked_achievements = [
-        {
-            'id': ach.id,
-            'name': ach.name,
-            'description': ach.description,
-            'icon': ach.icon,
-            'category': ach.category,
-            'unlocked': ach.unlocked,
-            'unlock_date': ach.unlock_date
+    # Get achievements summary
+    achievements_data = achievement_manager.get_achievements_summary()
+    
+    # Convert to format expected by frontend
+    all_achievements = []
+    
+    # Add unlocked achievements
+    for ach in achievements_data.get('unlocked_achievements', []):
+        ach_data = {
+            'id': ach['id'],
+            'name': ach['name'],
+            'description': ach['description'],
+            'category': ach['category'],
+            'icon': ach['icon'],
+            'unlocked': True,
+            'unlock_date': ach.get('unlock_date'),
+            'progress': ach.get('max_progress', 1),
+            'target': ach.get('max_progress', 1),
+            'percentage': 100
         }
-        for ach in achievement_manager.get_unlocked_achievements()
-    ]
+        all_achievements.append(ach_data)
+    
+    # Add pending achievements
+    for ach in achievements_data.get('pending_achievements', []):
+        ach_data = {
+            'id': ach['id'],
+            'name': ach['name'],
+            'description': ach['description'],
+            'category': ach['category'],
+            'icon': ach['icon'],
+            'unlocked': False,
+            'unlock_date': None,
+            'progress': ach.get('progress', 0),
+            'target': ach.get('max_progress', 1),
+            'percentage': ach.get('progress_percentage', 0)
+        }
+        all_achievements.append(ach_data)
     
     return jsonify({
-        'achievements': achievement_manager.get_all_achievements(),
-        'unlocked': unlocked_achievements,
-        'stats': achievement_manager.get_stats_summary()
+        'achievements': all_achievements,
+        'stats': achievements_data.get('stats', {}),
+        'summary': achievements_data.get('summary', {})
     })
 
 @app.route('/api/submit_score', methods=['POST'])
@@ -559,7 +583,7 @@ def submit_score():
         rank = leaderboard.add_score(player_name, final_results)
         
         # Track leaderboard submission achievement
-        newly_unlocked = achievement_manager.track_game_event("leaderboard_submission")
+        newly_unlocked = achievement_manager.track_event("leaderboard_submission")
         
         return jsonify({
             'success': True,

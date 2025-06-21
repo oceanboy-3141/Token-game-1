@@ -1472,5 +1472,73 @@ body {
     }
 }
 
+/* ===== ROBOT LOGO BRANDING STYLES ===== */
+.header-logo {
+    width: 2.5rem;
+    height: 2.5rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    animation: headerLogoFloat 3s ease-in-out infinite;
+}
+
+@keyframes headerLogoFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-3px) rotate(2deg); }
+}
+
+.home-logo {
+    width: 3.5rem;
+    height: 3.5rem;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+    animation: homeLogo bounce 2s ease-in-out infinite;
+    margin-right: 1rem;
+}
+
+@keyframes homeLogoBounce {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-8px) scale(1.05); }
+}
+
+.app-header h1 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.home-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Game completion branding */
+.game-complete-icon {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 1rem;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+    animation: gameCompleteSuccess 2s ease-in-out;
+}
+
+@keyframes gameCompleteSuccess {
+    0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+    50% { transform: scale(1.2) rotate(0deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Loading screen branding */
+.loading-robot {
+    width: 5rem;
+    height: 5rem;
+    margin: 0 auto 2rem;
+    animation: loadingRobotSpin 2s linear infinite;
+}
+
+@keyframes loadingRobotSpin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
 /* ===== ACHIEVEMENTS GRID LAYOUT ===== */
 /* Achievement cards are now handled in the template CSS for better organization */ 

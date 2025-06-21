@@ -29,8 +29,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3rem;
     animation: bounce 2s infinite;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.tokky-avatar img {
+    width: 100%;
+    height: 100%;
 }
 
 @keyframes bounce {
@@ -100,7 +106,7 @@
 }
 
 .tokky-bubble::before {
-    content: '🤖';
+    content: '';
     position: absolute;
     left: -15px;
     top: -10px;
@@ -112,6 +118,10 @@
     align-items: center;
     justify-content: center;
     border: 2px solid #2196F3;
+    background-image: url('{{ url_for("static", filename="favicon.svg") }}');
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 @keyframes fadeIn {
@@ -305,7 +315,9 @@
 <div class="tutorial-container">
     <!-- Welcome Section -->
     <div class="tokky-welcome">
-        <div class="tokky-avatar">🤖</div>
+                    <div class="tokky-avatar">
+                <img src="{{ url_for('static', filename='favicon.svg') }}" alt="Tokky the Robot Guide">
+            </div>
         <h1>Hi! I'm Tokky! 👋</h1>
         <p>I'm your AI guide here to help you master Token Quest! Get ready to discover the amazing world of tokens while having tons of fun!</p>
     </div>

@@ -244,9 +244,11 @@ class AchievementManager:
         logger.debug(f"Achievement tracking: {event_type}")
         
         # Update stats based on event type
-        if event_type == 'game_completed':
+        if event_type == 'game_started':
             self.stats['games_played'] += 1
             logger.debug(f"Games played now: {self.stats['games_played']}")
+            
+        elif event_type == 'game_completed':
             self.stats['total_score'] += data.get('final_score', 0)
             if data.get('won', False):
                 self.stats['games_won'] += 1
@@ -259,11 +261,11 @@ class AchievementManager:
             if data.get('hints_used', 0) == 0:
                 self._check_condition_achievement('no_hints_needed', 'no_hint_game', 1)
             
-        elif event_type == 'guess_made':
+        elif event_type == 'guess_made' or event_type == 'perfect_guess' or event_type == 'excellent_guess' or event_type == 'incorrect_guess':
             self.stats['total_guesses'] += 1
             distance = data.get('distance', float('inf'))
             
-            if distance == 0:
+            if distance == 0 or event_type == 'perfect_guess':
                 self.stats['perfect_guesses'] += 1
                 self.stats['current_streak'] += 1
                 self.stats['best_streak'] = max(self.stats['best_streak'], self.stats['current_streak'])
@@ -275,14 +277,26 @@ class AchievementManager:
             if distance <= 50:
                 self.stats['distances_under_50'] += 1
                 
-        elif event_type == 'hint_used':
+        elif event_type == 'hint_used' or event_type == 'hint_viewed':
             self.stats['hints_used'] += 1
+            
+        elif event_type == 'category_played':
+            category = data.get('category')
+            if category:
+                self.stats['categories_mastered'].add(category)
+                
+        elif event_type == 'game_won':
+            mode = data.get('mode', 'normal')
+            self.stats['different_modes_played'].add(mode)
+            self.stats['games_won'] += 1
         
         # Check all achievements for updates
-        self._check_achievements()
+        newly_unlocked = self._check_achievements()
         
         # Save progress
         self._save_achievements()
+        
+        return newly_unlocked
 
     def _check_achievements(self):
         """Check all achievements for completion."""
@@ -403,7 +417,10 @@ class AchievementManager:
             },
             'unlocked_achievements': unlocked_achievements,
             'pending_achievements': pending_achievements,
-            'stats': self.stats.copy()  # Return a copy to prevent external modification
+            'stats': {
+                key: list(value) if isinstance(value, set) else value
+                for key, value in self.stats.items()
+            }  # Return a copy with sets converted to lists for JSON serialization
         }
 
     def get_achievement_by_id(self, achievement_id: str) -> Dict:
