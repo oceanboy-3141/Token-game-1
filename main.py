@@ -371,98 +371,129 @@ def start_game():
 @app.route('/api/submit_guess', methods=['POST'])
 def submit_guess():
     """Submit a guess and get results"""
-    game_session = get_or_create_game_session()
-    game_logic = game_session['game_logic']
-    data_collector = game_session['data_collector']
-    achievement_manager = game_session['achievement_manager']
-    
-    # INPUT VALIDATION: Check if request has JSON data
-    if not request.json:
+    try:
+        logger.info(f"Received guess submission request")
+        
+        game_session = get_or_create_game_session()
+        game_logic = game_session['game_logic']
+        data_collector = game_session['data_collector']
+        achievement_manager = game_session['achievement_manager']
+        
+        # INPUT VALIDATION: Check if request has JSON data
+        if not request.json:
+            logger.warning("No JSON data in request")
+            return jsonify({
+                'success': False,
+                'error': 'Invalid request format - no JSON data',
+                'result': {}
+            }), 400
+        
+        guess_word = request.json.get('guess', '')
+        logger.info(f"Processing guess: {guess_word}")
+        
+        # INPUT VALIDATION: Validate guess input
+        is_valid, validation_message = validate_guess_input(guess_word)
+        if not is_valid:
+            logger.warning(f"Invalid guess input: {validation_message}")
+            return jsonify({
+                'success': False,
+                'error': validation_message,
+                'result': {}
+            })
+        
+        guess_word = guess_word.strip().lower()
+        
+        # Check if game has been started
+        if not hasattr(game_logic, 'current_target_word') or game_logic.current_target_word is None:
+            logger.warning("Game not started - no target word set")
+            return jsonify({
+                'success': False,
+                'error': 'Game not started. Please start a new game first.',
+                'result': {},
+                'game_not_started': True
+            })
+        
+        # Submit guess to game logic
+        result = game_logic.submit_guess(guess_word)
+        logger.info(f"Game logic result: {result}")
+        
+        # Track achievement events
+        newly_unlocked = []
+        
+        if result.get('valid_guess'):
+            try:
+                # Track word tried
+                newly_unlocked.extend(achievement_manager.track_event("word_tried", {'word': guess_word}))
+                
+                # Track guess quality
+                feedback = result.get('feedback', '')
+                distance = result.get('distance', float('inf'))
+                first_guess = game_logic.current_attempts == 1
+                
+                if feedback == 'Perfect!' or distance <= 1:
+                    newly_unlocked.extend(achievement_manager.track_event("perfect_guess", {'first_guess_of_round': first_guess}))
+                elif feedback == 'Excellent!' or distance <= 10:
+                    newly_unlocked.extend(achievement_manager.track_event("excellent_guess"))
+                else:
+                    newly_unlocked.extend(achievement_manager.track_event("incorrect_guess"))
+                
+                # Check for game completion
+                if result.get('game_ended'):
+                    game_stats = game_logic.get_final_results()
+                    score = game_stats.get('total_score', 0)
+                    mode = game_logic.game_mode
+                    
+                    newly_unlocked.extend(achievement_manager.track_event(
+                        "game_won", 
+                        {'mode': mode, 'score': score, 'comeback': False}
+                    ))
+            except Exception as e:
+                logger.error(f"Error tracking achievements: {str(e)}")
+                # Continue without achievements if there's an error
+        
+        # Log data using existing system
+        if result.get('valid_guess'):
+            try:
+                # Create comprehensive guess data for the enhanced data collector
+                guess_data = {
+                    'target_word': game_logic.current_target_word,
+                    'target_token_id': game_logic.current_target_token_id,
+                    'guess_word': guess_word,
+                    'guess_token_id': result.get('guess_token_id'),
+                    'distance': result.get('distance'),
+                    'points': result.get('points'),
+                    'round_number': game_logic.round_number,
+                    'attempts_used': game_logic.current_attempts,
+                    'feedback': result.get('feedback', ''),
+                    'correct': result.get('correct', False)
+                }
+                data_collector.log_comprehensive_guess(guess_data)
+            except Exception as e:
+                logger.error(f"Error logging guess data: {str(e)}")
+                # Continue without logging if there's an error
+        
         return jsonify({
-            'success': False,
-            'error': 'Invalid request format',
-            'result': {}
+            'success': True,
+            'result': result,
+            'newly_unlocked_achievements': [
+                {
+                    'id': ach.id,
+                    'name': ach.name,
+                    'description': ach.description,
+                    'icon': ach.icon,
+                    'category': ach.category
+                }
+                for ach in newly_unlocked
+            ]
         })
     
-    guess_word = request.json.get('guess', '')
-    
-    # INPUT VALIDATION: Validate guess input
-    is_valid, validation_message = validate_guess_input(guess_word)
-    if not is_valid:
+    except Exception as e:
+        logger.error(f"Error in submit_guess: {str(e)}")
         return jsonify({
             'success': False,
-            'error': validation_message,
+            'error': f'Server error: {str(e)}',
             'result': {}
-        })
-    
-    guess_word = guess_word.strip().lower()
-    
-    # Submit guess to game logic
-    result = game_logic.submit_guess(guess_word)
-    
-    # Track achievement events
-    newly_unlocked = []
-    
-    if result.get('valid_guess'):
-        # Track word tried
-        newly_unlocked.extend(achievement_manager.track_event("word_tried", word=guess_word))
-        
-        # Track guess quality
-        feedback = result.get('feedback', '')
-        distance = result.get('distance', float('inf'))
-        first_guess = game_logic.current_attempts == 1
-        
-        if feedback == 'Perfect!' or distance <= 1:
-            newly_unlocked.extend(achievement_manager.track_event("perfect_guess", first_guess_of_round=first_guess))
-        elif feedback == 'Excellent!' or distance <= 10:
-            newly_unlocked.extend(achievement_manager.track_event("excellent_guess"))
-        else:
-            newly_unlocked.extend(achievement_manager.track_event("incorrect_guess"))
-        
-        # Check for game completion
-        if result.get('game_ended'):
-            game_stats = game_logic.get_final_results()
-            score = game_stats.get('total_score', 0)
-            mode = game_logic.game_mode
-            
-            newly_unlocked.extend(achievement_manager.track_event(
-                "game_won", 
-                mode=mode, 
-                score=score,
-                comeback=False  # TODO: Add comeback detection logic
-            ))
-    
-    # Log data using existing system
-    if result.get('valid_guess'):
-        # Create comprehensive guess data for the enhanced data collector
-        guess_data = {
-            'target_word': game_logic.current_target_word,
-            'target_token_id': game_logic.current_target_token_id,
-            'guess_word': guess_word,
-            'guess_token_id': result.get('guess_token_id'),
-            'distance': result.get('distance'),
-            'points': result.get('points'),
-            'round_number': game_logic.round_number,
-            'attempts_used': game_logic.current_attempts,
-            'feedback': result.get('feedback', ''),
-            'correct': result.get('correct', False)
-        }
-        data_collector.log_comprehensive_guess(guess_data)
-    
-    return jsonify({
-        'success': True,
-        'result': result,
-        'newly_unlocked_achievements': [
-            {
-                'id': ach.id,
-                'name': ach.name,
-                'description': ach.description,
-                'icon': ach.icon,
-                'category': ach.category
-            }
-            for ach in newly_unlocked
-        ]
-    })
+        }), 500
 
 @app.route('/api/get_hint', methods=['GET'])
 def get_hint():

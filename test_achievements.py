@@ -56,19 +56,13 @@ class TestAchievements(unittest.TestCase):
     
     def test_accuracy_achievements(self):
         """Test all accuracy-based achievements"""
-        # Test Perfect Shot (1 perfect)
-        self.achievement_manager.track_game_event("perfect_guess")
-        self.assertTrue(self.achievement_manager.achievements["perfect_shot"].unlocked)
+        # Test Perfect Guesser (10 perfect scores)
+        for i in range(10):
+            self.achievement_manager.track_perfect_guess()
         
-        # Test Sharpshooter (5 perfects)
-        for i in range(4):  # 4 more to reach 5 total
-            self.achievement_manager.track_game_event("perfect_guess")
-        self.assertTrue(self.achievement_manager.achievements["sharpshooter"].unlocked)
-        
-        # Test Marksman (10 perfects)
-        for i in range(5):  # 5 more to reach 10 total
-            self.achievement_manager.track_game_event("perfect_guess")
-        self.assertTrue(self.achievement_manager.achievements["marksman"].unlocked)
+        achievements = self.achievement_manager.get_unlocked_achievements()
+        perfect_guesser = next((a for a in achievements if a['id'] == 'perfect_guesser'), None)
+        self.assertIsNotNone(perfect_guesser, "Perfect Guesser achievement should be unlocked")
     
     def test_streak_achievements(self):
         """Test streak-based achievements"""

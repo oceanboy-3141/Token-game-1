@@ -74,6 +74,16 @@ const GAME_MODE_INFO = {
     }
 };
 
+// Mobile touch and gesture support
+let touchSupport = {
+    startX: 0,
+    startY: 0,
+    endX: 0,
+    endY: 0,
+    minSwipeDistance: 50,
+    isTouch: false
+};
+
 // Initialize the game
 function initializeGame() {
     console.log('🎮 Initializing Token Quest Web Version');
@@ -141,6 +151,10 @@ function initializeGame() {
     // Set up event listeners
     setupEventListeners();
     
+    // Initialize mobile support
+    initializeMobileSupport();
+    addMobileTouchCSS();
+    
     // Update initial display
     updateGameDisplay();
     
@@ -204,9 +218,261 @@ function setupEventListeners() {
     });
 }
 
+// Add mobile-specific enhancements
+function initializeMobileSupport() {
+    // Detect touch capability
+    touchSupport.isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    
+    if (touchSupport.isTouch) {
+        console.log('📱 Touch device detected - enabling mobile optimizations');
+        document.body.classList.add('touch-device');
+        
+        // Add touch event listeners for swipe gestures
+        setupSwipeGestures();
+        
+        // Enhance button feedback
+        enhanceTouchFeedback();
+        
+        // Optimize input behavior
+        optimizeInputsForMobile();
+        
+        // Add haptic feedback support
+        setupHapticFeedback();
+    }
+}
+
+function setupSwipeGestures() {
+    // Swipe to navigate hints
+    elements.hintModal.addEventListener('touchstart', handleTouchStart, { passive: true });
+    elements.hintModal.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    // Swipe on game cards for quick actions
+    if (elements.resultsCard) {
+        elements.resultsCard.addEventListener('touchstart', handleTouchStart, { passive: true });
+        elements.resultsCard.addEventListener('touchend', handleTouchEnd, { passive: true });
+    }
+}
+
+function handleTouchStart(e) {
+    const touch = e.touches[0];
+    touchSupport.startX = touch.clientX;
+    touchSupport.startY = touch.clientY;
+}
+
+function handleTouchEnd(e) {
+    const touch = e.changedTouches[0];
+    touchSupport.endX = touch.clientX;
+    touchSupport.endY = touch.clientY;
+    
+    const deltaX = touchSupport.endX - touchSupport.startX;
+    const deltaY = touchSupport.endY - touchSupport.startY;
+    
+    // Check if swipe distance is significant
+    if (Math.abs(deltaX) > touchSupport.minSwipeDistance && Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (deltaX > 0) {
+            // Swipe right
+            handleSwipeRight(e.target);
+        } else {
+            // Swipe left
+            handleSwipeLeft(e.target);
+        }
+    }
+}
+
+function handleSwipeRight(target) {
+    // If in hint modal, go to previous hint tab
+    if (elements.hintModal.style.display !== 'none') {
+        const currentTab = document.querySelector('.tab-btn.active');
+        const tabs = document.querySelectorAll('.tab-btn');
+        const currentIndex = Array.from(tabs).indexOf(currentTab);
+        if (currentIndex > 0) {
+            tabs[currentIndex - 1].click();
+            triggerHapticFeedback('light');
+        }
+    }
+}
+
+function handleSwipeLeft(target) {
+    // If in hint modal, go to next hint tab
+    if (elements.hintModal.style.display !== 'none') {
+        const currentTab = document.querySelector('.tab-btn.active');
+        const tabs = document.querySelectorAll('.tab-btn');
+        const currentIndex = Array.from(tabs).indexOf(currentTab);
+        if (currentIndex < tabs.length - 1) {
+            tabs[currentIndex + 1].click();
+            triggerHapticFeedback('light');
+        }
+    }
+}
+
+function enhanceTouchFeedback() {
+    // Add enhanced touch feedback to all interactive elements
+    const interactiveElements = document.querySelectorAll('.btn, .action-btn, .submit-button, .theme-btn, .mode-card');
+    
+    interactiveElements.forEach(element => {
+        element.addEventListener('touchstart', function() {
+            this.classList.add('touch-active');
+            triggerHapticFeedback('light');
+        }, { passive: true });
+        
+        element.addEventListener('touchend', function() {
+            setTimeout(() => {
+                this.classList.remove('touch-active');
+            }, 150);
+        }, { passive: true });
+        
+        element.addEventListener('touchcancel', function() {
+            this.classList.remove('touch-active');
+        }, { passive: true });
+    });
+}
+
+function optimizeInputsForMobile() {
+    // Prevent zoom on input focus (iOS)
+    elements.guessInput.addEventListener('focus', function() {
+        this.style.fontSize = '16px';
+    });
+    
+    // Add better mobile keyboard handling
+    elements.guessInput.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter' && touchSupport.isTouch) {
+            e.preventDefault();
+            this.blur(); // Hide mobile keyboard
+            if (elements.submitBtn && !elements.submitBtn.disabled) {
+                elements.submitBtn.click();
+            }
+        }
+    });
+    
+    // Smooth scroll to input when focused on mobile
+    elements.guessInput.addEventListener('focus', function() {
+        if (touchSupport.isTouch) {
+            setTimeout(() => {
+                this.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center',
+                    inline: 'nearest'
+                });
+            }, 300); // Wait for keyboard animation
+        }
+    });
+}
+
+function setupHapticFeedback() {
+    // Modern browsers with Vibration API
+    if ('vibrate' in navigator) {
+        console.log('📳 Haptic feedback supported');
+    }
+}
+
+function triggerHapticFeedback(type = 'light') {
+    if (!touchSupport.isTouch || !('vibrate' in navigator)) return;
+    
+    const patterns = {
+        light: [10],
+        medium: [20],
+        heavy: [30],
+        success: [10, 50, 10],
+        error: [50, 30, 50, 30, 50]
+    };
+    
+    navigator.vibrate(patterns[type] || patterns.light);
+}
+
+// Enhanced mobile-specific UI feedback
+function showMobileSuccessFeedback(message) {
+    const feedback = document.createElement('div');
+    feedback.className = 'success-feedback mobile-feedback';
+    feedback.textContent = message;
+    feedback.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        max-width: 90%;
+        text-align: center;
+    `;
+    
+    document.body.appendChild(feedback);
+    triggerHapticFeedback('success');
+    
+    setTimeout(() => {
+        feedback.style.opacity = '0';
+        setTimeout(() => feedback.remove(), 300);
+    }, 2000);
+}
+
+function showMobileErrorFeedback(message) {
+    const feedback = document.createElement('div');
+    feedback.className = 'error-feedback mobile-feedback';
+    feedback.textContent = message;
+    feedback.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        max-width: 90%;
+        text-align: center;
+    `;
+    
+    document.body.appendChild(feedback);
+    triggerHapticFeedback('error');
+    
+    setTimeout(() => {
+        feedback.style.opacity = '0';
+        setTimeout(() => feedback.remove(), 300);
+    }, 2000);
+}
+
+// Enhanced loading states for mobile
+function showMobileLoading(show, message = 'Loading...') {
+    const existingLoader = document.getElementById('mobile-loader');
+    
+    if (show) {
+        if (existingLoader) return;
+        
+        const loader = document.createElement('div');
+        loader.id = 'mobile-loader';
+        loader.innerHTML = `
+            <div class="mobile-loader-backdrop">
+                <div class="mobile-loader-content">
+                    <div class="loading-robot">🤖</div>
+                    <div class="loading-text">${message}</div>
+                </div>
+            </div>
+        `;
+        loader.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        
+        document.body.appendChild(loader);
+    } else {
+        if (existingLoader) {
+            existingLoader.style.opacity = '0';
+            setTimeout(() => existingLoader.remove(), 300);
+        }
+    }
+}
+
 async function startNewGame() {
     console.log('🚀 Starting new game...');
-    showLoading(true);
+    
+    if (touchSupport.isTouch) {
+        showMobileLoading(true, 'Starting new game...');
+        triggerHapticFeedback('medium');
+    } else {
+        showLoading(true);
+    }
     
     // Load game settings from localStorage
     const savedSettings = localStorage.getItem('game-settings');
@@ -271,16 +537,30 @@ async function startNewGame() {
             // Focus on input
             elements.guessInput.focus();
             
+            if (touchSupport.isTouch) {
+                showMobileSuccessFeedback('Game started! 🎮');
+            }
+            
         } else {
             console.error('❌ Failed to start game:', data);
             showError('Failed to start game: ' + (data.error || 'Unknown error'));
+            if (touchSupport.isTouch) {
+                showMobileErrorFeedback('Failed to start game');
+            }
         }
         
     } catch (error) {
         console.error('❌ Error starting game:', error);
         showError('Network error: Could not start game');
+        if (touchSupport.isTouch) {
+            showMobileErrorFeedback('Network error occurred');
+        }
     } finally {
-        showLoading(false);
+        if (touchSupport.isTouch) {
+            showMobileLoading(false);
+        } else {
+            showLoading(false);
+        }
     }
 }
 
@@ -292,7 +572,15 @@ async function submitGuess() {
     }
     
     console.log('🤔 Submitting guess:', guess);
-    showLoading(true);
+    
+    if (touchSupport.isTouch) {
+        triggerHapticFeedback('medium');
+        // Hide mobile keyboard
+        elements.guessInput.blur();
+        showMobileLoading(true, 'Processing guess...');
+    } else {
+        showLoading(true);
+    }
     
     try {
         const response = await fetch('/api/submit_guess', {
@@ -319,6 +607,9 @@ async function submitGuess() {
             
             if (data.result.correct) {
                 gameState.correctGuesses++;
+                if (touchSupport.isTouch) {
+                    triggerHapticFeedback('success');
+                }
             }
             
             // Show achievement notifications if any
@@ -375,6 +666,10 @@ async function submitGuess() {
             elements.submitBtn.disabled = true;
             elements.guessInput.focus();
             
+            if (touchSupport.isTouch) {
+                triggerHapticFeedback('error');
+            }
+            
             // Hide the error message after 3 seconds
             setTimeout(() => {
                 elements.resultsCard.style.display = 'none';
@@ -384,9 +679,66 @@ async function submitGuess() {
     } catch (error) {
         console.error('❌ Error submitting guess:', error);
         showError('Network error: Could not submit guess');
+        if (touchSupport.isTouch) {
+            showMobileErrorFeedback('Network error occurred');
+        }
     } finally {
-        showLoading(false);
+        if (touchSupport.isTouch) {
+            showMobileLoading(false);
+        } else {
+            showLoading(false);
+        }
     }
+}
+
+// Add CSS for touch states
+function addMobileTouchCSS() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .touch-device .touch-active {
+            transform: scale(0.95) !important;
+            opacity: 0.8 !important;
+        }
+        
+        .mobile-feedback {
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: opacity 0.3s ease;
+        }
+        
+        .mobile-loader-backdrop {
+            background: rgba(0,0,0,0.7);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mobile-loader-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            min-width: 200px;
+        }
+        
+        .loading-text {
+            margin-top: 1rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        @media (max-width: 480px) {
+            .mobile-loader-content {
+                margin: 0 1rem;
+                padding: 1.5rem;
+            }
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 async function startNextRound() {

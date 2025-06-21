@@ -1541,4 +1541,315 @@ body {
 }
 
 /* ===== ACHIEVEMENTS GRID LAYOUT ===== */
-/* Achievement cards are now handled in the template CSS for better organization */ 
+/* Achievement cards are now handled in the template CSS for better organization */
+
+/* ===== ENHANCED MOBILE TOUCH OPTIMIZATION ===== */
+
+/* Touch-friendly button sizing */
+.btn, .action-btn, .submit-button, .theme-btn, .mode-help-btn {
+    min-height: 44px; /* Apple's minimum touch target size */
+    min-width: 44px;
+    touch-action: manipulation; /* Prevents double-tap zoom */
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on iOS */
+}
+
+/* Enhanced touch feedback */
+.btn:active, .action-btn:active, .submit-button:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+}
+
+/* Improved input field touch interaction */
+.modern-input {
+    min-height: 48px; /* Larger touch target */
+    font-size: 16px; /* Prevents zoom on iOS */
+    -webkit-appearance: none; /* Remove iOS styling */
+    border-radius: 12px;
+}
+
+/* Touch-optimized game interface */
+.game-main-area {
+    touch-action: pan-y; /* Allow vertical scrolling only */
+}
+
+/* Swipe gesture support indicators */
+.swipe-hint {
+    position: relative;
+    overflow: hidden;
+}
+
+.swipe-hint::after {
+    content: '👈 Swipe for more';
+    position: absolute;
+    bottom: 5px;
+    right: 10px;
+    font-size: 0.8rem;
+    opacity: 0.6;
+    animation: swipeHintPulse 2s ease-in-out infinite;
+}
+
+@keyframes swipeHintPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* Enhanced mobile responsiveness */
+@media (max-width: 480px) {
+    /* Ultra-mobile optimizations */
+    .beautiful-game-container {
+        padding: 1rem 0.5rem;
+        gap: 1rem;
+    }
+    
+    .game-status-bar {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem 0.5rem;
+    }
+    
+    .status-item-modern {
+        min-width: calc(50% - 0.25rem);
+        padding: 0.75rem;
+    }
+    
+    .target-word-display {
+        font-size: 1.8rem !important;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        word-break: break-word;
+    }
+    
+    .game-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 1rem;
+        font-size: 1rem;
+    }
+    
+    .input-container {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .modern-input {
+        width: 100%;
+        text-align: center;
+        font-size: 1.1rem;
+        padding: 1rem;
+    }
+    
+    .submit-button {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 12px;
+        font-size: 1.1rem;
+    }
+    
+    /* Mobile-first mode cards */
+    .mode-card {
+        padding: 1.5rem 1rem;
+        text-align: center;
+    }
+    
+    .mode-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .mode-title {
+        font-size: 1.2rem;
+    }
+    
+    .mode-description {
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 768px) {
+    .home-title {
+        font-size: 2.5rem;
+    }
+    
+    .game-modes {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .app-main {
+        padding: 1rem;
+    }
+    
+    .setup-container, .home-container {
+        padding: 2rem 1rem;
+    }
+    
+    .theme-picker {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Enhanced mobile game interface */
+    .game-mode-display {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem 1rem;
+        gap: 1rem;
+    }
+    
+    .mode-indicator {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .mode-details {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .mode-icon {
+        font-size: 2rem;
+        width: 50px;
+        height: 50px;
+    }
+    
+    .mode-name {
+        font-size: 1.3rem;
+        text-align: center;
+    }
+    
+    .game-main-area {
+        gap: 1.5rem;
+    }
+    
+    .game-status-bar {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+    
+    .target-word-display {
+        font-size: 2rem;
+        padding: 2rem 1rem;
+        text-align: center;
+    }
+    
+    .input-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .modern-input {
+        width: 100%;
+        font-size: 1rem;
+        padding: 0.875rem;
+        text-align: center;
+    }
+    
+    .submit-button {
+        width: 100%;
+        padding: 0.875rem;
+        border-radius: 12px;
+    }
+    
+    /* Mobile action buttons */
+    .game-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .action-btn {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+        justify-content: center;
+    }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+/* Hardware acceleration for smooth animations */
+.mode-card, .btn, .action-btn, .submit-button, .game-mode-display {
+    will-change: transform;
+    transform: translateZ(0); /* Force hardware acceleration */
+}
+
+/* Optimized animations with reduced motion respect */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Optimized focus states for accessibility */
+.btn:focus-visible, .action-btn:focus-visible, .modern-input:focus-visible {
+    outline: 3px solid var(--primary-start);
+    outline-offset: 2px;
+}
+
+/* Touch-friendly modal interactions */
+.modal {
+    -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
+}
+
+.modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 5% auto;
+        width: 95%;
+        max-width: none;
+        border-radius: 20px;
+    }
+}
+
+/* ===== VISUAL ENHANCEMENTS ===== */
+
+/* Smooth loading states */
+.loading-state {
+    opacity: 0.7;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+/* Enhanced visual feedback */
+.success-feedback {
+    background: linear-gradient(135deg, var(--success-start), var(--success-end));
+    color: white;
+    padding: 1rem;
+    border-radius: 12px;
+    animation: successPulse 0.6s ease-out;
+}
+
+@keyframes successPulse {
+    0% { transform: scale(0.9); opacity: 0; }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.error-feedback {
+    background: linear-gradient(135deg, var(--error-start), var(--error-end));
+    color: white;
+    padding: 1rem;
+    border-radius: 12px;
+    animation: errorShake 0.6s ease-out;
+}
+
+@keyframes errorShake {
+    0%, 20%, 40%, 60%, 80% { transform: translateX(0); }
+    10%, 30%, 50%, 70% { transform: translateX(-5px); }
+    15%, 35%, 55%, 75% { transform: translateX(5px); }
+} 

@@ -1,28 +1,23 @@
 {
-    "name": "Token Quest",
-    "short_name": "TokenQuest",
-    "description": "Educational Token ID guessing game - Find words with similar token IDs!",
+    "name": "Token Quest - AI Language Game",
+    "short_name": "Token Quest",
+    "description": "Master tokenization through engaging gameplay and research",
     "icons": [
         {
-            "src": "/static/android-chrome-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "/static/android-chrome-512x512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        },
-        {
-            "src": "/static/apple-touch-icon.png",
-            "sizes": "180x180",
-            "type": "image/png"
+            "src": "favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "maskable any"
         }
     ],
-    "theme_color": "#DAA520",
-    "background_color": "#FFF8DC",
-    "display": "standalone",
     "start_url": "/",
+    "display": "standalone",
+    "theme_color": "#00b4db",
+    "background_color": "#ffffff",
+    "orientation": "portrait-primary",
+    "categories": ["games", "education", "entertainment"],
+    "lang": "en",
+    "dir": "ltr",
     "scope": "/",
-    "orientation": "portrait-primary"
+    "prefer_related_applications": false
 } 
